@@ -42,7 +42,7 @@ const FString& FFaceFxEditorTools::GetFaceFXStudioPath()
 const FString& FFaceFxEditorTools::GetFaceFXCompilerPath()
 {
 	//default compiler path
-	static FString faceFxPath = TEXT("Binaries/ThirdParty/FaceFX/tools/compiler/bin/windows/vs11/x64/Release/ffxc.exe");
+	static FString faceFxPath = FString(TEXT("Runtime/FaceFX/Source/FaceFxLib/")) + TEXT(FACEFX_RUNTIMEFOLDER) + TEXT("/tools/compiler/bin/windows/vs11/x64/Release/ffxc.exe");
 	
 	static bool isLoaded = false;
 	if(!isLoaded)
@@ -50,7 +50,7 @@ const FString& FFaceFxEditorTools::GetFaceFXCompilerPath()
 		//try once to fetch overrides from engine ini
 		GConfig->GetString(FACEFX_CONFIG_NS, TEXT("CompilerPathRelative"), faceFxPath, GEngineIni);
 
-		faceFxPath = FPaths::ConvertRelativePathToFull(FPaths::EngineDir() / faceFxPath);
+		faceFxPath = FPaths::ConvertRelativePathToFull(FPaths::EnginePluginsDir() / faceFxPath);
 		isLoaded = true;
 	}
 
