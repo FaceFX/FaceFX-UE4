@@ -27,6 +27,6 @@
 *.out
 *.app
 
-# FaceFX Runtime binaries
-UE4/Engine/Source/ThirdParty/FaceFxLib/FaceFx-0.9.10/*
-UE4/Engine/Binaries/ThirdParty/FaceFX/*
+# FaceFX Runtime & Build binaries
+/UE4/Engine/Plugins/Runtime/FaceFX/Binaries
+/UE4/Engine/Plugins/Runtime/FaceFX/Source/FaceFxLib/FaceFx-0.9.10
