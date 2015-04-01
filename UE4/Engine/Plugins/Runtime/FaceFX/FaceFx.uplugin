@@ -1,0 +1,27 @@
+{
+	"FileVersion" : 1,
+
+	"FriendlyName" : "FaceFX Plugin",
+	"Version" : 1,
+	"VersionName" : "1.0",
+	"CreatedBy" : "OC3",
+	"CreatedByURL" : "http://facefx.com/",
+	"EngineVersion" : "4.7.0",
+	"Description" : "Support for facial animations powered by FaceFX",
+	"Category" : "FaceFX",
+	"EnabledByDefault" : true,
+	"CanContainContent" : true,
+
+	"Modules" :
+	[
+		{
+			"Name" : "FaceFx",
+			"Type" : "Runtime",
+			"WhitelistPlatforms" : [ "Win64", "Win32", "PS4", "XboxOne" ]
+		},
+		{
+			"Name" : "FaceFxEditor",
+			"Type" : "Editor"
+		}
+	]
+}
