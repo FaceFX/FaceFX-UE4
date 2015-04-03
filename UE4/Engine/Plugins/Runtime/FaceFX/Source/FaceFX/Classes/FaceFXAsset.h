@@ -1,0 +1,125 @@
+#pragma once
+
+#include "FaceFXAsset.generated.h"
+
+/** Base of all FaceFX assets */
+UCLASS(Abstract, hideCategories=Object)
+class FACEFX_API UFaceFXAsset : public UObject
+{
+	GENERATED_UCLASS_BODY()
+
+public:
+
+#if WITH_EDITOR
+
+	friend struct FFaceFXEditorTools;
+
+	/**
+	* Gets the number of animations which are encapsulated in this asset
+	* @return The animation count
+	*/
+	virtual int32 GetAnimationCount() const { checkf("Not implemented"); return 0; }
+
+	/**
+	* Gets the details in a human readable string representation
+	* @param OutDetails The resulting details string
+	*/
+	virtual void GetDetails(FString& OutDetails) const { checkf("Not implemented"); }
+
+	/**
+	* Sets the asset sources
+	* @param InAssetName The name of the asset to set
+	* @param InAssetFolder The folder path to set
+	*/
+	inline void SetSources(const FString& InAssetName, const FString& InAssetFolder)
+	{
+		AssetName = InAssetName;
+		AssetFolder = InAssetFolder;
+	}
+
+#endif
+
+	/**
+	* Checks if this face fx data asset it valid
+	* @returns True if valid, else false
+	*/
+	virtual bool IsValid() const
+	{
+		return IsAssetPathSet();
+	}
+
+	/**
+	* Gets the indicator if the asset paths are set
+	* @returns True if both the folder and asset are set
+	*/
+	inline bool IsAssetPathSet() const
+	{
+		return !AssetFolder.IsEmpty() && !AssetName.IsEmpty();
+	}
+
+	/** 
+	* Gets the relative path to the source asset
+	* @returns The path to the asset
+	*/
+	inline FString GetAssetPath() const
+	{
+		return AssetFolder / (AssetName + TEXT(".facefx"));
+	}
+
+	/** 
+	* Gets the absolute path to the source asset
+	* @returns The path to the asset
+	*/
+	inline FString GetAssetPathAbsolute() const
+	{
+		return FPaths::ConvertRelativePathToFull(GetAssetPath());
+	}
+
+	/**
+	* Gets the relative source asset folder
+	* @returns The relative folder
+	*/
+	inline const FString& GetAssetFolder() const
+	{
+		return AssetFolder;
+	}
+
+	/**
+	* Gets the absolute source asset folder
+	* @returns The absolute folder
+	*/
+	inline FString GetAssetFolderAbsolute() const
+	{
+		return FPaths::ConvertRelativePathToFull(AssetFolder);
+	}
+
+	/**
+	* Gets the source asset name
+	* @returns The name
+	*/
+	inline const FString& GetAssetName() const
+	{
+		return AssetName;
+	}
+
+protected:
+
+	/** The absolute path to the asset source files*/
+	UPROPERTY(EditInstanceOnly, Category=FaceFX)
+	FString AssetFolder;
+
+	/** The name of the asset. Used to build filenames (i.e. <name>.facefx)*/
+	UPROPERTY(EditInstanceOnly, Category=FaceFX)
+	FString AssetName;
+
+#if WITH_EDITOR
+
+	/** 
+	* Clear platform specific data based on the target Archive platform
+	* @param Ar The archive to use
+	* @param platformData The data to clear
+	*/
+	template <typename T> void ClearPlatformData(const class FArchive& Ar, T& platformData);
+
+#endif
+};
