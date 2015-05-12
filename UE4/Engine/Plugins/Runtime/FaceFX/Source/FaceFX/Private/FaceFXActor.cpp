@@ -1,18 +1,14 @@
 /*******************************************************************************
   The MIT License (MIT)
-
   Copyright (c) 2015 OC3 Entertainment, Inc.
-
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
-
   The above copyright notice and this permission notice shall be included in all
   copies or substantial portions of the Software.
-
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,27 +26,39 @@ UFaceFXActor::UFaceFXActor(const class FObjectInitializer& PCIP) : Super(PCIP)
 {
 }
 
-const FFaceFXAnimData* UFaceFXActor::GetAnimation(const FName& AnimGroup, const FName& AnimName) const
+SIZE_T UFaceFXActor::GetResourceSize(EResourceSizeMode::Type Mode)
 {
-	const bool IsNoneGroup = AnimGroup.IsNone();
+	SIZE_T ResSize = Super::GetResourceSize(Mode);
 
-	for(auto AnimSet : AnimationSets)
+	//only count cooked data without any references
+	if(Mode == EResourceSizeMode::Exclusive)
 	{
-		if(AnimSet && (IsNoneGroup || *AnimSet == AnimGroup))
+		if(PlatformData.Num() > 0)
 		{
-			auto Result = AnimSet->FindAnimation(AnimName);
-			if(IsNoneGroup && !Result)
-			{
-				//animation not found and no group specified -> look further
-				continue;
-			}
-			return Result;
+			//take the first entry as an approximation
+			const FFaceFXActorData& Data = PlatformData[0];
+			ResSize += Data.ActorRawData.Num() * Data.ActorRawData.GetTypeSize();
+			ResSize += Data.BonesRawData.Num() * Data.BonesRawData.GetTypeSize();
+			ResSize += Data.Ids.Num() * Data.Ids.GetTypeSize();
 		}
 	}
-	return nullptr;
+	else
+	{
+#if FACEFX_USEANIMATIONLINKAGE
+		for(UFaceFXAnim* Anim : Animations)
+		{
+			if(Anim)
+			{
+				ResSize += Anim->GetResourceSize(Mode);
+			}
+		}
+#endif
+	}
+
+	return ResSize;
 }
 
-#if WITH_EDITOR
+#if WITH_EDITORONLY_DATA
 
 void UFaceFXActor::Serialize(FArchive& Ar)
 {
@@ -61,32 +69,22 @@ void UFaceFXActor::Serialize(FArchive& Ar)
 			ClearPlatformData(Ar, PlatformData);
 		}
 
+#if FACEFX_USEANIMATIONLINKAGE
 		//cleanup references to deleted assets
-		for(int32 i=AnimationSets.Num()-1; i>=0; --i)
+		for(int32 i=Animations.Num()-1; i>=0; --i)
 		{
-			if(!AnimationSets[i])
+			if(!Animations[i])
 			{
-				AnimationSets.RemoveAt(i);
+				Animations.RemoveAt(i);
 			}
 		}
+#else
+		//clean all animation data
+		Animations.Empty();
+#endif //FACEFX_USEANIMATIONLINKAGE
 	}
 
 	Super::Serialize(Ar);
-}
-
-#endif //WITH_EDITOR
-
-int32 UFaceFXActor::GetAnimationCount() const
-{
-	int32 Result = 0;
-	for(auto AnimSet : AnimationSets)
-	{
-		if(AnimSet)
-		{
-			Result += AnimSet->GetAnimationCount();
-		}
-	}
-	return Result;
 }
 
 /** 
@@ -97,7 +95,7 @@ void UFaceFXActor::GetDetails(FString& OutDetails) const
 {
 	const bool bIsValid = IsValid();
 
-	OutDetails = LOCTEXT("DetailsSetHeader", "FaceFX Set").ToString() + TEXT("\n\n");
+	OutDetails = LOCTEXT("DetailsActorHeader", "FaceFX Actor").ToString() + TEXT("\n\n");
 	OutDetails += LOCTEXT("DetailsSource", "Source: ").ToString() + AssetName + TEXT("\n");
 	
 	if(bIsValid)
@@ -105,24 +103,25 @@ void UFaceFXActor::GetDetails(FString& OutDetails) const
 		const int32 EstSize = GetData().ActorRawData.Max() + GetData().BonesRawData.Max() + GetData().Ids.GetTypeSize() * GetData().Ids.Max();
 		OutDetails += LOCTEXT("DetailsSize", "Estimated Size: ").ToString() + FString::FromInt(EstSize) + TEXT(" Bytes\n");
 	}
-	OutDetails += LOCTEXT("DetailsAnimations", "Animation Count: ").ToString() + FString::FromInt(GetAnimationCount()) + TEXT("\n\n");
 
-
+#if FACEFX_USEANIMATIONLINKAGE
 	//Animation references
 	TArray<FString> AnimRefs;
-	for(UFaceFXAnimSet* AnimRef : AnimationSets)
+	for(UFaceFXAnim* AnimRef : Animations)
 	{
 		if(AnimRef)
 	{
-			AnimRefs.Add(AnimRef->GetName());
+			AnimRefs.Add(AnimRef->GetId().GetIdString());
 		}
 	}
+
+	OutDetails += TEXT("\n");
 
 	if(AnimRefs.Num() > 0)
 	{
 		AnimRefs.Sort();
 
-		OutDetails += LOCTEXT("DetailsSetAnimRefs", "Animation References").ToString() + FString::Printf(TEXT(" (%i)\n"), AnimRefs.Num());
+		OutDetails += LOCTEXT("DetailsActorAnimRefs", "Animation References").ToString() + FString::Printf(TEXT(" (%i)\n"), AnimRefs.Num());
 		OutDetails += TEXT("-----------------------------\n");
 		for(auto& AnimRef : AnimRefs)
 		{
@@ -131,6 +130,8 @@ void UFaceFXActor::GetDetails(FString& OutDetails) const
 
 		OutDetails += TEXT("\n");
 	}
+
+#endif //FACEFX_USEANIMATIONLINKAGE
 
 	//Ids
 	if(bIsValid)
@@ -160,9 +161,49 @@ void UFaceFXActor::GetDetails(FString& OutDetails) const
 	}
 }
 
+#endif //WITH_EDITORONLY_DATA
+
+#if WITH_EDITORONLY_DATA && FACEFX_USEANIMATIONLINKAGE
+
+int32 UFaceFXActor::GetAnimationCount() const
+{
+	int32 Result = 0;
+	for(auto AnimSet : Animations)
+	{
+		if(AnimSet)
+		{
+			Result += AnimSet->GetAnimationCount();
+		}
+	}
+	return Result;
+}
+
+#endif //WITH_EDITORONLY_DATA && FACEFX_USEANIMATIONLINKAGE
+
+#if FACEFX_USEANIMATIONLINKAGE
+
+const UFaceFXAnim* UFaceFXActor::GetAnimation(const FName& AnimGroup, const FName& AnimName) const
+{
+	const bool IsNoneGroup = AnimGroup.IsNone();
+
+	for(auto Animation : Animations)
+	{
+		if(Animation && (IsNoneGroup || Animation->GetGroup() == AnimGroup))
+		{
+			if(IsNoneGroup && Animation->GetName() != AnimName)
+			{
+				//animation not found and no group specified -> look further
+				continue;
+			}
+			return Animation;
+		}
+	}
+	return nullptr;
+}
+
 void UFaceFXActor::GetAnimationGroups(TArray<FName>& OutGroups) const
 {
-	for(auto AnimSet : AnimationSets)
+	for(auto AnimSet : Animations)
 	{
 		if(AnimSet)
 		{
@@ -171,16 +212,6 @@ void UFaceFXActor::GetAnimationGroups(TArray<FName>& OutGroups) const
 	}
 }
 
-UFaceFXAnimSet* UFaceFXActor::GetAnimationSet(const FName& Group) const
-{
-	for(auto AnimSet : AnimationSets)
-	{
-		if(AnimSet && *AnimSet == Group)
-		{
-			return AnimSet;
-		}
-	}
-	return nullptr;
-}
+#endif //FACEFX_USEANIMATIONLINKAGE
 
 #undef LOCTEXT_NAMESPACE

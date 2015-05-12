@@ -1,18 +1,14 @@
 /*******************************************************************************
   The MIT License (MIT)
-
   Copyright (c) 2015 OC3 Entertainment, Inc.
-
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
-
   The above copyright notice and this permission notice shall be included in all
   copies or substantial portions of the Software.
-
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -97,6 +93,7 @@ void FAssetTypeActions_FaceFXActor::GetActions( const TArray<UObject*>& InObject
 		)
 		);
 
+#if FACEFX_USEANIMATIONLINKAGE
 	MenuBuilder.AddMenuEntry(
 		LOCTEXT("Asset_LinkFXActor","Link FaceFX Anim Set"),
 		LOCTEXT("Asset_LinkFXActorTooltip", "Links an existing FaceFX anim set asset with this FaceFX actor."),
@@ -114,6 +111,7 @@ void FAssetTypeActions_FaceFXActor::GetActions( const TArray<UObject*>& InObject
 		FExecuteAction::CreateSP( this, &FAssetTypeActions_FaceFXActor::ExecuteUnlink, GetTypedWeakObjectPtrs<UObject>(InObjects) )
 		)
 		);
+#endif //FACEFX_USEANIMATIONLINKAGE
 }
 
 /** Determine if we can edit assets */
@@ -140,11 +138,13 @@ void FAssetTypeActions_FaceFXActor::ExecuteEdit(TArray< TWeakObjectPtr<UObject> 
 	}
 }
 
+#if FACEFX_USEANIMATIONLINKAGE
+
 void FAssetTypeActions_FaceFXActor::ExecuteLink(TArray<TWeakObjectPtr<UObject>> Objects)
 {
 	FOpenAssetDialogConfig OpenConfig;
 	OpenConfig.DialogTitleOverride = LOCTEXT("Asset_LinkFXActorSelectTitle","Select Anim Set Asset To Link");
-	OpenConfig.AssetClassNames.Add(UFaceFXAnimSet::StaticClass()->GetFName());
+	OpenConfig.AssetClassNames.Add(UFaceFXAnim::StaticClass()->GetFName());
 	OpenConfig.bAllowMultipleSelection = true;
 	
 	FContentBrowserModule& ContentBrowserModule = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
@@ -166,7 +166,7 @@ void FAssetTypeActions_FaceFXActor::OnAssetLinkChosen(const TArray<FAssetData>& 
 
 			for(const FAssetData& Asset : SelectedAssets)
 			{
-				if(UFaceFXAnimSet* AnimSet = Cast<UFaceFXAnimSet>(Asset.GetAsset()))
+				if(UFaceFXAnim* AnimSet = Cast<UFaceFXAnim>(Asset.GetAsset()))
 				{
 					FaceFXActor->LinkTo(AnimSet);
 					bHasChanged = true;
@@ -186,7 +186,7 @@ void FAssetTypeActions_FaceFXActor::ExecuteUnlink(TArray<TWeakObjectPtr<UObject>
 {
 	FOpenAssetDialogConfig openConfig;
 	openConfig.DialogTitleOverride = LOCTEXT("Asset_UnlinkFXActorSelectTitle","Select Anim Set Asset To Unlink from");
-	openConfig.AssetClassNames.Add(UFaceFXAnimSet::StaticClass()->GetFName());
+	openConfig.AssetClassNames.Add(UFaceFXAnim::StaticClass()->GetFName());
 	openConfig.bAllowMultipleSelection = true;
 
 	FContentBrowserModule& contentBrowserModule = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
@@ -209,7 +209,7 @@ void FAssetTypeActions_FaceFXActor::OnAssetUnlinkChosen(const TArray<FAssetData>
 
 			for(const FAssetData& Asset : selectedAssets)
 			{
-				if(UFaceFXAnimSet* AnimSet = Cast<UFaceFXAnimSet>(Asset.GetAsset()))
+				if(UFaceFXAnim* AnimSet = Cast<UFaceFXAnim>(Asset.GetAsset()))
 				{
 					bHasChanged |= FaceFXActor->UnlinkFrom(AnimSet);
 				}
@@ -222,6 +222,8 @@ void FAssetTypeActions_FaceFXActor::OnAssetUnlinkChosen(const TArray<FAssetData>
 		}
 	}
 }
+
+#endif //FACEFX_USEANIMATIONLINKAGE
 
 void FAssetTypeActions_FaceFXActor::OpenAssetEditor( const TArray<UObject*>& InObjects, TSharedPtr<IToolkitHost> EditWithinLevelEditor )
 {

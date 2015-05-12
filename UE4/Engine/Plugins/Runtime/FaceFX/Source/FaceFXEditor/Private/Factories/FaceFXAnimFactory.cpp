@@ -1,18 +1,14 @@
 /*******************************************************************************
   The MIT License (MIT)
-
   Copyright (c) 2015 OC3 Entertainment, Inc.
-
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
-
   The above copyright notice and this permission notice shall be included in all
   copies or substantial portions of the Software.
-
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,24 +18,29 @@
   SOFTWARE.
 *******************************************************************************/
 
-#pragma once
+#include "FaceFXEditor.h"
+#include "Factories/FaceFXAnimFactory.h"
+#include "Factories/FaceFXActorFactory.h"
+#include "FaceFXAnim.h"
 
-#include "IAssetTypeActions.h"
-#include "FaceFXAnimSetFactory.generated.h"
-
-UCLASS(hidecategories=Object)
-class UFaceFXAnimSetFactory : public UFactory
+UFaceFXAnimFactory::UFaceFXAnimFactory(const class FObjectInitializer& PCIP)
+	: Super(PCIP), bOnlyCreate(false)
 {
-	GENERATED_UCLASS_BODY()
+	SupportedClass = UFaceFXAnim::StaticClass();
+	bCreateNew = true;
+	bEditorImport = true;
+	bText = false;
 
-	virtual UObject* FactoryCreateNew(UClass* Class,UObject* InParent,FName Name,EObjectFlags Flags,UObject* Context,FFeedbackContext* Warn) override;
-	virtual uint32 GetMenuCategories() const override { return EAssetTypeCategories::Animation; }
-	virtual FName GetNewAssetThumbnailOverride() const override
+	Formats.Add(TEXT("ffxanim;FaceFX Animation Asset"));
+}
+
+UObject* UFaceFXAnimFactory::FactoryCreateNew(UClass* Class, UObject* InParent, FName Name, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn)
+{
+	if(bOnlyCreate)
 	{
-		static const FName Thumbnail(TEXT("FaceFXStyle.AssetFXAnimSet"));
-		return Thumbnail;
+		return NewObject<UFaceFXAsset>(InParent, Class, Name, Flags);
 	}
 
-	/** Indicator if we only want to create a new asset without actually loading the content */
-	uint8 bOnlyCreate : 1;
-};
+	//pass along the current filename to support drag'n'drop support of .ffanim files. Will be handled specifically inside UFaceFXActorFactory::OnPreInit
+	return UFaceFXActorFactory::CreateNew(Class, InParent, Name, Flags, FCompilationBeforeDeletionDelegate(), GetCurrentFilename());
+}

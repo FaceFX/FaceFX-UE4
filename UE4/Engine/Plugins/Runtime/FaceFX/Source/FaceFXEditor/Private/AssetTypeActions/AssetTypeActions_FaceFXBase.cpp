@@ -1,18 +1,14 @@
 /*******************************************************************************
   The MIT License (MIT)
-
   Copyright (c) 2015 OC3 Entertainment, Inc.
-
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
-
   The above copyright notice and this permission notice shall be included in all
   copies or substantial portions of the Software.
-
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,6 +21,8 @@
 #include "FaceFXEditor.h"
 #include "FaceFX.h"
 #include "AssetTypeActions_FaceFXBase.h"
+#include "Factories/FaceFxActorFactory.h"
+#include "Include/Slate/FaceFXResultWidget.h"
 
 #include "UnrealEd.h"
 #include "MainFrame.h"
@@ -65,7 +63,7 @@ void FAssetTypeActions_FaceFXBase::ShowInfo(const FText& msg)
 /** Determine if we can recompile assets */
 bool FAssetTypeActions_FaceFXBase::CanExecuteReimport(const TArray<UObject*> Objects) const
 {
-	return FFaceFXEditorTools::IsFaceFXCompilerInstalled();
+	return true;
 }
 
 /** Determine if we can set a new source */
@@ -118,7 +116,7 @@ void FAssetTypeActions_FaceFXBase::ExecuteSetSource(TArray<TWeakObjectPtr<UObjec
 
 		//query for files
 		TArray<FString> Files;
-		DesktopPlatform->OpenFileDialog(ParentWindowWindowHandle, "Select FaceFX Asset", "", FaceFXAsset->GetAssetPathAbsolute(), "FaceFX Asset (*.facefx)|*.facefx;", EFileDialogFlags::None, Files);
+		DesktopPlatform->OpenFileDialog(ParentWindowWindowHandle, LOCTEXT("OpenAssetTitle", "Select FaceFX Asset").ToString(), TEXT(""), FaceFXAsset->GetAssetPathAbsolute(), FACEFX_FILEFILTER_ASSET_ACTOR, EFileDialogFlags::None, Files);
 
 		if(Files.Num() <= 0)
 		{
@@ -127,17 +125,17 @@ void FAssetTypeActions_FaceFXBase::ExecuteSetSource(TArray<TWeakObjectPtr<UObjec
 			return;
 		}
 
+		if(UFaceFXAnim* FaceFXAnim = Cast<UFaceFXAnim>(FaceFXAsset))
+		{
+			//remove previous animation id in case of an UFaceFXAnim so the init phase will ask the user for an animation of the new source
+			FaceFXAnim->GetId().Reset();
+		}		
+
 		//assign new file and reimport
-		FString ErrorMsg;
-		if(FFaceFXEditorTools::InitializeFromFile(FaceFXAsset, Files[0], &ErrorMsg))
-		{
-			ShowInfo(FText::FromString(FString::Printf(*LOCTEXT("SetSourceSuccess", "Relink and compilation of FaceFX Set successfully completed. %s").ToString(), *ErrorMsg)));
-		}
-		else
-		{
-			//initialization failed
-			ShowError(FText::FromString(FString::Printf(*LOCTEXT("SetSourceFailedInit", "Initialization of FaceFX Set failed. %s").ToString(), *ErrorMsg)));
-		}
+		FFaceFXImportResultSet ResultSet;
+		FFaceFXEditorTools::InitializeFromFile(FaceFXAsset, Files[0], ResultSet.GetOrAdd(FaceFXAsset));
+
+		FFaceFXResultWidget::Create(LOCTEXT("ShowSetSourceResultTitle", "Set Source Result"), ResultSet);
 	}
 	else
 	{
@@ -149,36 +147,28 @@ void FAssetTypeActions_FaceFXBase::ExecuteSetSource(TArray<TWeakObjectPtr<UObjec
 /** Handler for when Reimport is selected */
 void FAssetTypeActions_FaceFXBase::ExecuteReimport(TArray<TWeakObjectPtr<UObject>> Objects)
 {
-	bool bAnyError = false;
-
 	TArray<UFaceFXAsset*> SucceedAssets;
 
 	GWarn->BeginSlowTask(LOCTEXT("ReimportProgress", "Reimporting FaceFX Assets..."), true);
 	int32 progress = 0;
 
+	//The whole result set
+	FFaceFXImportResultSet ResultSet;
+
 	for (const TWeakObjectPtr<UObject>& Object : Objects)
 	{
 		if(UFaceFXAsset* FaceFXAsset = Cast<UFaceFXAsset>(Object.Get()))
 		{
+			FFaceFXImportResult& Result = ResultSet.GetOrAdd(FaceFXAsset);
+			
 			FCompilationBeforeDeletionDelegate DeletionDelegate;
-			if(FaceFXAsset->IsA(UFaceFXActor::StaticClass()))
+			if(FaceFXAsset->IsA(UFaceFXActor::StaticClass()) && FFaceFXEditorTools::IsImportAnimationOnActorImport())
 			{
 				//actor assets may lead to changed animation sets
 				DeletionDelegate = FCompilationBeforeDeletionDelegate::CreateRaw(this, &FAssetTypeActions_FaceFXBase::OnReimportBeforeDelete);
 			}
 
-			FString ErrMsg;
-			if(FFaceFXEditorTools::ReImportFaceFXAsset(FaceFXAsset, &ErrMsg, DeletionDelegate))
-			{
-				//success
-				SucceedAssets.Add(FaceFXAsset);
-			}
-			else
-			{
-				//failure
-				ShowError(FText::FromString(ErrMsg));
-				bAnyError = true;
-			}
+			FFaceFXEditorTools::ReImportFaceFXAsset(FaceFXAsset, Result, DeletionDelegate);
 		}
 
 		GWarn->UpdateProgress(++progress, Objects.Num());
@@ -186,162 +176,14 @@ void FAssetTypeActions_FaceFXBase::ExecuteReimport(TArray<TWeakObjectPtr<UObject
 
 	GWarn->EndSlowTask();
 
-	if(!bAnyError)
-	{
-		if(SucceedAssets.Num() > 1)
-		{
-			ShowInfo(FText::FromString(FString::Printf(*LOCTEXT("ReimportSuccess","Reimporting %i assets successfully completed.").ToString(), Objects.Num() )));
-		}
-		else if(SucceedAssets.Num() == 1)
-		{
-			ShowInfo(FText::FromString(FString::Printf(*LOCTEXT("ReimportSuccessSingle","Reimporting asset successfully completed. (%i animations)").ToString(), SucceedAssets[0]->GetAnimationCount())));
-		}
-	}
+	FFaceFXResultWidget::Create(LOCTEXT("ShowReimportResultTitle", "Reimport Result"), ResultSet);
 }
 
-void FAssetTypeActions_FaceFXBase::OnReimportBeforeDelete(class UObject* Asset, const FString& CompilationFolder, bool LoadResult)
+void FAssetTypeActions_FaceFXBase::OnReimportBeforeDelete(class UObject* Asset, const FString& CompilationFolder, bool LoadResult, FFaceFXImportResult& OutResultMessages)
 {
 	if(LoadResult)
 	{
-		UFaceFXActor* FaceFXActor = CastChecked<UFaceFXActor>(Asset);
-
-		//asset successfully loaded -> get all anim groups and diff to existing asset
-		TArray<FString> AnimGroups;
-		if(FFaceFXEditorTools::GetAnimationGroupsInFolder(CompilationFolder, EFaceFXTargetPlatform::PC, AnimGroups))
-		{
-			TArray<FName> ActorAnimGroups;
-			FaceFXActor->GetAnimationGroups(ActorAnimGroups);
-
-			//collect all deleted groups
-			FString AddedGroupsS;
-			FString DeletedGroupsS;
-			FString ExistingGroupsS;
-			TArray<FString> DeletedGroups;
-			TArray<FString> AddedGroups;
-			TArray<FString> ExistingGroups;
-			for(auto& Group : AnimGroups)
-			{
-				if(!ActorAnimGroups.Contains(FName(*Group)))
-				{
-					AddedGroups.Add(Group);
-					AddedGroupsS += Group + TEXT("\n");
-				}
-				else
-				{
-					ExistingGroups.Add(Group);
-					ExistingGroupsS += Group + TEXT("\n");
-				}
-			}
-
-			for(auto& Group : ActorAnimGroups)
-			{
-				const FString GroupS = Group.GetPlainNameString();
-				if(!AnimGroups.Contains(GroupS))
-				{
-					DeletedGroups.Add(GroupS);
-					DeletedGroupsS += GroupS + TEXT("\n");
-				}
-			}
-
-			if(AddedGroups.Num() > 0)
-			{
-				//new anim sets available -> add for creation/link
-				FFormatNamedArguments TitleArgs;
-				TitleArgs.Add(TEXT("Asset"), FText::FromString(FaceFXActor->GetName()));
-
-				const FText Title = FText::Format(LOCTEXT("ReimportFXActorAddedAnimationTitle", "Import Added Animation Groups [{Asset}]"), TitleArgs);
-
-				FFormatNamedArguments Args;
-				Args.Add(TEXT("Groups"), FText::FromString(AddedGroupsS));
-
-				const EAppReturnType::Type Result = FMessageDialog::Open(EAppMsgType::YesNo,
-					FText::Format(LOCTEXT("ReimportFXActorAddedMessage", "Do you want to automatically import the unlinked animation groups and link them to this actor asset ?\n\nGroups:\n{Groups}"), Args),
-					&Title);
-
-				if(Result == EAppReturnType::Yes)
-				{
-					FAssetToolsModule& AssetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools");
-					auto& AssetTools = AssetToolsModule.Get();
-
-					FString PackageName;
-					Asset->GetOutermost()->GetName(PackageName);
-
-					for(auto& Group : AddedGroups)
-					{
-						if(!FFaceFXEditorTools::CreateAnimSetAsset(CompilationFolder, Group, PackageName, FaceFXActor, AssetTools))
-						{
-							FFormatNamedArguments Args;
-							Args.Add(TEXT("Asset"), FText::FromString(Group));
-							ShowError(FText::Format(LOCTEXT("AnimSetImportFailed", "FaceFX anim set import failed. Asset: {Asset}"), Args));
-						}
-					}
-				}
-			}
-
-			if(DeletedGroups.Num() > 0)
-			{
-				//anim sets deleted -> ask for unlink
-				FFormatNamedArguments TitleArgs;
-				TitleArgs.Add(TEXT("Asset"), FText::FromString(FaceFXActor->GetName()));
-
-				const FText Title = FText::Format(LOCTEXT("ReimportFXActorDeletedAnimationTitle", "Unlink Deleted Animation Sets [{Asset}]"), TitleArgs);
-
-				FFormatNamedArguments Args;
-				Args.Add(TEXT("Groups"), FText::FromString(DeletedGroupsS));
-
-				const EAppReturnType::Type Result = FMessageDialog::Open(EAppMsgType::YesNo,
-					FText::Format(LOCTEXT("ReimportFXActorDeletedMessage", "There are animation groups which are removed from the FaceFX source. Do you want those to unlink from the actor asset ?\n\nGroups:\n{Groups}"), Args),
-					&Title);
-
-				if(Result == EAppReturnType::Yes)
-				{
-					for(auto& Group : DeletedGroups)
-					{
-						if(auto Asset = FaceFXActor->GetAnimationSet(FName(*Group)))
-						{
-							FaceFXActor->UnlinkFrom(Asset);
-						}
-					}
-				}
-			}
-
-			if(ExistingGroups.Num() > 0)
-			{
-				//existing animation sets -> ask to reimport them as well
-				FFormatNamedArguments TitleArgs;
-				TitleArgs.Add(TEXT("Asset"), FText::FromString(FaceFXActor->GetName()));
-
-				const FText Title = FText::Format(LOCTEXT("ReimportFXActorReimportAnimationTitle", "Reimport Animation Sets [{Asset}]"), TitleArgs);
-
-				FFormatNamedArguments Args;
-				Args.Add(TEXT("Groups"), FText::FromString(ExistingGroupsS));
-
-				const EAppReturnType::Type Result = FMessageDialog::Open(EAppMsgType::YesNo,
-					FText::Format(LOCTEXT("ReimportFXActorReimportMessage", "Do you want to reimport all linked animation sets ?\n\nGroups:\n{Groups}"), Args),
-					&Title);
-
-				if(Result == EAppReturnType::Yes)
-				{
-					for(auto& Group : ExistingGroups)
-					{
-						const FName GroupName = FName(*Group);
-
-						if(auto Asset = FaceFXActor->GetAnimationSet(GroupName))
-						{
-							FString ErrorMsg;
-							if(FFaceFXEditorTools::LoadFromCompilationFolder(Asset, CompilationFolder, &ErrorMsg))
-							{
-								FFaceFXEditorTools::SavePackage(Asset->GetOutermost());
-							}
-							else
-							{
-								ShowError(FText::FromString(FString::Printf(*LOCTEXT("ReimportFaceFXAnimFailed", "Reimport of FaceFX Anim Set <%s> failed. %s").ToString(), *Asset->GetName(), *ErrorMsg)));
-							}
-						}
-					}
-				}
-			}
-		}
+		UFaceFXActorFactory::HandleFaceFXActorCreated(CastChecked<UFaceFXActor>(Asset), CompilationFolder, OutResultMessages);
 	}
 }
 
