@@ -1,18 +1,14 @@
 /*******************************************************************************
   The MIT License (MIT)
-
   Copyright (c) 2015 OC3 Entertainment, Inc.
-
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
-
   The above copyright notice and this permission notice shall be included in all
   copies or substantial portions of the Software.
-
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,6 +21,9 @@
 #pragma once
 
 #include "FaceFXAsset.h"
+#include "FaceFxEditorTools.h"
+#include "Include/Slate/FaceFxStyle.h"
+
 #include "IAssetTypeActions.h"
 #include "FaceFXActorFactory.generated.h"
 
@@ -38,8 +37,7 @@ class UFaceFXActorFactory : public UFactory
 	virtual uint32 GetMenuCategories() const override { return EAssetTypeCategories::Animation; }
 	virtual FName GetNewAssetThumbnailOverride() const override
 	{
-		static const FName Thumbnail(TEXT("FaceFXStyle.AssetFXActor"));
-		return Thumbnail;
+		return FFaceFXStyle::GetBrushIdFxActor();
 	}
 	//~UFactory
 
@@ -49,15 +47,24 @@ class UFaceFXActorFactory : public UFactory
 	* @param InParent The owning parent object
 	* @param Name The name of the new object
 	* @param Flags The flags used during instantiation
-	* @param beforeDeletionCallback Callback that gets called before the compilation folder gets deleted again
+	* @param BeforeDeletionCallback Callback that gets called before the compilation folder gets deleted again
 	* @param FaceFXAsset The filepath of the .facefx asset that shall be imported. Keep empty to have a FileOpenDialog showing up
 	* @returns The new object or nullptr if not instantiated
 	*/
-	static UObject* CreateNew(UClass* Class, UObject* InParent, const FName& Name, EObjectFlags Flags, const FCompilationBeforeDeletionDelegate& beforeDeletionCallback = FCompilationBeforeDeletionDelegate(), FString FaceFXAsset = "");
+	static UObject* CreateNew(UClass* Class, UObject* InParent, const FName& Name, EObjectFlags Flags, const FCompilationBeforeDeletionDelegate& BeforeDeletionCallback = FCompilationBeforeDeletionDelegate(), FString FaceFXAsset = "");
 	
+	/** 
+	* Handles the case when a UFaceFXActor asset was created and we want to ask the user to import additional animations
+	* @param Asset the asset that got created
+	* @param CompilationFolder The compilation folder
+	* @param OutResultMessages The result messages
+	* @param Factory The factory to pass along
+	*/
+	static void HandleFaceFXActorCreated(class UFaceFXActor* Asset, const FString& CompilationFolder, FFaceFXImportResult& OutResultMessages, class UFactory* Factory = nullptr);
+
 private:
 
 	/** Callback function for before the compilation folder gets deleted */
 	UFUNCTION()
-	void OnCompilationBeforeDelete(class UObject* Asset, const FString& CompilationFolder, bool LoadResult);
+	void OnCompilationBeforeDelete(class UObject* Asset, const FString& CompilationFolder, bool LoadResult, FFaceFXImportResult& OutResultMessages);
 };

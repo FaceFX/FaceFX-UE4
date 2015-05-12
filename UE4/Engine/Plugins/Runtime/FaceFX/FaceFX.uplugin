@@ -6,7 +6,7 @@
 	"VersionName" : "1.0",
 	"CreatedBy" : "OC3",
 	"CreatedByURL" : "http://facefx.com/",
-	"EngineVersion" : "4.7.0",
+	"EngineVersion" : "4.8.0",
 	"Description" : "Support for facial animations powered by FaceFX",
 	"Category" : "FaceFX",
 	"EnabledByDefault" : true,
@@ -17,11 +17,11 @@
 		{
 			"Name" : "FaceFX",
 			"Type" : "Runtime",
-			"WhitelistPlatforms" : [ "Win64", "Win32", "PS4", "XboxOne" ]
+			"WhitelistPlatforms" : [ "Win64", "Win32" ]
 		},
 		{
 			"Name" : "FaceFXEditor",
-			"Type" : "Editor"
+			"Type" : "EditorNoCommandlet"
 		}
 	]
 }

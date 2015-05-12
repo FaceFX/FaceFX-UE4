@@ -1,18 +1,14 @@
 /*******************************************************************************
   The MIT License (MIT)
-
   Copyright (c) 2015 OC3 Entertainment, Inc.
-
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
-
   The above copyright notice and this permission notice shall be included in all
   copies or substantial portions of the Software.
-
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -34,7 +30,20 @@ class FACEFX_API UFaceFXAsset : public UObject
 
 public:
 
-#if WITH_EDITOR
+	/**
+	* Checks if this face fx data asset it valid
+	* @returns True if valid, else false
+	*/
+	virtual bool IsValid() const
+	{
+#if WITH_EDITORONLY_DATA
+		return IsAssetPathSet();
+#else
+		return true;
+#endif
+	}
+
+#if WITH_EDITORONLY_DATA
 
 	friend struct FFaceFXEditorTools;
 
@@ -42,13 +51,13 @@ public:
 	* Gets the number of animations which are encapsulated in this asset
 	* @return The animation count
 	*/
-	virtual int32 GetAnimationCount() const { checkf("Not implemented"); return 0; }
+	virtual int32 GetAnimationCount() const { check("Not implemented"); return 0; }
 
 	/**
 	* Gets the details in a human readable string representation
 	* @param OutDetails The resulting details string
 	*/
-	virtual void GetDetails(FString& OutDetails) const { checkf("Not implemented"); }
+	virtual void GetDetails(FString& OutDetails) const { check("Not implemented"); }
 
 	/**
 	* Sets the asset sources
@@ -59,17 +68,6 @@ public:
 	{
 		AssetName = InAssetName;
 		AssetFolder = InAssetFolder;
-	}
-
-#endif
-
-	/**
-	* Checks if this face fx data asset it valid
-	* @returns True if valid, else false
-	*/
-	virtual bool IsValid() const
-	{
-		return IsAssetPathSet();
 	}
 
 	/**
@@ -136,14 +134,13 @@ protected:
 	UPROPERTY(EditInstanceOnly, Category=FaceFX)
 	FString AssetName;
 
-#if WITH_EDITOR
-
 	/** 
 	* Clear platform specific data based on the target Archive platform
 	* @param Ar The archive to use
 	* @param platformData The data to clear
+	* @returns True if succeeded, else false
 	*/
-	template <typename T> void ClearPlatformData(const class FArchive& Ar, T& platformData);
+	template <typename T> bool ClearPlatformData(const class FArchive& Ar, T& platformData);
 
-#endif
+#endif //WITH_EDITORONLY_DATA
 };

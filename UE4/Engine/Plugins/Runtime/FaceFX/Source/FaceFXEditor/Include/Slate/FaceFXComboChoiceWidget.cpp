@@ -1,18 +1,14 @@
 /*******************************************************************************
   The MIT License (MIT)
-
   Copyright (c) 2015 OC3 Entertainment, Inc.
-
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
-
   The above copyright notice and this permission notice shall be included in all
   copies or substantial portions of the Software.
-
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,29 +19,42 @@
 *******************************************************************************/
 
 #include "FaceFXEditor.h"
-#include "FaceFXDialogs.h"
+#include "FaceFXComboChoiceWidget.h"
 #include "EditorStyle.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 
-EAppReturnType::Type FComboboxChoiceWidget::OpenModalDialog(const FText& InTitle)
+EAppReturnType::Type FFaceFXComboChoiceWidget::OpenDialog(const FText& InTitle, bool ShowAsModal)
 {
-	auto ModalWindow = SNew(SWindow)
+	auto Window = SNew(SWindow)
 		.Title(InTitle)
 		.SizingRule(ESizingRule::Autosized)
 		.AutoCenter(EAutoCenter::PreferredWorkArea)
 		.SupportsMinimize(false)
 		.SupportsMaximize(false);
 
-	Parent = ModalWindow;
-	ModalWindow->SetContent(AsShared());
+	Parent = Window;
+	Window->SetContent(AsShared());
 
-	GEditor->EditorAddModalWindow(ModalWindow);
+	if(ShowAsModal)
+	{
+		GEditor->EditorAddModalWindow(Window);
+	}
+	else
+	{
+		FSlateApplication::Get().AddWindow(Window);
+	}
 
 	return GetResponse();
 }
 
-void FComboboxChoiceWidget::Construct(const FArguments& Args)
+EAppReturnType::Type FFaceFXComboChoiceWidget::Create(const FText& InTitle, const FText& InMessage, const TArray<FString>& Options, TSharedPtr<FFaceFXComboChoiceWidget>& OutResult, bool ShowAsModal)
+{
+	auto ResultWidget = SAssignNew(OutResult, FFaceFXComboChoiceWidget).Options(Options).Message(InMessage);
+	return ResultWidget->OpenDialog(InTitle, ShowAsModal);
+}
+
+void FFaceFXComboChoiceWidget::Construct(const FArguments& Args)
 {
 	Response = EAppReturnType::Cancel;
 
@@ -84,8 +93,8 @@ void FComboboxChoiceWidget::Construct(const FArguments& Args)
 					[
 						SAssignNew(ComboBox, SComboBox< TSharedPtr<FString> >)
 						.OptionsSource(&Options)
-						.OnSelectionChanged( this, &FComboboxChoiceWidget::OnSelectionChanged )
-						.OnGenerateWidget(this, &FComboboxChoiceWidget::MakeComboItemWidget)
+						.OnSelectionChanged( this, &FFaceFXComboChoiceWidget::OnSelectionChanged )
+						.OnGenerateWidget(this, &FFaceFXComboChoiceWidget::MakeComboItemWidget)
 						[
 							SNew(STextBlock)
 							.Text(LOCTEXT("ComboBoxSelctionEmpty", "<Please Select>"))
@@ -95,7 +104,7 @@ void FComboboxChoiceWidget::Construct(const FArguments& Args)
 		];
 }
 
-void FComboboxChoiceWidget::OnSelectionChanged(TSharedPtr<FString> NewSelection, ESelectInfo::Type SelectInfo)
+void FFaceFXComboChoiceWidget::OnSelectionChanged(TSharedPtr<FString> NewSelection, ESelectInfo::Type SelectInfo)
 {
 	if(NewSelection.IsValid())
 	{
@@ -107,23 +116,23 @@ void FComboboxChoiceWidget::OnSelectionChanged(TSharedPtr<FString> NewSelection,
 	}
 }
 
-TSharedRef<SWidget> FComboboxChoiceWidget::MakeComboItemWidget(TSharedPtr<FString> Value)
+TSharedRef<SWidget> FFaceFXComboChoiceWidget::MakeComboItemWidget(TSharedPtr<FString> Value)
 {
 	FString* ValuePtr = Value.Get();
 	FString ValueS = ValuePtr ? *ValuePtr : TEXT("None");
 
 	return SNew(STextBlock)
-		.Text(ValueS)
-		.ToolTipText(ValueS);
+		.Text(FText::FromString(ValueS))
+		.ToolTipText(FText::FromString(ValueS));
 }
 
-FReply FComboboxChoiceWidget::HandleButtonClicked(EAppReturnType::Type Response)
+FReply FFaceFXComboChoiceWidget::HandleButtonClicked(EAppReturnType::Type Response)
 {
 	Response = Response;
 	return FReply::Handled();
 }
 
-FReply FComboboxChoiceWidget::OnKeyDown(const FGeometry& Geometry, const FKeyEvent& KeyboardEvent)
+FReply FFaceFXComboChoiceWidget::OnKeyDown(const FGeometry& Geometry, const FKeyEvent& KeyboardEvent)
 {
 	if(KeyboardEvent.GetKey() == EKeys::Escape)
 	{

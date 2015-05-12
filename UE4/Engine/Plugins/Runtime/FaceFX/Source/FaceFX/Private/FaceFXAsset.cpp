@@ -1,18 +1,14 @@
 /*******************************************************************************
   The MIT License (MIT)
-
   Copyright (c) 2015 OC3 Entertainment, Inc.
-
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
-
   The above copyright notice and this permission notice shall be included in all
   copies or substantial portions of the Software.
-
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,35 +26,59 @@ UFaceFXAsset::UFaceFXAsset(const class FObjectInitializer& PCIP) : Super(PCIP)
 {
 }
 
-#if WITH_EDITOR
+#if WITH_EDITORONLY_DATA
 
 /** 
 * Clear platform specific data based on the target Archive platform
 * @param Ar The archive to use
 * @param platformData The data to clear
+* @returns True if succeeded, else false
 */
-template <typename T> void UFaceFXAsset::ClearPlatformData(const FArchive& Ar, T& platformData)
+template <typename T> bool UFaceFXAsset::ClearPlatformData(const FArchive& Ar, T& PlatformData)
 {
 	//check if we actually have platform specific data to store
-	if(platformData.Num() >= EFaceFXTargetPlatform::MAX)
+	const FString Platform = Ar.CookingTarget()->PlatformName();
+
+	EFaceFXTargetPlatform::Type TargetPlatform = EFaceFXTargetPlatform::PC;
+
+	//Indices: x86, PS4, XBoxOne
+	//copy the one we want to the first index
+#if FACEFX_SUPPORT_PS4
+	if(Platform.Equals(TEXT("PS4"), ESearchCase::IgnoreCase))
 	{
-		const FString platform = Ar.CookingTarget()->PlatformName();
-
-		//Indices: x86, PS4, XBoxOne
-		//copy the one we want to the first index
-		if(platform.Equals("PS4", ESearchCase::IgnoreCase))
-		{
-			platformData.Swap(EFaceFXTargetPlatform::PC, EFaceFXTargetPlatform::PS4);
-		}
-		else if(platform.Equals("XBoxOne", ESearchCase::IgnoreCase))
-		{
-			platformData.Swap(EFaceFXTargetPlatform::PC, EFaceFXTargetPlatform::XBoxOne);
-		}
-		//else no change required as we want the first one only
-
-		//remove anything but the first position
-		platformData.RemoveAt(1, platformData.Num() - 1);
+		TargetPlatform = EFaceFXTargetPlatform::PS4;
 	}
+	else 
+#endif //FACEFX_SUPPORT_PS4
+#if FACEFX_SUPPORT_XBONE
+	if(Platform.Equals("XBoxOne", ESearchCase::IgnoreCase))
+	{
+		TargetPlatform = EFaceFXTargetPlatform::XBoxOne;
+	}
+	else
+#endif //FACEFX_SUPPORT_XBONE
+	if(!Platform.Equals(TEXT("PC"), ESearchCase::IgnoreCase))
+	{
+		//Unknown target platform
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXAsset::ClearPlatformData. The cooking platform %s is not supported by FaceFX. Asset: %s"), *Platform, *GetNameSafe(this));
+		return false;
+	}
+		
+	//fetch entry for the target platform and move it to the first entry
+	const int32 TargetIdx = PlatformData.IndexOfByKey(TargetPlatform);
+	if(TargetIdx == INDEX_NONE)
+	{
+		//target platform data is missing -> ignore and show error
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXAsset::ClearPlatformData. The FaceFX data for platform %s are missing. To fix this you need to reimport that asset. Asset: %s"), *EFaceFXTargetPlatformHelper::ToString(TargetPlatform), *GetNameSafe(this));
+		return false;
+	}
+
+	PlatformData.Swap(0, TargetIdx);
+
+	//remove anything but the first position
+	PlatformData.RemoveAt(1, PlatformData.Num() - 1);
+
+	return true;
 }
 
-#endif
+#endif //WITH_EDITORONLY_DATA
