@@ -1,18 +1,14 @@
 /*******************************************************************************
   The MIT License (MIT)
-
   Copyright (c) 2015 OC3 Entertainment, Inc.
-
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
-
   The above copyright notice and this permission notice shall be included in all
   copies or substantial portions of the Software.
-
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,6 +28,7 @@
 
 /** The delegate used for various FaceFX events */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnFaceFXCharacterEventSignature, class UFaceFXCharacter*, Character, const struct FFaceFXAnimId&, AnimId);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnFaceFXCharacterAudioStartEventSignature, class UFaceFXCharacter*, Character, const struct FFaceFXAnimId&, AnimId, bool, IsAudioStarted, class UAudioComponent*, AudioComponentStartedOn);
 
 /** Class that represents a FaceFX character instance */
 UCLASS()
@@ -46,7 +43,7 @@ public:
 	//~UObject
 
 	/** Event that triggers whenever this characters currently playing animation request audio playback */
-	FOnFaceFXCharacterEventSignature OnPlaybackStartAudio;
+	FOnFaceFXCharacterAudioStartEventSignature OnPlaybackStartAudio;
 
 	/** Event that triggers whenever this character stops playing an animation */
 	FOnFaceFXCharacterEventSignature OnPlaybackStopped;
@@ -57,6 +54,7 @@ public:
 	/** Event that triggers whenever this character paused playing an animation */
 	FOnFaceFXCharacterEventSignature OnPlaybackPaused;
 
+#if FACEFX_USEANIMATIONLINKAGE
 	/**
 	* Starts the playback of the given facial animation
 	* @param AnimName The animation to play
@@ -76,6 +74,16 @@ public:
 	* @returns True if succeeded, else false
 	*/
 	bool Play(const FFaceFXAnimId& AnimId, bool Loop = false);
+
+#endif //FACEFX_USEANIMATIONLINKAGE
+
+	/**
+	* Starts the playback of the given facial animation asset
+	* @param Animation The animation to play
+	* @param Loop True for when the animation shall loop, else false
+	* @returns True if succeeded, else false
+	*/
+	bool Play(const class UFaceFXAnim* Animation, bool Loop = false);
 
 	/**
 	* Resumes the playback of the facial animation
@@ -104,22 +112,12 @@ public:
 	/** Reset the whole character setup */
 	void Reset();
 
-#if FACEFX_WITHBONEFILTER
-	/**
-	* Loads the character data from the given data set
-	* @param Dataset The data set to load from
-	* @param BoneFilter The bone filter to apply. Keep nullptr to apply the whole bone set as a filter
-	* @returns True if succeeded, else false
-	*/
-	bool Load(const class UFaceFXActor* Dataset, const TArray<FName>* BoneFilter = nullptr);
-#else
 	/**
 	* Loads the character data from the given data set
 	* @param Dataset The data set to load from
 	* @returns True if succeeded, else false
 	*/
 	bool Load(const class UFaceFXActor* Dataset);
-#endif //FACEFX_WITHBONEFILTER
 
 	/**
 	* Gets the indicator if this character have been loaded
@@ -148,22 +146,30 @@ public:
 		return bIsLooping;
 	}
 
-#if FACEFX_WITHBONEFILTER
-
-	/**
-	* Gets the names of the bones that are currently filtered
-	* @param OutResult The resulting bone names
+	/** 
+	* Checks if the character FaceFX actor handle can play the given animation
+	* @param Animation The animation to check
+	* @returns True if it can play the animation, else false
 	*/
-	void GetFilteredBoneNames(TArray<FName>& OutResult) const;
+	bool IsCanPlay(const UFaceFXAnim* Animation) const;
 
-	/**
-	* Sets the bones we want to get the transforms for within GetBoneTransforms. The order will be defined by this
-	* @param InBonesNames The names of the bones to load
-	* @returns True if succeeded, else false (i.e. when the character have not been loaded yet)
+	/** 
+	* Gets the indicator if the audio shall be played automatically if available
+	* @returns True if auto play is enabled, else false
 	*/
-	bool SetBoneFilter(const TArray<FName>& InBonesNames);
+	inline bool IsAutoPlaySound() const
+	{
+		return bIsAutoPlaySound;
+	}
 
-#else
+	/** 
+	* Sets the indicator if the audio shall be played automatically if available
+	* @param isAutoPlaySound The new indicator value
+	*/
+	inline void SetAutoPlaySound(bool isAutoPlaySound)
+	{
+		bIsAutoPlaySound = isAutoPlaySound;
+	}
 
 	/**
 	* Gets the list of bone names
@@ -173,7 +179,6 @@ public:
 	{
 		return BoneNames;
 	}
-#endif //FACEFX_WITHBONEFILTER
 
 	/**
 	* Gets the index within the transforms for a given bone name
@@ -215,6 +220,13 @@ private:
 	}
 
 	/** 
+	* Checks if the character FaceFX actor handle can play the given animation handle
+	* @param AnimationHandle The animation handle to check
+	* @returns True if it can play the animation, else false
+	*/
+	bool IsCanPlay(struct ffx_anim_handle_t* AnimationHandle) const;
+
+	/** 
 	* Gets the start and end time of the current animation
 	* @param OutStart The start time if call succeeded
 	* @param OutEnd The end time if call succeeded
@@ -236,6 +248,19 @@ private:
 	* Unload the current animation
 	*/
 	void UnloadCurrentAnim();
+
+	/** 
+	* Prepares the audio data if needed for the current animation 
+	* @param Animation The animation to prepare the audio for
+	*/
+	void PrepareAudio(const UFaceFXAnim* Animation);
+
+	/** 
+	* Plays the audio if available 
+	* @param OutAudioComp The audio component on which audio was started to play. Unchanged if function returns false
+	* @returns True if audio playback successfully started on the owning actors Audio component, else false
+	*/
+	bool PlayAudio(class UAudioComponent** OutAudioComp = nullptr);
 
 	/**
 	* Gets the latest internal facefx error message
@@ -272,13 +297,8 @@ private:
 	/** The current bone transforms */
 	TArray<FTransform> BoneTransforms;
 
-#if FACEFX_WITHBONEFILTER
-	/** The bone transform filter indices */
-	TArray<int32> BoneTransformsFilterIndices;
-#else
 	/** The list of bone names defined within the FaceFX data used by this character */
 	TArray<FName> BoneNames;
-#endif //FACEFX_WITHBONEFILTER
 
 	/** The bone ids coming from the facefx asset */
 	TArray<uint64> BoneIds;
@@ -295,6 +315,9 @@ private:
 	/** The id of the currently played animation */
 	FFaceFXAnimId CurrentAnim;
 
+	/** The current audio asset that was assigned to the current animation*/
+	TAssetPtr<class USoundWave> CurrentAnimSound;
+
 	/** Dirty indicator */
 	uint8 bIsDirty : 1;
 
@@ -306,6 +329,9 @@ private:
 
 	/** Indicator if this character is allowed to play */
 	uint8 bCanPlay : 1;
+
+	/** Indicator that defines if the FaceFX character shall play the sound wave assigned to the FaceFX Animation asset automatically when this animation is getting played */
+	uint8 bIsAutoPlaySound : 1;
 
 #if WITH_EDITOR
 	uint32 LastFrameNumber;

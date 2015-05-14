@@ -1,18 +1,14 @@
 /*******************************************************************************
   The MIT License (MIT)
-
   Copyright (c) 2015 OC3 Entertainment, Inc.
-
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
-
   The above copyright notice and this permission notice shall be included in all
   copies or substantial portions of the Software.
-
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,6 +19,7 @@
 *******************************************************************************/
 
 #include "FaceFX.h"
+
 #include "Animation/AnimNode_BlendFaceFXAnimation.h"
 #include "Animation/FaceFXComponent.h"
 
@@ -92,13 +89,13 @@ void FAnimNode_BlendFaceFXAnimation::LoadFaceFXData(UAnimInstance* AnimInstance)
 						}
 						else
 						{
-							UE_LOG(LogAnimation, Warning, TEXT("BlendFacialAnimation: Unable to find FaceFX bone within skeletal mesh. Bone: %s. SkelMesh: %s. Actor: %s"), 
+							UE_LOG(LogFaceFX, Warning, TEXT("BlendFacialAnimation: Unable to find FaceFX bone within skeletal mesh. Bone: %s. SkelMesh: %s. Actor: %s"), 
 								*BoneName.GetPlainNameString(), *GetNameSafe(Component->SkeletalMesh), *GetNameSafe(Component->GetOwner()));
 						}
 					}
 					else
 					{
-						UE_LOG(LogAnimation, Warning, TEXT("BlendFacialAnimation: Unable to find FaceFX bone transformation index. Bone: %i. Actor: %s"), 
+						UE_LOG(LogFaceFX, Warning, TEXT("BlendFacialAnimation: Unable to find FaceFX bone transformation index. Bone: %i. Actor: %s"), 
 							*BoneName.GetPlainNameString(), *GetNameSafe(Component->GetOwner()));
 					}
 				}
@@ -140,7 +137,7 @@ void FAnimNode_BlendFaceFXAnimation::Evaluate(FPoseContext& Output)
 	if(!bIsDebugLocalSpaceBlendShown)
 	{
 		//show warning only once per node to prevent excessive log spam
-		UE_LOG(LogAnimation, Warning, TEXT("FAnimNode_BlendFacialAnimation::Evaluate. The blend node is using local space input. Please check, relink the blend node and resave VIM. %s. Also contact a FaceFX programmer."), *GetNameSafe(Output.AnimInstance));
+		UE_LOG(LogFaceFX, Warning, TEXT("FAnimNode_BlendFacialAnimation::Evaluate. The blend node is using local space input. Please check, relink the blend node and resave VIM. %s. Also contact a FaceFX programmer."), *GetNameSafe(Output.AnimInstance));
 		bIsDebugLocalSpaceBlendShown = true;
 	}
 #endif
