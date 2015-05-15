@@ -1,18 +1,14 @@
 /*******************************************************************************
   The MIT License (MIT)
-
   Copyright (c) 2015 OC3 Entertainment, Inc.
-
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
-
   The above copyright notice and this permission notice shall be included in all
   copies or substantial portions of the Software.
-
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,15 +20,44 @@
 
 #include "FaceFX.h"
 
+#include "Sound/SoundWave.h"
+
 #define LOCTEXT_NAMESPACE "FaceFX"
 
-UFaceFXAnimSet::UFaceFXAnimSet(const class FObjectInitializer& PCIP) : Super(PCIP)
+UFaceFXAnim::UFaceFXAnim(const class FObjectInitializer& PCIP) : Super(PCIP)
 {
 }
 
-#if WITH_EDITOR
+SIZE_T UFaceFXAnim::GetResourceSize(EResourceSizeMode::Type Mode)
+{
+	SIZE_T ResSize = Super::GetResourceSize(Mode);
 
-void UFaceFXAnimSet::Serialize(FArchive& Ar)
+	if(Mode == EResourceSizeMode::Exclusive)
+	{
+		//only count cooked data without any references
+		ResSize += sizeof(FFaceFXAnimId);
+
+		if(PlatformData.Num() > 0)
+		{
+			//take the first entry as an approximation
+			const FFaceFXAnimData& Data = PlatformData[0];
+			ResSize += Data.RawData.Num() * Data.RawData.GetTypeSize();
+		}
+	}
+	else
+	{
+		if(USoundWave* AudioPtr = Audio.Get())
+		{
+			ResSize += AudioPtr->GetResourceSize(Mode);
+		}
+	}
+
+	return ResSize;
+}
+
+#if WITH_EDITORONLY_DATA
+
+void UFaceFXAnim::Serialize(FArchive& Ar)
 {
 	if(Ar.IsSaving() && Ar.IsCooking())
 	{
@@ -42,30 +67,19 @@ void UFaceFXAnimSet::Serialize(FArchive& Ar)
 	Super::Serialize(Ar);
 }
 
-#endif //WITH_EDITOR
-
-void UFaceFXAnimSet::GetDetails(FString& OutDetails) const
+void UFaceFXAnim::GetDetails(FString& OutDetails) const
 {
-	OutDetails = LOCTEXT("DetailsAnimSetHeader", "FaceFX Animation Set").ToString() + TEXT("\n\n");
+	OutDetails = LOCTEXT("DetailsAnimSetHeader", "FaceFX Animation").ToString() + TEXT("\n\n");
 	OutDetails += LOCTEXT("DetailsSource", "Source: ").ToString() + AssetName + TEXT("\n");
-	OutDetails += LOCTEXT("DetailsAnimGroup", "Group: ").ToString() + Group.GetPlainNameString() + TEXT("\n\n");
+	OutDetails += LOCTEXT("DetailsAnimGroup", "Group: ").ToString() + Id.Group.GetPlainNameString() + TEXT("\n");
+	OutDetails += LOCTEXT("DetailsAnimId", "Animation: ").ToString() + Id.Name.GetPlainNameString() + TEXT("\n");
 	
-	if(IsValid())
+	if(!IsValid())
 	{
-		auto& Animations = GetData().Animations;
-
-		OutDetails += LOCTEXT("DetailsAnimAnimationsHeader", "Animations").ToString() + TEXT(" (") + FString::FromInt(Animations.Num()) + TEXT(")\n");
-		OutDetails += TEXT("-----------------------------\n");
-
-		for(auto& Anim : Animations)
-		{
-			OutDetails += Anim.Name.GetPlainNameString() + TEXT("\n");
-		}
-	}
-	else
-	{
-		OutDetails += LOCTEXT("DetailsNotLoaded", "No FaceFX data").ToString();
+		OutDetails += TEXT("\n") + LOCTEXT("DetailsNotLoaded", "No FaceFX data").ToString();
 	}
 }
+
+#endif //WITH_EDITORONLY_DATA
 
 #undef LOCTEXT_NAMESPACE

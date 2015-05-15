@@ -1,18 +1,14 @@
 /*******************************************************************************
   The MIT License (MIT)
-
   Copyright (c) 2015 OC3 Entertainment, Inc.
-
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
-
   The above copyright notice and this permission notice shall be included in all
   copies or substantial portions of the Software.
-
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,13 +33,25 @@ void UFaceFXComponent::OnRegister()
 	CreateAllCharacters();
 }
 
-bool UFaceFXComponent::Setup(USkeletalMeshComponent* SkelMeshComp, const UFaceFXActor* Asset)
+bool UFaceFXComponent::Setup(USkeletalMeshComponent* SkelMeshComp, const UFaceFXActor* Asset, bool IsAutoPlaySound, const UObject* Caller)
 {
+	if(!SkelMeshComp)
+	{
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXComponent::Setup. Missing SkelMeshComp argument. Caller: %s"), *GetNameSafe(Caller));
+		return false;
+	}
+
+	if(!Asset)
+	{
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXComponent::Setup. Missing Asset argument. Caller: %s"), *GetNameSafe(Caller));
+		return false;
+	}
+
 	int32 Idx = Entries.IndexOfByKey(SkelMeshComp);
 	if(Idx == INDEX_NONE)
 	{
 		//add new entry
-		Idx = Entries.Add(FFaceFXEntry(SkelMeshComp, Asset));
+		Idx = Entries.Add(FFaceFXEntry(SkelMeshComp, Asset, IsAutoPlaySound));
 	}
 	checkf(Idx != INDEX_NONE, TEXT("Internal Error: Unable to add new FaceFX entry."));
 
@@ -56,27 +64,47 @@ bool UFaceFXComponent::Setup(USkeletalMeshComponent* SkelMeshComp, const UFaceFX
 	return false;
 }
 
-bool UFaceFXComponent::Play(FName AnimName, USkeletalMeshComponent* SkelMeshComp, bool Loop)
+bool UFaceFXComponent::PlayById(FName Group, FName AnimName, USkeletalMeshComponent* SkelMeshComp, bool Loop, const UObject* Caller)
 {
+#if FACEFX_USEANIMATIONLINKAGE
+
 	UFaceFXCharacter* character = SkelMeshComp ? GetCharacter(SkelMeshComp) : (Entries.Num() > 0 ? Entries[0].Character : nullptr);
 	if(character)
 	{
-		return character->Play(AnimName, NAME_None, Loop);
+		return character->Play(AnimName, Group, Loop);
 	}
+
+	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXComponent::PlayById. FaceFX character does not exist for given SkelMeshComp <%s>. Caller: %s"), *GetNameSafe(SkelMeshComp), *GetNameSafe(Caller));
+#else
+	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXComponent::PlayById. Animation linkage is disabled in the FaceFX config. Use the Play node instead and check FACEFX_USEANIMATIONLINKAGE. Caller: %s"), *GetNameSafe(Caller));
+#endif //FACEFX_USEANIMATIONLINKAGE
 
 	return false;
 }
 
-void UFaceFXComponent::OnCharacterAudioStart(class UFaceFXCharacter* Character, const struct FFaceFXAnimId& AnimId)
+bool UFaceFXComponent::Play(UFaceFXAnim* Animation, USkeletalMeshComponent* SkelMeshComp, bool Loop, const UObject* Caller)
+{
+
+	UFaceFXCharacter* character = SkelMeshComp ? GetCharacter(SkelMeshComp) : (Entries.Num() > 0 ? Entries[0].Character : nullptr);
+	if(character)
+	{
+		return character->Play(Animation, Loop);
+	}
+
+	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXComponent::PlayById. FaceFX character does not exist for given SkelMeshComp <%s>. Caller: %s"), *GetNameSafe(SkelMeshComp), *GetNameSafe(Caller));
+	return false;
+}
+
+void UFaceFXComponent::OnCharacterAudioStart(class UFaceFXCharacter* Character, const FFaceFXAnimId& AnimId, bool IsAudioStarted, class UAudioComponent* AudioComponentStartedOn)
 {
 	//lookup the linked entry
 	if(auto entry = Entries.FindByKey(Character))
 	{
-		OnPlaybackAudioStart.Broadcast(entry->SkelMeshComp, AnimId.Name);
+		OnPlaybackAudioStart.Broadcast(entry->SkelMeshComp, AnimId.Name, IsAudioStarted, AudioComponentStartedOn);
 	}
 }
 
-void UFaceFXComponent::OnCharacterPlaybackStopped(class UFaceFXCharacter* Character, const struct FFaceFXAnimId& AnimId)
+void UFaceFXComponent::OnCharacterPlaybackStopped(class UFaceFXCharacter* Character, const FFaceFXAnimId& AnimId)
 {
 	//lookup the linked entry
 	if(auto entry = Entries.FindByKey(Character))
@@ -123,7 +151,7 @@ void UFaceFXComponent::CreateCharacter(FFaceFXEntry& Entry)
 
 			if(!Entry.Character->Load(FaceFXActor))
 			{
-				UE_LOG(LogAnimation, Error, TEXT("SkeletalMesh Component FaceFX failed to get initialized. Loading failed. Component=%s. Asset=%s"), *GetName(), *Entry.Asset.ToStringReference().ToString());
+				UE_LOG(LogFaceFX, Error, TEXT("SkeletalMesh Component FaceFX failed to get initialized. Loading failed. Component=%s. Asset=%s"), *GetName(), *Entry.Asset.ToStringReference().ToString());
 				Entry.Character = nullptr;
 			}
 			else
@@ -131,6 +159,8 @@ void UFaceFXComponent::CreateCharacter(FFaceFXEntry& Entry)
 				//success -> register events
 				Entry.Character->OnPlaybackStartAudio.AddDynamic(this, &UFaceFXComponent::OnCharacterAudioStart);
 				Entry.Character->OnPlaybackStopped.AddDynamic(this, &UFaceFXComponent::OnCharacterPlaybackStopped);
+
+				Entry.Character->SetAutoPlaySound(Entry.bIsAutoPlaySound);
 			}
 		}
 		else
@@ -147,7 +177,7 @@ void UFaceFXComponent::CreateCharacter(FFaceFXEntry& Entry)
 	}
 	else
 	{
-		UE_LOG(LogAnimation, Error, TEXT("UFaceFXComponent::CreateCharacter. Internal Error: FaceFX failed to get initialized. Invalid Asset. Should not get called in this state. Component=%s"), *GetName());
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXComponent::CreateCharacter. Internal Error: FaceFX failed to get initialized. Invalid Asset. Should not get called in this state. Component=%s"), *GetName());
 	}
 }
 
@@ -158,6 +188,17 @@ void UFaceFXComponent::OnFaceActorAssetLoaded()
 	CreateAllCharacters();
 
 	//end of async loading process
-	checkf(NumAsyncLoadRequestsPending > 0);
+	check(NumAsyncLoadRequestsPending > 0);
 	--NumAsyncLoadRequestsPending;
+}
+
+void UFaceFXComponent::AddReferencedObjects(UObject* InThis, FReferenceCollector& Collector)
+{
+	UFaceFXComponent* This = CastChecked<UFaceFXComponent>(InThis);
+	
+	for(FFaceFXEntry& Entry : This->Entries)
+	{
+		Collector.AddReferencedObject(Entry.Character);
+	}
+	Super::AddReferencedObjects(This, Collector);
 }

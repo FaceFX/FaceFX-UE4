@@ -1,18 +1,14 @@
 /*******************************************************************************
   The MIT License (MIT)
-
   Copyright (c) 2015 OC3 Entertainment, Inc.
-
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
-
   The above copyright notice and this permission notice shall be included in all
   copies or substantial portions of the Software.
-
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,6 +24,12 @@
 #include "ClassIconFinder.h"
 
 #define IMAGE_PLUGIN_BRUSH( RelativePath, ... ) FSlateImageBrush( FFaceFXStyle::GetContentPath(RelativePath, ".png"), __VA_ARGS__ )
+
+static FName s_BrushIdActor(TEXT("FaceFXStyle.AssetFXActor"));
+static FName s_BrushIdAnim(TEXT("FaceFXStyle.AssetFXAnim"));
+static FName s_BrushIdSuccess(TEXT("FaceFXStyle.IconSuccess"));
+static FName s_BrushIdWarn(TEXT("FaceFXStyle.IconWarn"));
+static FName s_BrushIdError(TEXT("FaceFXStyle.IconError"));
 
 TSharedPtr<FSlateStyleSet> FFaceFXStyle::StyleSet;
 
@@ -57,8 +59,13 @@ void FFaceFXStyle::Initialize()
 	StyleSet->SetContentRoot(FPaths::EngineContentDir() / TEXT("Editor/Slate"));
 	StyleSet->SetCoreContentRoot(FPaths::EngineContentDir() / TEXT("Slate"));
 
-	StyleSet->Set("FaceFXStyle.AssetFXActor", new IMAGE_PLUGIN_BRUSH(TEXT("Icons/facefxactor"), Icon40));
-	StyleSet->Set("FaceFXStyle.AssetFXAnimSet", new IMAGE_PLUGIN_BRUSH(TEXT("Icons/facefxanimset"), Icon40));
+	StyleSet->Set(s_BrushIdActor, new IMAGE_PLUGIN_BRUSH(TEXT("Icons/facefxactor"), Icon40));
+	StyleSet->Set(s_BrushIdAnim, new IMAGE_PLUGIN_BRUSH(TEXT("Icons/facefxanim"), Icon40));
+	
+	const FVector2D Icon16(16.F, 16.F);
+	StyleSet->Set(s_BrushIdSuccess, new IMAGE_PLUGIN_BRUSH(TEXT("Icons/facefxsuccess"), Icon16));
+	StyleSet->Set(s_BrushIdWarn, new IMAGE_PLUGIN_BRUSH(TEXT("Icons/facefxwarning"), Icon16));
+	StyleSet->Set(s_BrushIdError, new IMAGE_PLUGIN_BRUSH(TEXT("Icons/facefxerror"), Icon16));
 
 	FSlateStyleRegistry::RegisterSlateStyle(*StyleSet.Get());
 	FClassIconFinder::RegisterIconSource(StyleSet.Get());
@@ -76,4 +83,29 @@ void FFaceFXStyle::Shutdown()
 		ensure(StyleSet.IsUnique());
 		StyleSet.Reset();
 	}
+}
+
+const FName& FFaceFXStyle::GetBrushIdFxActor()
+{
+	return s_BrushIdActor;
+}
+
+const FName& FFaceFXStyle::GetBrushIdFxAnim()
+{
+	return s_BrushIdAnim;
+}
+
+const FSlateBrush* FFaceFXStyle::GetBrushStateIconSuccess()
+{
+	return StyleSet->GetBrush(s_BrushIdSuccess);
+}
+
+const FSlateBrush* FFaceFXStyle::GetBrushStateIconWarning()
+{
+	return StyleSet->GetBrush(s_BrushIdWarn);
+}
+
+const FSlateBrush* FFaceFXStyle::GetBrushStateIconError()
+{
+	return StyleSet->GetBrush(s_BrushIdError);
 }

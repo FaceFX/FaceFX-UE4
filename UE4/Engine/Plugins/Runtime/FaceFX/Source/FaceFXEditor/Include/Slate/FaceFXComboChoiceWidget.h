@@ -1,18 +1,14 @@
 /*******************************************************************************
   The MIT License (MIT)
-
   Copyright (c) 2015 OC3 Entertainment, Inc.
-
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
-
   The above copyright notice and this permission notice shall be included in all
   copies or substantial portions of the Software.
-
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,18 +18,16 @@
   SOFTWARE.
 *******************************************************************************/
 
-/** Slate based dialogs that are used by the FaceFX integration */
-
 #pragma once
 
 #include "Engine.h"
 #include "SlateBasics.h"
 
 /** A widget that shows a drop down selection box of different strings the user can select from */
-class FComboboxChoiceWidget : public SCompoundWidget
+class FFaceFXComboChoiceWidget : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(FComboboxChoiceWidget)	{}
+	SLATE_BEGIN_ARGS(FFaceFXComboChoiceWidget)	{}
 	SLATE_ATTRIBUTE(FText, Message)	
 	SLATE_ATTRIBUTE(TArray<FString>, Options)	
 	SLATE_END_ARGS()
@@ -69,9 +63,21 @@ public:
 	/**
 	* Opens this widget as a modal dialog
 	* @param InTitle The title for the modal window
+	* @param ShowAsModal Indicator if this widget shall be displayed in a modal window
 	* @returns The return type
 	*/
-	EAppReturnType::Type OpenModalDialog(const FText& InTitle);
+	EAppReturnType::Type OpenDialog(const FText& InTitle, bool ShowAsModal = true);
+
+	/**
+	* Creates a result dialog
+	* @param InTitle The window title
+	* @param InMessage The message
+	* @param Options The choices to display
+	* @param OutResult The created widget
+	* @param ShowAsModal Indicator if this widget shall be displayed in a modal window
+	* @returns The return type from the dialog
+	*/
+	static EAppReturnType::Type Create(const FText& InTitle, const FText& InMessage, const TArray<FString>& Options, TSharedPtr<FFaceFXComboChoiceWidget>& OutResult, bool ShowAsModal = false);
 
 private:
 
