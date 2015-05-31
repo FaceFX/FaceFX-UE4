@@ -31,7 +31,10 @@
 //Indicator if imported .ffxanim will be deleted. Default Value: 1
 //When true those asset will be deleted after import and considered as up-to-date when the asset source file does exist during reimport. (Requires FaceFX Studio 2015 Runtime Compiler 1.0 or above)
 //When false those files are not deleted and are considered always newer than asset. Reimport will always be performed
-#define FACEFFX_DELETE_IMPORTED_ANIM 1
+#define FACEFX_DELETE_IMPORTED_ANIM 1
+
+//Indicator if the whole .ffxc folder shall be deleted when there is no .ffxanim left inside after loading compiled data. Default Value: 1
+#define FACEFX_DELETE_EMPTY_COMPILATION_FOLDER 1
 
 //The root namespace for any ini file entry
 #define FACEFX_CONFIG_NS TEXT("FaceFX")

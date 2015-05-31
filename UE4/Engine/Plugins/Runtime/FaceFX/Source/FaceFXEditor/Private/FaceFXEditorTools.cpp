@@ -39,6 +39,8 @@
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 
+uint32 FFaceFXEditorTools::AssetCategory = 0;
+
 /**
 * Makes a given string conform to be used as an asset identifier
 * @param Name The name to make conform
@@ -142,10 +144,113 @@ UFaceFXAnim* FindAnimationAsset(const FString& SourceAssetFolder, const FString&
 	return nullptr;
 }
 
+/** A single audio map entry*/
+struct FFaceFXAudioMapEntry
+{
+	/** The animation group*/
+	FString Group;
+	
+	/** The animation id */
+	FString AnimationId;
+	
+	/** The relative audio path */
+	FString AudioPath;
+};
+
+/**
+* Loads an audio map file
+* @param Asset The asset to load the audio map for
+* @param Folder The compilation root folder
+* @param Platform The platform which audio map to load
+* @param OutResult The resulting audio map data
+* @param The message container to push error messages into
+* @returns True if file was loaded and parsed, else false if any file access error occurred
+*/
+bool LoadAudioMapData(UFaceFXAsset* Asset, const FString& Folder, EFaceFXTargetPlatform::Type Platform, TArray<FFaceFXAudioMapEntry>& OutResult, FFaceFXImportResult& OutResultMessages)
+{
+	//link with audio data base on the PC mapping (all platforms use the same audio data)
+	const FString AudioMapFile = FFaceFXEditorTools::GetPlatformFolder(Folder, Platform) / (Asset->GetAssetName() + FACEFX_FILEEXT_AUDIO);
+	if(FPaths::FileExists(AudioMapFile))
+	{
+		TArray<FString> Lines;
+		if(FFileHelper::LoadANSITextFileToStrings(*AudioMapFile, nullptr, Lines))
+		{
+			for(const FString& Line : Lines)
+			{
+				if(Line.IsEmpty())
+				{
+					continue;
+				}
+
+				FFaceFXAudioMapEntry NewEntry;
+
+				//Format: <Group>/<AnimId>|<Relative Path>
+				FString GroupSRight;
+				if(Line.Split(TEXT("/"), &NewEntry.Group, &GroupSRight) && GroupSRight.Split(TEXT("|"), &NewEntry.AnimationId, &NewEntry.AudioPath))
+				{
+					if(NewEntry.Group.Contains(TEXT("/")))
+					{
+						UE_LOG(LogFaceFX, Warning, TEXT("FFaceFXEditorTools::LoadAudioMapData. The audio mapping file contains an invalid '/' character in the animation group name. Entry will be ignored. File: %s. Asset: %s. Line: %s"), *AudioMapFile, *GetNameSafe(Asset), *Line);
+						OutResultMessages.AddCreateWarning(FText::Format(LOCTEXT("LoadAudioMapDataBadCharGroup", "The audio mapping file contains an invalid '/' character in the animation group name. Entry will be ignored. File: {0}, Line: {1}"), FText::FromString(AudioMapFile), FText::FromString(Line)), Asset);
+						continue;
+					}
+
+					if(NewEntry.AnimationId.Contains(TEXT("/")))
+					{
+						UE_LOG(LogFaceFX, Warning, TEXT("FFaceFXEditorTools::LoadAudioMapData. The audio mapping file contains an invalid '/' character in the animation name. Entry will be ignored. File: %s. Asset: %s. Line: %s"), *AudioMapFile, *GetNameSafe(Asset), *Line);
+						OutResultMessages.AddCreateWarning(FText::Format(LOCTEXT("LoadAudioMapDataBadCharAnimId", "The audio mapping file contains an invalid '/' character in the animation name. Entry will be ignored. File: {0}, Line: {1}"), FText::FromString(AudioMapFile), FText::FromString(Line)), Asset);
+						continue;
+					}
+
+					//entry found
+					if(NewEntry.AudioPath.Equals(TEXT("-")))
+					{
+						//consider "-" as empty
+						NewEntry.AudioPath = TEXT("");
+					}
+
+					OutResult.Add(NewEntry);
+				}
+			}
+			return true;
+		}
+		else
+		{
+			OutResultMessages.AddCreateError(FText::Format(LOCTEXT("LoadAudioMapDataLoadFailed", "The audio mapping file could not be loaded. File: {0}"), FText::FromString(AudioMapFile)), Asset);
+		}
+	}
+	else
+	{
+		OutResultMessages.AddCreateError(FText::Format(LOCTEXT("LoadAudioMapDataMissingFile", "The audio mapping file does not exist. File: {0}"), FText::FromString(AudioMapFile)), Asset);
+	}
+	return false;
+}
+
+#if FACEFX_DELETE_EMPTY_COMPILATION_FOLDER
+/**
+* Deletes the whole .ffxc folder when there is no animation file left inside
+* @param Folder The folder to delete
+* @returns True if there was no animation file and the folder got deleted, else false
+*/
+bool CleanupCompilationFolder(const FString& Folder)
+{
+	//check if any .ffxanim file is left
+	TArray<FString> Filenames;
+	IFileManager::Get().FindFilesRecursive(Filenames, *Folder, FACEFX_FILEEXT_ANIMSEARCH, true, false, false);
+
+	if(Filenames.Num() == 0)
+	{
+		return IFileManager::Get().DeleteDirectory(*Folder, false, true);
+	}
+
+	return false;
+}
+#endif //FACEFX_DELETE_EMPTY_COMPILATION_FOLDER
+
 bool FFaceFXImportActionResult::Rollback()
 {
 	//only creations can be rolled back as a whole for now
-	if(Type == ActionType::Create && Result != ResultType::Error)
+	if(CanRollback())
 	{
 		//first check if the action owns a contextual asset which can be deleted (audio assets)
 		UObject* CreatedAsset = Asset.Get();
@@ -231,6 +336,20 @@ bool FFaceFXEditorTools::IsImportAnimationOnActorImport()
 	{
 		//try once to fetch overrides from ini
 		GConfig->GetBool(FACEFX_CONFIG_NS, TEXT("IsImportAnimationOnActorImport"), Value, FaceFX::GetFaceFXIni());
+		bIsLoaded = true;
+	}
+
+	return Value;
+}
+
+bool FFaceFXEditorTools::IsShowToasterMessageOnIncompatibleAnim()
+{
+	static bool Value = true;
+	static bool bIsLoaded = false;
+	if(!bIsLoaded)
+	{
+		//try once to fetch overrides from ini
+		GConfig->GetBool(FACEFX_CONFIG_NS, TEXT("ShowToasterMessageOnIncompatibleAnim"), Value, FaceFX::GetFaceFXIni());
 		bIsLoaded = true;
 	}
 
@@ -612,6 +731,11 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXActor* Asset, const FS
 			return false;
 		}
 	}
+
+#if FACEFX_DELETE_EMPTY_COMPILATION_FOLDER
+	CleanupCompilationFolder(Folder);
+#endif //FACEFX_DELETE_EMPTY_COMPILATION_FOLDER
+
 	return true;
 }
 
@@ -678,13 +802,13 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAnim* Asset, const FSt
 		return false;
 	}
 
-#if FACEFFX_DELETE_IMPORTED_ANIM
+#if FACEFX_DELETE_IMPORTED_ANIM
 	//The list of successfully imported files. Those will be deleted afterwards
 	TArray<FString> ImportedFiles;
 #else
 	//reset platform data when we don't need to reuse existing data
 	Asset->Reset();
-#endif //FACEFFX_DELETE_IMPORTED_ANIM
+#endif //FACEFX_DELETE_IMPORTED_ANIM
 
 	for(int8 i=0; i<EFaceFXTargetPlatform::MAX; ++i)
 	{
@@ -692,24 +816,52 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAnim* Asset, const FSt
 
 		const FString File = GetAnimAssetFileName(Folder, Asset->GetGroup().ToString(), Asset->GetName().ToString(), Target);
 
-#if FACEFFX_DELETE_IMPORTED_ANIM
+#if FACEFX_DELETE_IMPORTED_ANIM
 		if(!FPaths::FileExists(File))
 		{
-			//source file does not exist -> we consider this asset as being up-to-date and keep it as long as the current data is valid
+			//source file does not exist -> we consider this asset as being up-to-date and keep it as long as the current data is valid and its listed inside the audio map file
 			FFaceFXAnimData* PlatformData = Asset->GetPlatformData(Target);
 			if(!PlatformData || !PlatformData->IsValid())
 			{
-				//Platform data does not exist or is invalid so we actually miss the import data -> reset whole again asset
+				//Platform data does not exist or is invalid so we actually miss the import data -> reset whole asset again
 				OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetFailedMissing", "Loading initial animation data failed. Source file for platform {0} does not exist: {0}"), 
 					FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target)), FText::FromString(File)), Asset);
 				Asset->Reset();
 				return false;
 			}
-			OutResultMessages.AddModifySuccess(FText::Format(LOCTEXT("LoadingCompiledAssetUpToDate", "Animation platform data for {0} are up to date."), 
-				FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target))), Asset);
+
+			TArray<FFaceFXAudioMapEntry> AudioMapData;
+			if(LoadAudioMapData(Asset, Folder, Target, AudioMapData, OutResultMessages))
+			{
+				//look out for that animation
+				bool AnimationInAudioMap = false;
+				for(const FFaceFXAudioMapEntry& AudioMapEntry : AudioMapData)
+				{
+					if(AudioMapEntry.AnimationId.Equals(Asset->GetName().ToString(), ESearchCase::IgnoreCase) &&
+						AudioMapEntry.Group.Equals(Asset->GetGroup().ToString(), ESearchCase::IgnoreCase))
+					{
+						AnimationInAudioMap = true;
+						break;
+					}
+				}
+				
+				if(AnimationInAudioMap)
+				{
+					//animation still listed -> consider this animation as being up to date
+					OutResultMessages.AddModifySuccess(FText::Format(LOCTEXT("LoadingCompiledAssetUpToDate", "Animation platform data for {0} are up to date."), 
+						FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target))), Asset);
+				}
+				else
+				{
+					//not listed in audio map file -> animation not part of .facefx asset anymore
+					OutResultMessages.AddModifyWarning(FText::Format(LOCTEXT("LoadingCompiledAssetAnimRemoved", "Animation was deleted from the .facefx source asset or moved to another group. Consider to delete this animation asset or set to a new source."), 
+						FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target))), Asset);
+					return false;
+				}
+			}
 			continue;
 		}
-#endif //FACEFFX_DELETE_IMPORTED_ANIM
+#endif //FACEFX_DELETE_IMPORTED_ANIM
 
 		//fetch target data container reset in case it existed already (reimport with new data)
 		FFaceFXAnimData& TargetData = Asset->GetOrCreatePlatformData(Target);
@@ -727,188 +879,145 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAnim* Asset, const FSt
 		}
 
 
-#if FACEFFX_DELETE_IMPORTED_ANIM
+#if FACEFX_DELETE_IMPORTED_ANIM
 		ImportedFiles.Add(File);
-#endif
+#endif //FACEFX_DELETE_IMPORTED_ANIM
 	}
 
-#if FACEFFX_DELETE_IMPORTED_ANIM
+#if FACEFX_DELETE_IMPORTED_ANIM
 	for(const FString& ImportedFile : ImportedFiles)
 	{
 		FileManager.Delete(*ImportedFile, false, true, true);
 	}
-#endif //FACEFFX_DELETE_IMPORTED_ANIM
+#endif //FACEFX_DELETE_IMPORTED_ANIM
+
+	const bool Result = !IsImportAudio() || LoadAudio(Asset, Folder, OutResultMessages);
+
+#if FACEFX_DELETE_EMPTY_COMPILATION_FOLDER
+	CleanupCompilationFolder(Folder);
+#endif //FACEFX_DELETE_EMPTY_COMPILATION_FOLDER
 
 	//as a last step load the audio asset if desired
-	return !IsImportAudio() || LoadAudio(Asset, Folder, OutResultMessages);
+	return Result;
 }
 
 bool FFaceFXEditorTools::LoadAudio(UFaceFXAnim* Asset, const FString& Folder, FFaceFXImportResult& OutResultMessages)
-{
-	//link with audio data base on the PC mapping (all platforms use the same audio data)
-	const FString AudioMapFile = GetPlatformFolder(Folder, EFaceFXTargetPlatform::PC) / (Asset->GetAssetName() + FACEFX_FILEEXT_AUDIO);
-	if(FPaths::FileExists(AudioMapFile))
+{	
+	TArray<FFaceFXAudioMapEntry> AudioMapData;
+	if(LoadAudioMapData(Asset, Folder, EFaceFXTargetPlatform::PC, AudioMapData, OutResultMessages))
 	{
-		TArray<FString> Lines;
-		if(FFileHelper::LoadANSITextFileToStrings(*AudioMapFile, nullptr, Lines))
+		const FString AnimGroup = Asset->GetGroup().ToString();
+		const FString AnimId = Asset->GetName().ToString();
+
+		bool MappingEntryFound = false;
+
+		for(const FFaceFXAudioMapEntry& AudioMapEntry : AudioMapData)
 		{
-			const FString AnimGroup = Asset->GetGroup().ToString();
-			const FString AnimId = Asset->GetName().ToString();
-
-			bool MappingEntryFound = false;
-
-			for(const FString& Line : Lines)
+			if(!AudioMapEntry.Group.Equals(AnimGroup) || !AudioMapEntry.AnimationId.Equals(AnimId))
 			{
-				if(Line.IsEmpty())
+				//wrong entry
+				continue;
+			}
+
+			MappingEntryFound = true;
+
+			if(Asset->AudioPath.Equals(AudioMapEntry.AudioPath) && Asset->IsAudioAssetSet())
+			{
+				//no change
+				OutResultMessages.AddCreateSuccess(LOCTEXT("LoadAudioFailedImportNoChange", "Animation already links to the right Audio Asset"), Asset, Asset->Audio);
+				return true;
+			}
+
+			//set new path and reset audio link
+			Asset->AudioPath = AudioMapEntry.AudioPath;
+			Asset->Audio.Reset();
+
+			if(!AudioMapEntry.AudioPath.IsEmpty())
+			{
+				//lookup audio
+				FString AudioFile;
+				if(Asset->GetAbsoluteAudioPath(AudioFile) && FPaths::FileExists(AudioFile))
 				{
-					continue;
-				}
-
-				//Format: <Group>/<AnimId>|<Relative Path>
-				FString GroupS, GroupSRight, AnimIdS, Path;
-				if(Line.Split(TEXT("/"), &GroupS, &GroupSRight) && GroupSRight.Split(TEXT("|"), &AnimIdS, &Path))
-				{
-					if(GroupS.Contains(TEXT("/")))
+					//try to find sound asset
+					if(IsImportLookupAudio())
 					{
-						UE_LOG(LogFaceFX, Warning, TEXT("FFaceFXEditorTools::LoadAudio. The audio mapping file contains an invalid '/' character in the animation group name. Entry will be ignored. File: %s. Asset: %s. Line: %s"), *AudioMapFile, *GetNameSafe(Asset), *Line);
-						OutResultMessages.AddCreateWarning(FText::Format(LOCTEXT("LoadAudioFailedImportBadCharGroup", "The audio mapping file contains an invalid '/' character in the animation group name. Entry will be ignored. File: {0}, Line: {1}"), FText::FromString(AudioMapFile), FText::FromString(Line)), Asset);
-						continue;
+						//try to lookup audio
+						Asset->Audio = LocateAudio(AudioFile);
 					}
 
-					if(AnimIdS.Contains(TEXT("/")))
+					if(!Asset->IsAudioAssetSet())
 					{
-						UE_LOG(LogFaceFX, Warning, TEXT("FFaceFXEditorTools::LoadAudio. The audio mapping file contains an invalid '/' character in the animation name. Entry will be ignored. File: %s. Asset: %s. Line: %s"), *AudioMapFile, *GetNameSafe(Asset), *Line);
-						OutResultMessages.AddCreateWarning(FText::Format(LOCTEXT("LoadAudioFailedImportBadCharAnimId", "The audio mapping file contains an invalid '/' character in the animation name. Entry will be ignored. File: {0}, Line: {1}"), FText::FromString(AudioMapFile), FText::FromString(Line)), Asset);
-						continue;
-					}
+						//unassigned -> create new asset
+						IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
 
-					if(!GroupS.Equals(AnimGroup) || !AnimIdS.Equals(AnimId))
-					{
-						//wrong entry
-						continue;
-					}
+						FString NewAssetName, NewPackageName;
+						AssetTools.CreateUniqueAssetName(Asset->GetOutermost()->GetName(), TEXT("_Audio"), NewPackageName, NewAssetName);
 
-					MappingEntryFound = true;
+						TArray<FString> ImportAssetPath;
+						ImportAssetPath.Add(AudioFile);
 
-					//entry found
-					if(Path.Equals(TEXT("-")))
-					{
-						//consider "-" as empty
-						Path = TEXT("");
-					}
+						//Rather hacky workaround for the fact that importer process is creating the target package name itself and potentially clash with existing files
+						//So we import the assets into temp sub folders, rename them to the actual target package and clear the temp folder again
+						TArray<UObject*> ImportedAssets = AssetTools.ImportAssets(ImportAssetPath, NewPackageName);
+						USoundWave* ImportedAsset = ImportedAssets.Num() > 0 ? Cast<USoundWave>(ImportedAssets[0]) : nullptr;
 
-					if(Asset->AudioPath.Equals(Path) && Asset->IsAudioAssetSet())
-					{
-						//no change
-						return true;
-					}
-
-					//set new path and reset audio link
-					Asset->AudioPath = Path;
-					Asset->Audio.Reset();
-
-					if(!Path.IsEmpty())
-					{
-						//lookup audio
-						FString AudioFile;
-						if(Asset->GetAbsoluteAudioPath(AudioFile) && FPaths::FileExists(AudioFile))
+						if(ImportedAsset)
 						{
-							//try to find sound asset
-							if(IsImportLookupAudio())
+							const FString FolderPath = FPaths::GetPath(FPackageName::LongPackageNameToFilename(ImportedAsset->GetOutermost()->GetName()));
+
+							SavePackage(ImportedAsset->GetOutermost(), false);
+
+							//Rename to the actual target package name
+							TArray<FAssetRenameData> RenameAssets;
+							RenameAssets.Add(FAssetRenameData(ImportedAsset, FPaths::GetPath(NewPackageName), NewAssetName));
+							AssetTools.RenameAssets(RenameAssets);
+
+							IAssetRegistry& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry").Get();
+							AssetRegistry.RemovePath(*NewPackageName);
+
+							//Remove import folder from asset registry again when its empty
+							if(IsFolderEmpty(FolderPath))
 							{
-								//try to lookup audio
-								Asset->Audio = LocateAudio(AudioFile);
+								IFileManager::Get().DeleteDirectory(*FolderPath);
 							}
-
-							if(!Asset->IsAudioAssetSet())
-							{
-								//unassigned -> create new asset
-								IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
-
-								FString NewAssetName, NewPackageName;
-								AssetTools.CreateUniqueAssetName(Asset->GetOutermost()->GetName(), TEXT("_Audio"), NewPackageName, NewAssetName);
-
-								TArray<FString> ImportAssetPath;
-								ImportAssetPath.Add(AudioFile);
-
-								//Rather hacky workaround for the fact that importer process is creating the target package name itself and potentially clash with existing files
-								//So we import the assets into temp sub folders, rename them to the actual target package and clear the temp folder again
-								TArray<UObject*> ImportedAssets = AssetTools.ImportAssets(ImportAssetPath, NewPackageName);
-								USoundWave* ImportedAsset = ImportedAssets.Num() > 0 ? Cast<USoundWave>(ImportedAssets[0]) : nullptr;
-
-								if(ImportedAsset)
-								{
-									const FString FolderPath = FPaths::GetPath(FPackageName::LongPackageNameToFilename(ImportedAsset->GetOutermost()->GetName()));
-
-									SavePackage(ImportedAsset->GetOutermost(), false);
-
-									//Rename to the actual target package name
-									TArray<FAssetRenameData> RenameAssets;
-									RenameAssets.Add(FAssetRenameData(ImportedAsset, FPaths::GetPath(NewPackageName), NewAssetName));
-									AssetTools.RenameAssets(RenameAssets);
-
-									IAssetRegistry& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry").Get();
-									AssetRegistry.RemovePath(*NewPackageName);
-
-									//Remove import folder from asset registry again when its empty
-									if(IsFolderEmpty(FolderPath))
-									{
-										IFileManager::Get().DeleteDirectory(*FolderPath);
-									}
 									
-									//sync back to the original asset
-									IContentBrowserSingleton& ContentBrowser = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser").Get();
-									ContentBrowser.SyncBrowserToAssets(ImportedAssets);
+							//sync back to the original asset
+							IContentBrowserSingleton& ContentBrowser = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser").Get();
+							ContentBrowser.SyncBrowserToAssets(ImportedAssets);
 
-									//finally assign new audio
-									Asset->Audio = ImportedAsset;
+							//finally assign new audio
+							Asset->Audio = ImportedAsset;
 
-									SavePackage(ImportedAsset->GetOutermost());
+							SavePackage(ImportedAsset->GetOutermost());
 
-									OutResultMessages.AddCreateSuccess(FText::Format(LOCTEXT("LoadAudioFailedImportSuccess", "Importing audio file succeeded. File: {0}"), FText::FromString(AudioFile)), Asset, Asset->Audio);
-								}
-								else
-								{
-									UE_LOG(LogFaceFX, Error, TEXT("FFaceFXEditorTools::LoadAudio. Importing audio file failed. File: %s. Asset: %s"), *AudioFile, *GetNameSafe(Asset));
-									OutResultMessages.AddCreateError(FText::Format(LOCTEXT("LoadAudioFailedImportFail", "Importing audio asset failed. File: {0}"), FText::FromString(AudioFile)), Asset);
-									return false;
-								}
-							}
-							else
-							{
-								OutResultMessages.AddModifySuccess(FText::Format(LOCTEXT("LookupAudioSucceded", "Existing USoundWave asset found for target audio data. File: {0}"), FText::FromString(AudioFile)), Asset, Asset->Audio);
-							}
+							OutResultMessages.AddCreateSuccess(FText::Format(LOCTEXT("LoadAudioFailedImportSuccess", "Importing audio file succeeded. File: {0}"), FText::FromString(AudioFile)), Asset, Asset->Audio);
 						}
 						else
 						{
-							UE_LOG(LogFaceFX, Error, TEXT("FFaceFXEditorTools::LoadAudio. Audio file does not exist. File: %s. Asset: %s"), *AudioFile, *GetNameSafe(Asset));
-							OutResultMessages.AddCreateError(FText::Format(LOCTEXT("LoadAudioFailedAudioMissing", "Audio file does not exist. File: {0}"), FText::FromString(AudioFile)), Asset);
+							UE_LOG(LogFaceFX, Error, TEXT("FFaceFXEditorTools::LoadAudio. Importing audio file failed. File: %s. Asset: %s"), *AudioFile, *GetNameSafe(Asset));
+							OutResultMessages.AddCreateError(FText::Format(LOCTEXT("LoadAudioFailedImportFail", "Importing audio asset failed. File: {0}"), FText::FromString(AudioFile)), Asset);
 							return false;
 						}
 					}
-					return true;
+					else
+					{
+						OutResultMessages.AddModifySuccess(FText::Format(LOCTEXT("LookupAudioSucceded", "Existing USoundWave asset found for target audio data. File: {0}"), FText::FromString(AudioFile)), Asset, Asset->Audio);
+					}
 				}
 				else
 				{
-					UE_LOG(LogFaceFX, Error, TEXT("FFaceFXEditorTools::LoadAudio. Failed to parse audio map entry. File: %s. Data: %s"), *AudioMapFile, *Line);
-					OutResultMessages.AddCreateError(FText::Format(LOCTEXT("LoadAudioFailedParseFail", "Failed to parse audio map entry. File: {0}. Data: {1}"), FText::FromString(AudioMapFile), FText::FromString(Line)), Asset);
+					UE_LOG(LogFaceFX, Error, TEXT("FFaceFXEditorTools::LoadAudio. Audio file does not exist. File: %s. Asset: %s"), *AudioFile, *GetNameSafe(Asset));
+					OutResultMessages.AddCreateError(FText::Format(LOCTEXT("LoadAudioFailedAudioMissing", "Audio file does not exist. File: {0}"), FText::FromString(AudioFile)), Asset);
+					return false;
 				}
+				return true;
 			}
+		}
+				
+		//when there is no mapping, there is no audio file for the asset. Hence we consider it successful
+		return !MappingEntryFound;
+	}
 
-			//when there is no mapping, there is no audio file for the asset. Hence we consider it successful
-			return !MappingEntryFound;
-		}
-		else
-		{
-			UE_LOG(LogFaceFX, Error, TEXT("FFaceFXEditorTools::LoadAudio. Failed to read audio map file: %s"), *AudioMapFile);
-			OutResultMessages.AddCreateError(FText::Format(LOCTEXT("LoadAudioFailedReadFail", "Failed to read audio map file: {0}"), FText::FromString(AudioMapFile)), Asset);
-		}
-	}
-	else
-	{
-		UE_LOG(LogFaceFX, Error, TEXT("FFaceFXEditorTools::LoadAudio. FaceFX audio map file does not exist: %s"), *AudioMapFile);
-		OutResultMessages.AddCreateError(FText::Format(LOCTEXT("LoadAudioFailedNoMap", "FaceFX audio map file does not exist: {0}"), FText::FromString(AudioMapFile)), Asset);
-	}
 	return false;
 }
 

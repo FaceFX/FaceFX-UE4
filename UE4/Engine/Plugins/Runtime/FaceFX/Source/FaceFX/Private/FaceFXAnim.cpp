@@ -59,7 +59,7 @@ SIZE_T UFaceFXAnim::GetResourceSize(EResourceSizeMode::Type Mode)
 
 void UFaceFXAnim::Serialize(FArchive& Ar)
 {
-	if(Ar.IsSaving() && Ar.IsCooking())
+	if(!IsTemplate() && Ar.IsSaving() && Ar.IsCooking())
 	{
 		ClearPlatformData(Ar, PlatformData);
 	}

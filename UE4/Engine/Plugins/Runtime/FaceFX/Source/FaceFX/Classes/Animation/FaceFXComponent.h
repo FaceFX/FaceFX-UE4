@@ -108,6 +108,30 @@ public:
 	UFUNCTION(BlueprintCallable, Category=FaceFX, Meta=(HidePin="Caller", DefaultToSelf="Caller"))
 	bool Play(class UFaceFXAnim* Animation, USkeletalMeshComponent* SkelMeshComp, bool Loop, const UObject* Caller = nullptr);
 
+	/**
+	* Stops the playback of the currently playing facial animation for a given skel mesh components character
+	* @param SkelMeshComp The skelmesh component to stop the playback for. Keep nullptr to use the first setup skelmesh component character instead
+	* @returns True if succeeded, else false
+	*/
+	UFUNCTION(BlueprintCallable, Category=FaceFX, Meta=(HidePin="Caller", DefaultToSelf="Caller"))
+	bool Stop(USkeletalMeshComponent* SkelMeshComp, const UObject* Caller = nullptr);
+
+	/**
+	* Pause the playback of the currently playing facial animation for a given skel mesh components character
+	* @param SkelMeshComp The skelmesh component to pause the playback for. Keep nullptr to use the first setup skelmesh component character instead
+	* @returns True if succeeded, else false
+	*/
+	UFUNCTION(BlueprintCallable, Category=FaceFX, Meta=(HidePin="Caller", DefaultToSelf="Caller"))
+	bool Pause(USkeletalMeshComponent* SkelMeshComp, const UObject* Caller = nullptr);
+
+	/**
+	* Resumes the playback of the currently paused facial animation for a given skel mesh components character
+	* @param SkelMeshComp The skelmesh component to resume the playback for. Keep nullptr to use the first setup skelmesh component character instead
+	* @returns True if succeeded, else false
+	*/
+	UFUNCTION(BlueprintCallable, Category=FaceFX, Meta=(HidePin="Caller", DefaultToSelf="Caller"))
+	bool Resume(USkeletalMeshComponent* SkelMeshComp, const UObject* Caller = nullptr);
+
 	/** Event that triggers whenever any of the FaceFX character instances plays a facial animation that requested the startup of audio playback */
 	UPROPERTY(BlueprintAssignable, Category=FaceFX)
 	FOnFaceFXAudioStartEventSignature OnPlaybackAudioStart;
@@ -146,6 +170,16 @@ protected:
 	//~UActorComponent
 
 private:
+
+	/**
+	* Gets the FaceFX character to use for any action
+	* @param SkelMeshComp The skelmesh component to get the character for. Keep empty to get the FaceFX character for the first skelmesh that was setup
+	* @returns The UFaceFXCharacter for the given skelmesh context
+	*/
+	inline UFaceFXCharacter* GetContentCharacter(USkeletalMeshComponent* SkelMeshComp)
+	{
+		return SkelMeshComp ? GetCharacter(SkelMeshComp) : (Entries.Num() > 0 ? Entries[0].Character : nullptr);
+	}
 
 	/**
 	* Callback for when a FaceFX character instance requested audio playback

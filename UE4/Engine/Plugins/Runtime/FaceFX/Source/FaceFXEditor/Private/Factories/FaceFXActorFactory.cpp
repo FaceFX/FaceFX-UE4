@@ -76,10 +76,10 @@ void ShowInfo(const FText& Msg)
 
 UObject* UFaceFXActorFactory::FactoryCreateNew(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn)
 {
-	return CreateNew(InClass, InParent, InName, Flags, FCompilationBeforeDeletionDelegate::CreateUObject(this, &UFaceFXActorFactory::OnCompilationBeforeDelete), GetCurrentFilename());
+	return CreateNew(InClass, InParent, InName, Flags, FCompilationBeforeDeletionDelegate::CreateStatic(&UFaceFXActorFactory::OnFxActorCompilationBeforeDelete), GetCurrentFilename());
 }
 
-void UFaceFXActorFactory::OnCompilationBeforeDelete(UObject* Asset, const FString& CompilationFolder, bool LoadResult, FFaceFXImportResult& OutResultMessages)
+void UFaceFXActorFactory::OnFxActorCompilationBeforeDelete(UObject* Asset, const FString& CompilationFolder, bool LoadResult, FFaceFXImportResult& OutResultMessages)
 {
 	if(LoadResult && FFaceFXEditorTools::IsImportAnimationOnActorImport())
 	{
@@ -95,7 +95,7 @@ void UFaceFXActorFactory::OnCompilationBeforeDelete(UObject* Asset, const FStrin
 	}
 }
 
-void UFaceFXActorFactory::HandleFaceFXActorCreated(class UFaceFXActor* Asset, const FString& CompilationFolder, FFaceFXImportResult& OutResultMessages, UFactory* Factory)
+void UFaceFXActorFactory::HandleFaceFXActorCreated(UFaceFXActor* Asset, const FString& CompilationFolder, FFaceFXImportResult& OutResultMessages, UFactory* Factory)
 {
 	check(Asset);
 
@@ -149,8 +149,10 @@ void UFaceFXActorFactory::HandleFaceFXActorCreated(class UFaceFXActor* Asset, co
 * Performs some steps during asset import after the asset got create and before the actual import starts. Gives a chance to prepare the asset and adjust the asset to load from
 * @param Asset The asset that got created
 * @param OutFaceFXAsset The asset import string
+* @param OutResult The result messages
+* @returns True if succeeded, else false
 */
-void OnPreInitialization(UFaceFXAsset* Asset, FString& OutFaceFXAsset)
+bool OnPreInitialization(UFaceFXAsset* Asset, FString& OutFaceFXAsset, FFaceFXImportResultSet& OutResult)
 {
 	UFaceFXAnim* AnimAsset = Cast<UFaceFXAnim>(Asset);
 	if(AnimAsset && OutFaceFXAsset.EndsWith(FACEFX_FILEEXT_ANIM))
@@ -170,7 +172,21 @@ void OnPreInitialization(UFaceFXAsset* Asset, FString& OutFaceFXAsset)
 
 		//create the path to the .fxactor file. The asset knows know what animation/group the load process shall target so we can use the more generic .fxactor approach now
 		OutFaceFXAsset = CompilationFolder / TEXT("../") + CompilationFolderName + FACEFX_FILEEXT_FACEFX;
+
+		if(!FPaths::FileExists(*OutFaceFXAsset))
+		{
+			//.facefx file missing
+			const FString FaceFXAssetAbs = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*OutFaceFXAsset);
+			const FText Msg = FText::Format(LOCTEXT("CreateFxAnimMissingFxActor", "Unexpected .ffxanim location. Unable to locate .facefx file at expected location: {0}"), FText::FromString(FaceFXAssetAbs));
+			OutResult.GetOrAdd(Asset).AddCreateError(Msg, Asset);
+			return false;
+		}
+
+		return true;
 	}
+
+	//type does not need to pre preinitialized
+	return true;
 }
 
 UObject* UFaceFXActorFactory::CreateNew(UClass* Class, UObject* InParent, const FName& Name, EObjectFlags Flags, const FCompilationBeforeDeletionDelegate& BeforeDeletionCallback, FString FaceFXAsset)
@@ -218,12 +234,10 @@ UObject* UFaceFXActorFactory::CreateNew(UClass* Class, UObject* InParent, const 
 		//create asset
 		UFaceFXAsset* NewAsset = NewObject<UFaceFXAsset>(InParent, Class, Name, Flags);
 
-		OnPreInitialization(NewAsset, FaceFXAsset);
-
 		//initialize asset
 		FFaceFXImportResultSet ResultSet;
-		
-		if(FFaceFXEditorTools::InitializeFromFile(NewAsset, FaceFXAsset, ResultSet.GetOrAdd(NewAsset), BeforeDeletionCallback, true))
+
+		if(OnPreInitialization(NewAsset, FaceFXAsset, ResultSet) && FFaceFXEditorTools::InitializeFromFile(NewAsset, FaceFXAsset, ResultSet.GetOrAdd(NewAsset), BeforeDeletionCallback, true))
 		{
 			//success
 			FFaceFXEditorTools::SavePackage(NewAsset->GetOutermost());

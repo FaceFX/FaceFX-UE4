@@ -21,7 +21,7 @@
 		},
 		{
 			"Name" : "FaceFXEditor",
-			"Type" : "EditorNoCommandlet"
+			"Type" : "Editor"
 		}
 	]
 }

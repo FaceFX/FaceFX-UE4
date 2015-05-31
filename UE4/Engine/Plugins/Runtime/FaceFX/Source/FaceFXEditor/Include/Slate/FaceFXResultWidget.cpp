@@ -166,6 +166,9 @@ void FFaceFXResultWidget::Construct(const FArguments& Args)
 			ListViewEntries.Add(MakeShareable(NewEntry));
 		}
 	}
+
+	bWindowTitleSet = false;
+	UpdateTitle();
 }
 
 TSharedRef<ITableRow> FFaceFXResultWidget::GenerateRow(TSharedPtr<ListRowEntry> Entry, const TSharedRef<STableViewBase>& Owner)
@@ -196,7 +199,45 @@ bool FFaceFXResultWidget::MergeResult(const FFaceFXImportResultSet& Data)
 
 	ListView->RequestListRefresh();
 
+	UpdateTitle();
+
 	return true;
+}
+
+void FFaceFXResultWidget::UpdateTitle()
+{
+	SWindow* Window = FSlateApplication::Get().FindWidgetWindow(AsShared()).Get();
+	if(Window)
+	{
+		if(!bWindowTitleSet)
+		{
+			WindowTitle = Window->GetTitle();
+			bWindowTitleSet = true;
+		}
+
+		int32 NumSuccesses = 0;
+		int32 NumWarnings = 0;
+		int32 NumErrors = 0;
+
+		//locate all errors/warnings
+		for(const TSharedPtr<ListRowEntry>& ListViewEntry : ListViewEntries)
+		{
+			if(const ListRowEntry* Entry = ListViewEntry.Get())
+			{
+				switch(Entry->Result.GetResultType())
+				{
+				case FFaceFXImportActionResult::ResultType::Success: ++NumSuccesses; break;
+				case FFaceFXImportActionResult::ResultType::Warning: ++NumWarnings; break;
+				case FFaceFXImportActionResult::ResultType::Error: ++NumErrors; break;
+				}
+			}
+		}
+
+		Window->SetTitle(FText::Format(LOCTEXT("ResultTitleFormat", "{0}  ({1} Successes, {2} Warnings, {3} Errors)"), WindowTitle, 
+			FText::FromString(FString::FromInt(NumSuccesses)),
+			FText::FromString(FString::FromInt(NumWarnings)), 
+			FText::FromString(FString::FromInt(NumErrors))));
+	}
 }
 
 EAppReturnType::Type FFaceFXResultWidget::OpenDialog(const FText& InTitle, bool ShowAsModal)
@@ -210,7 +251,7 @@ EAppReturnType::Type FFaceFXResultWidget::OpenDialog(const FText& InTitle, bool 
 	Window->SetContent(AsShared());
 	
 	//add instance to the open list
-	s_OpenInstances.Add(FResultWidgetInstance(Window, AsShared()));
+	s_OpenInstances.Add(FResultWidgetInstance(Window, AsShared(), InTitle));
 
 	if(ShowAsModal)
 	{
@@ -221,11 +262,19 @@ EAppReturnType::Type FFaceFXResultWidget::OpenDialog(const FText& InTitle, bool 
 		FSlateApplication::Get().AddWindow(Window);
 	}
 	
+	UpdateTitle();
+
 	return EAppReturnType::Ok;
 }
 
 EAppReturnType::Type FFaceFXResultWidget::Create(const FText& InTitle, const FFaceFXImportResultSet& ResultSet, bool ShowAsModal, bool MergeWithOpenWindow)
 {
+	if(ResultSet.GetEntries().Num() == 0)
+	{
+		//nothing to display
+		return EAppReturnType::Ok;
+	}
+
 	//Check if there is another result widget open for the same type of results. If so merge them. Used to prevent multiple windows opening up after mass imports via drag'n'drop
 	if(MergeWithOpenWindow)
 	{
@@ -251,7 +300,7 @@ FReply FFaceFXResultWidget::OnRollbackChanges()
 	
 	for(TSharedPtr<ListRowEntry>& Entry : SelectedEntries)
 	{
-		if(Entry->Result.GetType() == FFaceFXImportActionResult::ActionType::Create)
+		if(Entry->Result.CanRollback())
 		{
 			SelectedCreateEntries.Add(Entry);
 		}
@@ -380,10 +429,4 @@ TSharedRef<SWidget> FFaceFXResultWidget::ListRowWidget::GenerateWidgetForColumn(
 	}
 
 	return SNew(STextBlock);
-}
-
-bool FFaceFXResultWidget::FResultWidgetInstance::operator==(const FText& Title) const
-{
-	SWindow* WindowWidget = GetWindow();
-	return WindowWidget && WindowWidget->GetTitle().EqualTo(Title);
 }

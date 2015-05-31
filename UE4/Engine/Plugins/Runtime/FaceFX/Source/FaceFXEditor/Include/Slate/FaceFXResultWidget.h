@@ -66,7 +66,7 @@ class FFaceFXResultWidget : public SCompoundWidget
 	};
 
 public:
-	SLATE_BEGIN_ARGS(FFaceFXResultWidget)	{}
+	SLATE_BEGIN_ARGS(FFaceFXResultWidget) {}
 	SLATE_ARGUMENT(FFaceFXImportResultSet, Result)	
 	SLATE_END_ARGS()
 
@@ -102,7 +102,7 @@ private:
 	/** Represents a result widget instance. Might be still open or not */
 	struct FResultWidgetInstance
 	{
-		FResultWidgetInstance(const TWeakPtr<class SWidget>& InWindow, const TWeakPtr<SWidget>& InWidget) : Window(InWindow), Widget(InWidget){}
+		FResultWidgetInstance(const TWeakPtr<class SWidget>& InWindow, const TWeakPtr<SWidget>& InWidget, const FText& InTitle) : Window(InWindow), Widget(InWidget), Title(InTitle){}
 
 		/** 
 		* Gets the indicator if this is a valid widget instance
@@ -133,9 +133,12 @@ private:
 			return ResultWidget ? static_cast<FFaceFXResultWidget*>(ResultWidget) : nullptr;
 		}
 
-		bool operator==(const FText& Title) const;
+		FORCEINLINE bool operator==(const FText& InTitle) const
+		{
+			return Title.EqualTo(InTitle);
+		}
 
-		bool operator==(const class SWidget* InWidget) const
+		FORCEINLINE bool operator==(const class SWidget* InWidget) const
 		{
 			return Widget.Pin().Get() == InWidget;
 		}
@@ -147,7 +150,13 @@ private:
 
 		/** The widget */
 		TWeakPtr<class SWidget> Widget;
+
+		/** The original title */
+		FText Title;
 	};
+
+	/** Updates the title of the window */
+	void UpdateTitle();
 
 	/** Event handler for when the user requested a rollback of the selected changes */
 	FReply OnRollbackChanges();
@@ -160,6 +169,12 @@ private:
 
 	/** Callback for when the list view requests a new row widget */
 	TSharedRef<ITableRow> GenerateRow(TSharedPtr<ListRowEntry> Entry, const TSharedRef<STableViewBase>& Owner);
+
+	/** The original title of the owning window */
+	FText WindowTitle;
+
+	/** Indicator if the window title was retrieved already */
+	uint8 bWindowTitleSet : 1;
 
 	/** The list of open instances */
 	static TArray<FResultWidgetInstance> s_OpenInstances;

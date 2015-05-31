@@ -64,4 +64,21 @@ FStreamableManager& FaceFX::GetStreamer()
 	return s_streamer;
 }
 
+#if WITH_EDITOR
+class FFaceFXModule : public FDefaultModuleImpl
+{
+	virtual void StartupModule() override
+	{
+		if(!GIsEditor)
+		{
+			//Workaround for the circumstance that we have the anim graph node inside an editor only plugin and we can't load the plugin for editor AND uncooked but not during cooked
+			//Instead we explicitly load the plugin for this scenario when we play with uncooked standalone
+			//That looks like an engine bug. See: https://udn.unrealengine.com/questions/247518/editor-only-plugin-modules.html
+			FModuleManager::LoadModuleChecked<FDefaultModuleImpl>("FaceFXEditor");
+		}
+	}
+};
+IMPLEMENT_MODULE(FFaceFXModule, FaceFX);
+#else
 IMPLEMENT_MODULE(FDefaultModuleImpl, FaceFX);
+#endif

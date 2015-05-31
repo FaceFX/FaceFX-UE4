@@ -34,6 +34,11 @@ UFaceFXAnimFactory::UFaceFXAnimFactory(const class FObjectInitializer& PCIP)
 	Formats.Add(TEXT("ffxanim;FaceFX Animation Asset"));
 }
 
+uint32 UFaceFXAnimFactory::GetMenuCategories() const
+{ 
+	return FFaceFXEditorTools::AssetCategory;
+}
+
 UObject* UFaceFXAnimFactory::FactoryCreateNew(UClass* Class, UObject* InParent, FName Name, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn)
 {
 	if(bOnlyCreate)
