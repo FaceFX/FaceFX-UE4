@@ -29,6 +29,7 @@
 /** The delegate used for various FaceFX events */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnFaceFXCharacterEventSignature, class UFaceFXCharacter*, Character, const struct FFaceFXAnimId&, AnimId);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnFaceFXCharacterAudioStartEventSignature, class UFaceFXCharacter*, Character, const struct FFaceFXAnimId&, AnimId, bool, IsAudioStarted, class UAudioComponent*, AudioComponentStartedOn);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnFaceFXCharacterPlayAssetIncompatibleSignature, class UFaceFXCharacter* /*Character*/, const class UFaceFXAnim* /*Asset*/);
 
 /** Class that represents a FaceFX character instance */
 UCLASS()
@@ -137,6 +138,24 @@ public:
 		return bIsPlaying;
 	}
 
+	/** 
+	* Gets the indicator if this character is currently pausing a facial animation
+	* @returns True If the character is having a paused facial animation, else false
+	*/
+	inline bool IsPaused() const
+	{
+		return !bIsPlaying && CurrentAnimHandle;
+	}
+
+	/**
+	* Gets the indicator if the character is playing a audio right now
+	* @returns True if playing, else false
+	*/
+	inline bool IsPlayingAudio() const
+	{
+		return bIsPlayingAudio;
+	}
+
 	/**
 	* Gets the indicator if the current animation is looping
 	* @returns True if looping else false
@@ -202,11 +221,23 @@ public:
 		return BoneTransforms;
 	}
 
+	/**
+	* Gets the assigned FaceFX actor asset
+	* @returns The assigned FaceFX actor asset
+	*/
+	inline const UFaceFXActor* GetFaceFXActor() const
+	{
+		return FaceFXActor;
+	}
+
 	//FTickableGameObject
 	virtual void Tick(float DeltaTime) override;
 	virtual bool IsTickable() const override;
 	virtual TStatId GetStatId() const override;
 	//~FTickableGameObject
+
+	/** Event that triggers whenever an asset was tried to get played which is incompatible to the FaceFX actor handle */
+	static FOnFaceFXCharacterPlayAssetIncompatibleSignature OnFaceFXCharacterPlayAssetIncompatible;
 
 private:
 
@@ -218,6 +249,18 @@ private:
 	{
 		return CurrentAnim;
 	}
+
+	/** 
+	* Gets the owning actor
+	* @returns The actor or nullptr if not belonging to one
+	*/
+	class AActor* GetOwnningActor() const;
+
+	/** 
+	* Gets the audio component from the owning actor
+	* @returns The audio component or nullptr if not found
+	*/
+	class UAudioComponent* GetAudioComponent() const;
 
 	/** 
 	* Checks if the character FaceFX actor handle can play the given animation handle
@@ -261,6 +304,24 @@ private:
 	* @returns True if audio playback successfully started on the owning actors Audio component, else false
 	*/
 	bool PlayAudio(class UAudioComponent** OutAudioComp = nullptr);
+
+	/** 
+	* Pausing the playback of the currently playing audio
+	* @returns True if succeeded, else false
+	*/
+	bool PauseAudio();
+
+	/** 
+	* Stops the playback of the currently playing audio
+	* @returns True if succeeded, else false
+	*/
+	bool StopAudio();
+
+	/** 
+	* Resumes the playback of the currently paused audio
+	* @returns True if succeeded, else false
+	*/
+	bool ResumeAudio();
 
 	/**
 	* Gets the latest internal facefx error message
@@ -312,6 +373,9 @@ private:
 	/** The total duration of the currently playing animation */
 	float CurrentAnimDuration;
 
+	/** The location at which we are right now on the audio playback (in seconds) */
+	float CurrentAudioProgress;
+
 	/** The id of the currently played animation */
 	FFaceFXAnimId CurrentAnim;
 
@@ -323,6 +387,9 @@ private:
 
 	/** Playing indicator */
 	uint8 bIsPlaying : 1;
+
+	/** Audio Playing indicator */
+	uint8 bIsPlayingAudio : 1;
 
 	/** Looping indicator for the currently playing animation */
 	uint8 bIsLooping : 1;

@@ -29,7 +29,7 @@ public:
 	virtual FColor GetTypeColor() const override { return FColor(137,191,53); }
 	virtual bool CanFilter() override { return true; }
 	virtual bool HasActions ( const TArray<UObject*>& InObjects ) const override { return true; }
-	virtual uint32 GetCategories() override { return EAssetTypeCategories::Animation; }
+	virtual uint32 GetCategories() override;
 
 protected:
 

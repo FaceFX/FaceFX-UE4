@@ -62,7 +62,7 @@ SIZE_T UFaceFXActor::GetResourceSize(EResourceSizeMode::Type Mode)
 
 void UFaceFXActor::Serialize(FArchive& Ar)
 {
-	if(Ar.IsSaving())
+	if(!IsTemplate() && Ar.IsSaving())
 	{
 		if(Ar.IsCooking())
 		{

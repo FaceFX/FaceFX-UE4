@@ -43,6 +43,8 @@ bool Check(int32 Value)
 	return Value != 0 && (ffx_errno() == EOK);
 }
 
+FOnFaceFXCharacterPlayAssetIncompatibleSignature UFaceFXCharacter::OnFaceFXCharacterPlayAssetIncompatible;
+
 UFaceFXCharacter::UFaceFXCharacter(const class FObjectInitializer& PCIP) : Super(PCIP),
 	ActorHandle(nullptr),
 	FrameState(nullptr),
@@ -51,8 +53,10 @@ UFaceFXCharacter::UFaceFXCharacter(const class FObjectInitializer& PCIP) : Super
 	CurrentTime(.0F),
 	CurrentAnimProgress(0.F),
 	CurrentAnimDuration(.0F),
+	CurrentAudioProgress(0.F),
 	bIsDirty(true),
 	bIsPlaying(false),
+	bIsPlayingAudio(false),
 	bIsLooping(false),
 	bCanPlay(true)
 #if WITH_EDITOR
@@ -87,6 +91,11 @@ void UFaceFXCharacter::Tick(float DeltaTime)
 	//progress in time
 	CurrentTime += DeltaTime;
 	CurrentAnimProgress += DeltaTime;
+
+	if(IsPlayingAudio())
+	{
+		CurrentAudioProgress += DeltaTime;
+	}
 
 	if(CurrentAnimProgress >= CurrentAnimDuration)
 	{
@@ -192,6 +201,12 @@ bool UFaceFXCharacter::Play(const UFaceFXAnim* Animation, bool Loop)
 		return false;
 	}
 
+	if(!Animation->IsValid())
+	{
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Play. FaceFX animation asset is in an invalid state. Please reimport that asset. Asset: %s"), *GetNameSafe(Animation));
+		return false;
+	}
+
 	if(!bCanPlay)
 	{
 		return false;
@@ -224,6 +239,7 @@ bool UFaceFXCharacter::Play(const UFaceFXAnim* Animation, bool Loop)
 		if(!IsCanPlay(NewAnimHandle))
 		{
 			UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::Play. Animation is not compatible with FaceFX actor handle. Actor: %s. Animation: %s"), *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
+			OnFaceFXCharacterPlayAssetIncompatible.Broadcast(this, Animation);
 			return false;
 		}
 
@@ -298,6 +314,7 @@ bool UFaceFXCharacter::Resume()
 	}
 	
 	bIsPlaying = true;
+	ResumeAudio();
 
 	return true;
 }
@@ -317,6 +334,7 @@ bool UFaceFXCharacter::Pause()
 	}
 
 	bIsPlaying = false;
+	PauseAudio();
 
 	{
 		SCOPE_CYCLE_COUNTER(STAT_FaceFXEvents);
@@ -334,7 +352,7 @@ bool UFaceFXCharacter::Stop()
 		return false;
 	}
 
-	if (IsPlaying() && !Check(ffx_stop(ActorHandle)))
+	if ((IsPlaying() || IsPaused()) && !Check(ffx_stop(ActorHandle)))
 	{
 		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Stop. FaceFX call failed. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
 		return false;
@@ -346,6 +364,7 @@ bool UFaceFXCharacter::Stop()
 	CurrentAnimProgress = .0F;
 	CurrentAnim.Reset();
 	bIsPlaying = false;
+	StopAudio();
 
 	UnloadCurrentAnim();
 
@@ -438,13 +457,13 @@ bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset)
 
 	if(!Dataset)
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Missing dataset."));
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Missing FaceFXActor asset."));
 		return false;
 	}
 
 	if(!Dataset->IsValid())
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Invalid dataset."));
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Invalid FaceFXActor asset. Please reimport that asset. Asset: %s"), *GetNameSafe(FaceFXActor));
 		return false;
 	}
 
@@ -579,6 +598,18 @@ ffx_anim_handle_t* UFaceFXCharacter::LoadAnimation(const FFaceFXAnimData& AnimDa
 	return NewHandle;
 }
 
+AActor* UFaceFXCharacter::GetOwnningActor() const
+{
+	const UFaceFXComponent* OwnerComp = Cast<UFaceFXComponent>(GetOuter());
+	return OwnerComp ? OwnerComp->GetOwner() : nullptr;
+}
+
+UAudioComponent* UFaceFXCharacter::GetAudioComponent() const
+{
+	AActor* Owner = GetOwnningActor();
+	return Owner ? Owner->FindComponentByClass<UAudioComponent>() : nullptr;
+}
+
 void UFaceFXCharacter::PrepareAudio(const UFaceFXAnim* Animation)
 {
 	check(Animation);
@@ -598,14 +629,12 @@ bool UFaceFXCharacter::PlayAudio(class UAudioComponent** OutAudioComp)
 {
 	if(bIsAutoPlaySound && CurrentAnimSound.ToStringReference().IsValid())
 	{
-		UFaceFXComponent* OwnerComp = Cast<UFaceFXComponent>(GetOuter());
-		AActor* Owner = OwnerComp ? OwnerComp->GetOwner() : nullptr;
-		UAudioComponent* AudioComp = Owner ? Owner->FindComponentByClass<UAudioComponent>() : nullptr;
+		UAudioComponent* AudioComp = GetAudioComponent();
 
 		if(!AudioComp)
 		{
 			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::PlayAudio. Playing audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAudioComponent. Actor: %s. Asset: %s")
-				, *GetNameSafe(Owner), *CurrentAnimSound.ToStringReference().ToString());
+				, *GetNameSafe(GetOwnningActor()), *CurrentAnimSound.ToStringReference().ToString());
 			return false;
 		}
 
@@ -620,19 +649,81 @@ bool UFaceFXCharacter::PlayAudio(class UAudioComponent** OutAudioComp)
 		{
 			AudioComp->SetSound(Sound);
 			AudioComp->Play();
+
 			if(OutAudioComp)
 			{
 				*OutAudioComp = AudioComp;
 			}
-			return AudioComp->IsPlaying();
+			bIsPlayingAudio = AudioComp->IsPlaying();
+			return bIsPlayingAudio;
 		}
 		else
 		{
 			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::PlayAudio. Playing audio failed. Audio asset failed to load. Actor: %s. Asset: %s"), 
-				*GetNameSafe(Owner), *CurrentAnimSound.ToStringReference().ToString());
+				*GetNameSafe(GetOwnningActor()), *CurrentAnimSound.ToStringReference().ToString());
 		}
 	}
 
+	return false;
+}
+
+bool UFaceFXCharacter::PauseAudio()
+{
+	if(!bIsPlayingAudio)
+	{
+		//nothing playing right now
+		return true;
+	}
+
+	bIsPlayingAudio = false;
+
+	if(UAudioComponent* AudioComp = GetAudioComponent())
+	{
+		AudioComp->Stop();
+		return true;
+	}
+
+	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::PauseAudio. Pausing audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAudioComponent. Actor: %s."), *GetNameSafe(GetOwnningActor()));
+	return false;
+}
+
+bool UFaceFXCharacter::StopAudio()
+{
+	if(!bIsPlayingAudio)
+	{
+		//nothing playing right now
+		return true;
+	}
+
+	CurrentAudioProgress = 0.F;
+	bIsPlayingAudio = false;
+
+	if(UAudioComponent* AudioComp = GetAudioComponent())
+	{
+		AudioComp->Stop();
+		return true;
+	}
+	
+	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::StopAudio. Stopping audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAudioComponent. Actor: %s."), *GetNameSafe(GetOwnningActor()));
+	return false;
+}
+
+bool UFaceFXCharacter::ResumeAudio()
+{
+	if(bIsPlayingAudio)
+	{
+		//already playing audio
+		return true;
+	}
+
+	if(UAudioComponent* AudioComp = GetAudioComponent())
+	{
+		bIsPlayingAudio = true;
+		AudioComp->Play(CurrentAudioProgress);
+		return true;
+	}
+
+	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::PauseAudio. Pausing audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAudioComponent. Actor: %s."), *GetNameSafe(GetOwnningActor()));
 	return false;
 }
 

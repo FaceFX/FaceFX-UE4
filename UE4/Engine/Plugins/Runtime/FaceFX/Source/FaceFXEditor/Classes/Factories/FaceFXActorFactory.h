@@ -34,7 +34,11 @@ class UFaceFXActorFactory : public UFactory
 
 	//UFactory
 	virtual UObject* FactoryCreateNew(UClass* InClass,UObject* InParent,FName InName,EObjectFlags Flags,UObject* Context,FFeedbackContext* Warn) override;
-	virtual uint32 GetMenuCategories() const override { return EAssetTypeCategories::Animation; }
+	virtual uint32 GetMenuCategories() const override
+	{
+		return FFaceFXEditorTools::AssetCategory;
+	}
+
 	virtual FName GetNewAssetThumbnailOverride() const override
 	{
 		return FFaceFXStyle::GetBrushIdFxActor();
@@ -62,9 +66,6 @@ class UFaceFXActorFactory : public UFactory
 	*/
 	static void HandleFaceFXActorCreated(class UFaceFXActor* Asset, const FString& CompilationFolder, FFaceFXImportResult& OutResultMessages, class UFactory* Factory = nullptr);
 
-private:
-
 	/** Callback function for before the compilation folder gets deleted */
-	UFUNCTION()
-	void OnCompilationBeforeDelete(class UObject* Asset, const FString& CompilationFolder, bool LoadResult, FFaceFXImportResult& OutResultMessages);
+	static void OnFxActorCompilationBeforeDelete(class UObject* Asset, const FString& CompilationFolder, bool LoadResult, FFaceFXImportResult& OutResultMessages);
 };

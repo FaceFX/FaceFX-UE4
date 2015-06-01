@@ -56,6 +56,15 @@ struct FFaceFXImportActionResult
 	bool Rollback();
 
 	/**
+	* Gets the indicator if the result can be rolled back
+	* @returns True if rollback'able, else false
+	*/
+	inline bool CanRollback() const
+	{
+		return Type == ActionType::Create;
+	}
+
+	/**
 	* Gets the action type assigned to this result
 	* @returns The action
 	*/
@@ -316,6 +325,15 @@ struct FFaceFXImportResultSet
 		return Entries;
 	}
 
+	/** 
+	* Gets the indicator if this result set contains at least one error
+	* @returns True if one or more error are inside this result set. Else false
+	*/
+	inline bool IsContainError() const
+	{
+		return GetMaxErrorLevel() == FFaceFXImportActionResult::ResultType::Error;
+	}
+
 	/**
 	* Gets the maximum error level for all result entries in the set
 	* @returns The maximum error level
@@ -371,6 +389,9 @@ private:
 /** Editor specific FaceFX functions */
 struct FACEFXEDITOR_API FFaceFXEditorTools
 {
+	/** The custom asset category ID */
+	static uint32 AssetCategory;
+
 	/**
 	* Gets the path to the FaceFX Studio installation. Configurable via engine ini file (section "ThirdParty.FaceFX", property "StudioPathAbsolute")
 	* @returns The path to the installation
@@ -400,6 +421,13 @@ struct FACEFXEDITOR_API FFaceFXEditorTools
 	* @returns True if enabled, else false
 	*/
 	static bool IsImportAnimationOnActorImport();
+
+	/**
+	* Gets the indicator if the editor shall show a warning toaster message when an UFaceFXAnimation is tried to get played on an 
+	* UFaceFXCharacter which FaceFX actor handle is incompatible with that animation
+	* @returns True if enabled, else false
+	*/
+	static bool IsShowToasterMessageOnIncompatibleAnim();
 
 	/**
 	* Checks if FaceFX studio is installed within the standard installation path

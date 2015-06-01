@@ -68,10 +68,9 @@ bool UFaceFXComponent::PlayById(FName Group, FName AnimName, USkeletalMeshCompon
 {
 #if FACEFX_USEANIMATIONLINKAGE
 
-	UFaceFXCharacter* character = SkelMeshComp ? GetCharacter(SkelMeshComp) : (Entries.Num() > 0 ? Entries[0].Character : nullptr);
-	if(character)
+	if(UFaceFXCharacter* Character = GetContentCharacter(SkelMeshComp))
 	{
-		return character->Play(AnimName, Group, Loop);
+		return Character->Play(AnimName, Group, Loop);
 	}
 
 	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXComponent::PlayById. FaceFX character does not exist for given SkelMeshComp <%s>. Caller: %s"), *GetNameSafe(SkelMeshComp), *GetNameSafe(Caller));
@@ -84,32 +83,63 @@ bool UFaceFXComponent::PlayById(FName Group, FName AnimName, USkeletalMeshCompon
 
 bool UFaceFXComponent::Play(UFaceFXAnim* Animation, USkeletalMeshComponent* SkelMeshComp, bool Loop, const UObject* Caller)
 {
-
-	UFaceFXCharacter* character = SkelMeshComp ? GetCharacter(SkelMeshComp) : (Entries.Num() > 0 ? Entries[0].Character : nullptr);
-	if(character)
+	if(UFaceFXCharacter* Character = GetContentCharacter(SkelMeshComp))
 	{
-		return character->Play(Animation, Loop);
+		return Character->Play(Animation, Loop);
 	}
 
-	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXComponent::PlayById. FaceFX character does not exist for given SkelMeshComp <%s>. Caller: %s"), *GetNameSafe(SkelMeshComp), *GetNameSafe(Caller));
+	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXComponent::Play. FaceFX character does not exist for given SkelMeshComp <%s>. Caller: %s"), *GetNameSafe(SkelMeshComp), *GetNameSafe(Caller));
 	return false;
 }
 
-void UFaceFXComponent::OnCharacterAudioStart(class UFaceFXCharacter* Character, const FFaceFXAnimId& AnimId, bool IsAudioStarted, class UAudioComponent* AudioComponentStartedOn)
+bool UFaceFXComponent::Stop(USkeletalMeshComponent* SkelMeshComp, const UObject* Caller)
+{
+	if(UFaceFXCharacter* Character = GetContentCharacter(SkelMeshComp))
+	{
+		return Character->Stop();
+	}
+
+	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXComponent::Stop. FaceFX character does not exist for given SkelMeshComp <%s>. Caller: %s"), *GetNameSafe(SkelMeshComp), *GetNameSafe(Caller));
+	return false;
+}
+
+bool UFaceFXComponent::Pause(USkeletalMeshComponent* SkelMeshComp, const UObject* Caller)
+{
+	if(UFaceFXCharacter* Character = GetContentCharacter(SkelMeshComp))
+	{
+		return Character->Pause();
+	}
+
+	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXComponent::Pause. FaceFX character does not exist for given SkelMeshComp <%s>. Caller: %s"), *GetNameSafe(SkelMeshComp), *GetNameSafe(Caller));
+	return false;
+}
+
+bool UFaceFXComponent::Resume(USkeletalMeshComponent* SkelMeshComp, const UObject* Caller)
+{
+	if(UFaceFXCharacter* Character = GetContentCharacter(SkelMeshComp))
+	{
+		return Character->Resume();
+	}
+
+	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXComponent::Resume. FaceFX character does not exist for given SkelMeshComp <%s>. Caller: %s"), *GetNameSafe(SkelMeshComp), *GetNameSafe(Caller));
+	return false;
+}
+
+void UFaceFXComponent::OnCharacterAudioStart(UFaceFXCharacter* Character, const FFaceFXAnimId& AnimId, bool IsAudioStarted, class UAudioComponent* AudioComponentStartedOn)
 {
 	//lookup the linked entry
-	if(auto entry = Entries.FindByKey(Character))
+	if(auto Entry = Entries.FindByKey(Character))
 	{
-		OnPlaybackAudioStart.Broadcast(entry->SkelMeshComp, AnimId.Name, IsAudioStarted, AudioComponentStartedOn);
+		OnPlaybackAudioStart.Broadcast(Entry->SkelMeshComp, AnimId.Name, IsAudioStarted, AudioComponentStartedOn);
 	}
 }
 
-void UFaceFXComponent::OnCharacterPlaybackStopped(class UFaceFXCharacter* Character, const FFaceFXAnimId& AnimId)
+void UFaceFXComponent::OnCharacterPlaybackStopped(UFaceFXCharacter* Character, const FFaceFXAnimId& AnimId)
 {
 	//lookup the linked entry
-	if(auto entry = Entries.FindByKey(Character))
+	if(auto Entry = Entries.FindByKey(Character))
 	{
-		OnPlaybackStopped.Broadcast(entry->SkelMeshComp, AnimId.Name);
+		OnPlaybackStopped.Broadcast(Entry->SkelMeshComp, AnimId.Name);
 	}
 }
 

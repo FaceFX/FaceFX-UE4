@@ -34,30 +34,35 @@
 
 #define LOCTEXT_NAMESPACE "AssetTypeActions"
 
+uint32 FAssetTypeActions_FaceFXBase::GetCategories() 
+{ 
+	return FFaceFXEditorTools::AssetCategory; 
+}
+
 /** 
 * Shows a slate error message
-* @param msg The error message to show
+* @param Msg The error message to show
 */
-void FAssetTypeActions_FaceFXBase::ShowError(const FText& msg)
+void FAssetTypeActions_FaceFXBase::ShowError(const FText& Msg)
 {
-	FNotificationInfo info(msg);
-	info.ExpireDuration = 10.F;
-	info.bUseLargeFont = false;
-	info.Image = FEditorStyle::GetBrush(TEXT("MessageLog.Error"));
-	FSlateNotificationManager::Get().AddNotification(info);
+	FNotificationInfo Info(Msg);
+	Info.ExpireDuration = 10.F;
+	Info.bUseLargeFont = false;
+	Info.Image = FEditorStyle::GetBrush(TEXT("MessageLog.Error"));
+	FSlateNotificationManager::Get().AddNotification(Info);
 }
 
 /** 
 * Shows a slate info message
-* @param msg The info message to show
+* @param Msg The info message to show
 */
-void FAssetTypeActions_FaceFXBase::ShowInfo(const FText& msg)
+void FAssetTypeActions_FaceFXBase::ShowInfo(const FText& Msg)
 {
-	FNotificationInfo info(msg);
-	info.ExpireDuration = 10.F;
-	info.bUseLargeFont = false;
-	info.Image = FEditorStyle::GetBrush(TEXT("Icons.Info"));
-	FSlateNotificationManager::Get().AddNotification(info);
+	FNotificationInfo Info(Msg);
+	Info.ExpireDuration = 10.F;
+	Info.bUseLargeFont = false;
+	Info.Image = FEditorStyle::GetBrush(TEXT("Icons.Info"));
+	FSlateNotificationManager::Get().AddNotification(Info);
 }
 
 /** Determine if we can recompile assets */
@@ -133,7 +138,7 @@ void FAssetTypeActions_FaceFXBase::ExecuteSetSource(TArray<TWeakObjectPtr<UObjec
 
 		//assign new file and reimport
 		FFaceFXImportResultSet ResultSet;
-		FFaceFXEditorTools::InitializeFromFile(FaceFXAsset, Files[0], ResultSet.GetOrAdd(FaceFXAsset));
+		FFaceFXEditorTools::InitializeFromFile(FaceFXAsset, Files[0], ResultSet.GetOrAdd(FaceFXAsset), FCompilationBeforeDeletionDelegate::CreateStatic(&UFaceFXActorFactory::OnFxActorCompilationBeforeDelete));
 
 		FFaceFXResultWidget::Create(LOCTEXT("ShowSetSourceResultTitle", "Set Source Result"), ResultSet);
 	}
