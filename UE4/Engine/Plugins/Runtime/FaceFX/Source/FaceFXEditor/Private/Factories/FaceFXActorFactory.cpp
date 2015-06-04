@@ -178,7 +178,7 @@ bool OnPreInitialization(UFaceFXAsset* Asset, FString& OutFaceFXAsset, FFaceFXIm
 			//.facefx file missing
 			const FString FaceFXAssetAbs = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*OutFaceFXAsset);
 			const FText Msg = FText::Format(LOCTEXT("CreateFxAnimMissingFxActor", "Unexpected .ffxanim location. Unable to locate .facefx file at expected location: {0}"), FText::FromString(FaceFXAssetAbs));
-			OutResult.GetOrAdd(Asset).AddCreateError(Msg, Asset);
+			OutResult.GetOrAdd(Asset).AddCreateError(Msg);
 			return false;
 		}
 
@@ -237,12 +237,23 @@ UObject* UFaceFXActorFactory::CreateNew(UClass* Class, UObject* InParent, const 
 		//initialize asset
 		FFaceFXImportResultSet ResultSet;
 
-		if(OnPreInitialization(NewAsset, FaceFXAsset, ResultSet) && FFaceFXEditorTools::InitializeFromFile(NewAsset, FaceFXAsset, ResultSet.GetOrAdd(NewAsset), BeforeDeletionCallback, true))
+		if(OnPreInitialization(NewAsset, FaceFXAsset, ResultSet))
 		{
-			//success
-			FFaceFXEditorTools::SavePackage(NewAsset->GetOutermost());
+			if(FFaceFXEditorTools::InitializeFromFile(NewAsset, FaceFXAsset, ResultSet.GetOrAdd(NewAsset), BeforeDeletionCallback, true))
+			{
+				//success
+				FFaceFXEditorTools::SavePackage(NewAsset->GetOutermost());
+			}
 		}
-		
+		else
+		{
+			//preinit failed -> directly delete the asset again
+			FFaceFXEditorTools::DeleteAsset(NewAsset);
+
+			//pass back a temporary object to simulate a success to prevent the factory system from showing a modal error message. Instead we show an error via the import result window
+			NewAsset = NewObject<UFaceFXAnim>();
+		}
+				
 		GWarn->EndSlowTask();
 
 		FFaceFXResultWidget::Create(LOCTEXT("ShowCreateFxActorResultTitle", "Create FaceFX Asset Result"), ResultSet);

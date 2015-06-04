@@ -226,6 +226,26 @@ bool LoadAudioMapData(UFaceFXAsset* Asset, const FString& Folder, EFaceFXTargetP
 	return false;
 }
 
+/**
+* Gets the indicator if a given asset is listed inside an audio map data
+* @param Asset The asset to look for
+* @param AudioMapData The audio map data to look inside
+* @returns True if found, else false
+*/
+bool IsAnimationExistInAudioMap(UFaceFXAnim* Asset, const TArray<FFaceFXAudioMapEntry>& AudioMapData)
+{
+	for(const FFaceFXAudioMapEntry& AudioMapEntry : AudioMapData)
+	{
+		if(AudioMapEntry.AnimationId.Equals(Asset->GetName().ToString(), ESearchCase::IgnoreCase) &&
+			AudioMapEntry.Group.Equals(Asset->GetGroup().ToString(), ESearchCase::IgnoreCase))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 #if FACEFX_DELETE_EMPTY_COMPILATION_FOLDER
 /**
 * Deletes the whole .ffxc folder when there is no animation file left inside
@@ -814,6 +834,28 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAnim* Asset, const FSt
 	{
 		const EFaceFXTargetPlatform::Type Target = EFaceFXTargetPlatform::Type(i);
 
+		TArray<FFaceFXAudioMapEntry> AudioMapData;
+		if(!LoadAudioMapData(Asset, Folder, Target, AudioMapData, OutResultMessages))
+		{
+			//audio map file does not exist
+			OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetAmapMissing", "Audio map file is missing for platform {0}."), 
+				FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target))), Asset);
+			//reset asset again
+			Asset->Reset();
+			return false;
+		}
+
+		if(!IsAnimationExistInAudioMap(Asset, AudioMapData))
+		{
+			//not listed in audio map file -> animation not part of .facefx asset anymore
+			OutResultMessages.AddModifyWarning(FText::Format(LOCTEXT("LoadingCompiledAssetAnimRemoved", "Skipped .ffxanim file with no audio map entry. It may have been moved or deleted. Platform: {0}"), 
+				FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target))), Asset);
+
+			//reset asset again
+			Asset->Reset();
+			return false;
+		}
+
 		const FString File = GetAnimAssetFileName(Folder, Asset->GetGroup().ToString(), Asset->GetName().ToString(), Target);
 
 #if FACEFX_DELETE_IMPORTED_ANIM
@@ -828,36 +870,6 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAnim* Asset, const FSt
 					FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target)), FText::FromString(File)), Asset);
 				Asset->Reset();
 				return false;
-			}
-
-			TArray<FFaceFXAudioMapEntry> AudioMapData;
-			if(LoadAudioMapData(Asset, Folder, Target, AudioMapData, OutResultMessages))
-			{
-				//look out for that animation
-				bool AnimationInAudioMap = false;
-				for(const FFaceFXAudioMapEntry& AudioMapEntry : AudioMapData)
-				{
-					if(AudioMapEntry.AnimationId.Equals(Asset->GetName().ToString(), ESearchCase::IgnoreCase) &&
-						AudioMapEntry.Group.Equals(Asset->GetGroup().ToString(), ESearchCase::IgnoreCase))
-					{
-						AnimationInAudioMap = true;
-						break;
-					}
-				}
-				
-				if(AnimationInAudioMap)
-				{
-					//animation still listed -> consider this animation as being up to date
-					OutResultMessages.AddModifySuccess(FText::Format(LOCTEXT("LoadingCompiledAssetUpToDate", "Animation platform data for {0} are up to date."), 
-						FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target))), Asset);
-				}
-				else
-				{
-					//not listed in audio map file -> animation not part of .facefx asset anymore
-					OutResultMessages.AddModifyWarning(FText::Format(LOCTEXT("LoadingCompiledAssetAnimRemoved", "Animation was deleted from the .facefx source asset or moved to another group. Consider to delete this animation asset or set to a new source."), 
-						FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target))), Asset);
-					return false;
-				}
 			}
 			continue;
 		}
@@ -909,8 +921,6 @@ bool FFaceFXEditorTools::LoadAudio(UFaceFXAnim* Asset, const FString& Folder, FF
 		const FString AnimGroup = Asset->GetGroup().ToString();
 		const FString AnimId = Asset->GetName().ToString();
 
-		bool MappingEntryFound = false;
-
 		for(const FFaceFXAudioMapEntry& AudioMapEntry : AudioMapData)
 		{
 			if(!AudioMapEntry.Group.Equals(AnimGroup) || !AudioMapEntry.AnimationId.Equals(AnimId))
@@ -918,8 +928,6 @@ bool FFaceFXEditorTools::LoadAudio(UFaceFXAnim* Asset, const FString& Folder, FF
 				//wrong entry
 				continue;
 			}
-
-			MappingEntryFound = true;
 
 			if(Asset->AudioPath.Equals(AudioMapEntry.AudioPath) && Asset->IsAudioAssetSet())
 			{
@@ -1010,12 +1018,11 @@ bool FFaceFXEditorTools::LoadAudio(UFaceFXAnim* Asset, const FString& Folder, FF
 					OutResultMessages.AddCreateError(FText::Format(LOCTEXT("LoadAudioFailedAudioMissing", "Audio file does not exist. File: {0}"), FText::FromString(AudioFile)), Asset);
 					return false;
 				}
-				return true;
 			}
+			
+			//mapping entry found and either the audio file was found or not. If not ignore this audio entry completely
+			return true;
 		}
-				
-		//when there is no mapping, there is no audio file for the asset. Hence we consider it successful
-		return !MappingEntryFound;
 	}
 
 	return false;
