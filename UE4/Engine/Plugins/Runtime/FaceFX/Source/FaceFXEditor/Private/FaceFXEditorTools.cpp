@@ -232,7 +232,7 @@ bool LoadAudioMapData(UFaceFXAsset* Asset, const FString& Folder, EFaceFXTargetP
 * @param AudioMapData The audio map data to look inside
 * @returns True if found, else false
 */
-bool IsAnimationExistInAudioMap(UFaceFXAnim* Asset, const TArray<FFaceFXAudioMapEntry>& AudioMapData)
+bool IsAnimationExistInAudioMap(const UFaceFXAnim* Asset, const TArray<FFaceFXAudioMapEntry>& AudioMapData)
 {
 	for(const FFaceFXAudioMapEntry& AudioMapEntry : AudioMapData)
 	{
@@ -733,6 +733,30 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXActor* Asset, const FS
 
 	//reset platform data
 	Asset->Reset();
+
+#if FACEFX_USEANIMATIONLINKAGE
+	if(Asset->Animations.Num() > 0)
+	{
+		//check if linked animations are still part of the .ffxamap file. If not they were deleted and animations are stale
+		TArray<FFaceFXAudioMapEntry> AudioMapData;
+		if(LoadAudioMapData(Asset, Folder, EFaceFXTargetPlatform::PC, AudioMapData, OutResultMessages))
+		{
+			for(const UFaceFXAnim* Animation : Asset->Animations)
+			{
+				if(!IsAnimationExistInAudioMap(Animation, AudioMapData))
+				{
+					//not listed in audio map file -> animation not part of .facefx asset anymore
+					OutResultMessages.AddModifyWarning(LOCTEXT("LoadingCompiledActorAnimRemoved", "Linked animation asset does not contain an audio map entry. It may have been moved or deleted. Consider to delete that animation asset."), Animation);
+				}
+			}			
+		}
+		else
+		{
+			//audio map file does not exist
+			OutResultMessages.AddModifyWarning(LOCTEXT("LoadingCompiledActorAmapMissing", "Audio map file is missing."), Asset);
+		}
+	}
+#endif //FACEFX_USEANIMATIONLINKAGE
 
 	for(int8 i=0; i<EFaceFXTargetPlatform::MAX; ++i)
 	{

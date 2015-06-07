@@ -237,21 +237,10 @@ UObject* UFaceFXActorFactory::CreateNew(UClass* Class, UObject* InParent, const 
 		//initialize asset
 		FFaceFXImportResultSet ResultSet;
 
-		if(OnPreInitialization(NewAsset, FaceFXAsset, ResultSet))
+		if(OnPreInitialization(NewAsset, FaceFXAsset, ResultSet) && FFaceFXEditorTools::InitializeFromFile(NewAsset, FaceFXAsset, ResultSet.GetOrAdd(NewAsset), BeforeDeletionCallback, true))
 		{
-			if(FFaceFXEditorTools::InitializeFromFile(NewAsset, FaceFXAsset, ResultSet.GetOrAdd(NewAsset), BeforeDeletionCallback, true))
-			{
-				//success
-				FFaceFXEditorTools::SavePackage(NewAsset->GetOutermost());
-			}
-		}
-		else
-		{
-			//preinit failed -> directly delete the asset again
-			FFaceFXEditorTools::DeleteAsset(NewAsset);
-
-			//pass back a temporary object to simulate a success to prevent the factory system from showing a modal error message. Instead we show an error via the import result window
-			NewAsset = NewObject<UFaceFXAnim>();
+			//success
+			FFaceFXEditorTools::SavePackage(NewAsset->GetOutermost());
 		}
 				
 		GWarn->EndSlowTask();
