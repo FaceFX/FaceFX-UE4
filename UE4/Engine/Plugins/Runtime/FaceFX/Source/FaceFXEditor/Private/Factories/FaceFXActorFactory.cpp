@@ -178,7 +178,7 @@ bool OnPreInitialization(UFaceFXAsset* Asset, FString& OutFaceFXAsset, FFaceFXIm
 			//.facefx file missing
 			const FString FaceFXAssetAbs = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*OutFaceFXAsset);
 			const FText Msg = FText::Format(LOCTEXT("CreateFxAnimMissingFxActor", "Unexpected .ffxanim location. Unable to locate .facefx file at expected location: {0}"), FText::FromString(FaceFXAssetAbs));
-			OutResult.GetOrAdd(Asset).AddCreateError(Msg, Asset);
+			OutResult.GetOrAdd(Asset).AddCreateError(Msg);
 			return false;
 		}
 
@@ -242,7 +242,7 @@ UObject* UFaceFXActorFactory::CreateNew(UClass* Class, UObject* InParent, const 
 			//success
 			FFaceFXEditorTools::SavePackage(NewAsset->GetOutermost());
 		}
-		
+				
 		GWarn->EndSlowTask();
 
 		FFaceFXResultWidget::Create(LOCTEXT("ShowCreateFxActorResultTitle", "Create FaceFX Asset Result"), ResultSet);
