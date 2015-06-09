@@ -31,5 +31,5 @@
 Thumbs.db
 
 # FaceFX Runtime & Build binaries
-/UE4/Engine/Plugins/Runtime/FaceFX/Binaries
-/UE4/Engine/Plugins/Runtime/FaceFX/Source/FaceFxLib/FaceFx-0.9.10
+Binaries
+Source/FaceFXLib/facefx-1.0.0
