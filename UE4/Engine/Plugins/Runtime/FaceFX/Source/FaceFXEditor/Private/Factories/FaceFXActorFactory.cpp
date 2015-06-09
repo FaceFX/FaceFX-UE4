@@ -175,9 +175,23 @@ bool OnPreInitialization(UFaceFXAsset* Asset, FString& OutFaceFXAsset, FFaceFXIm
 
 		if(!FPaths::FileExists(*OutFaceFXAsset))
 		{
-			//.facefx file missing
+			//.facefx file missing -> rename asset to additionally mark as stale
+			IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
+
+			const FString NewAssetPackageName = Asset->GetOutermost()->GetName();
+			const FString ShortName = FPackageName::GetShortName(NewAssetPackageName);
+			const FString AssetPath = FPackageName::GetLongPackagePath(NewAssetPackageName);
+
+			//Create new unique asset name in the format: <AssetPath>/DeleteMe_<AssetName>
+			FString NewAssetName, NewPackageName;
+			AssetTools.CreateUniqueAssetName(AssetPath / (FString(TEXT("DeleteMe_") + ShortName)), TEXT(""), NewPackageName, NewAssetName);
+
+			TArray<FAssetRenameData> DataArray;
+			new(DataArray) FAssetRenameData(Asset, FPackageName::GetLongPackagePath(NewAssetPackageName), NewAssetName);
+			AssetTools.RenameAssets(DataArray);
+
 			const FString FaceFXAssetAbs = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*OutFaceFXAsset);
-			const FText Msg = FText::Format(LOCTEXT("CreateFxAnimMissingFxActor", "Unexpected .ffxanim location. Unable to locate .facefx file at expected location: {0}"), FText::FromString(FaceFXAssetAbs));
+			const FText Msg = FText::Format(LOCTEXT("CreateFxAnimMissingFxActor", "Invalid .ffxanim location.  Delete the asset, regenerate the .ffxanim file from the FaceFX Runtime Plugin with default settings, and reimport it from its default location. Location: {0}"), FText::FromString(FaceFXAssetAbs));
 			OutResult.GetOrAdd(Asset).AddCreateError(Msg, Asset);
 			return false;
 		}
@@ -242,7 +256,7 @@ UObject* UFaceFXActorFactory::CreateNew(UClass* Class, UObject* InParent, const 
 			//success
 			FFaceFXEditorTools::SavePackage(NewAsset->GetOutermost());
 		}
-		
+						
 		GWarn->EndSlowTask();
 
 		FFaceFXResultWidget::Create(LOCTEXT("ShowCreateFxActorResultTitle", "Create FaceFX Asset Result"), ResultSet);
