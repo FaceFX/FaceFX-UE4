@@ -1,9 +1,0 @@
-Place your FaceFX runtime libraries in here.
-
-The folder may look like this afterwards:
-/facefx-1.0.0/facefx.h
-/facefx-1.0.0/bin/*
-/facefx-1.0.0/common/*
-/facefx-1.0.0/tools/*
-
-The default runtime version is 1.0.0 being placed in a folder called facefx-1.0.0. When you update the version or folder name, please also update the static member "RuntimeFolder" within FaceFxLib.Build.cs. When done rebuild the plugin to link against the new libs.
