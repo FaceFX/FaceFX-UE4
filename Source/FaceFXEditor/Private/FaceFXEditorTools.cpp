@@ -454,10 +454,10 @@ bool FFaceFXEditorTools::ImportFaceFXAsset(UFaceFXAsset* Asset, const FString& A
 		return false;
 	}
 
-	const FString CompiledFile = GetCompilationFolder(AssetPath);	
-	const bool ImportResult = LoadFromCompilationFolder(Asset, CompiledFile, OutResultMessages);
+	const FString CompilationFolder = GetCompilationFolder(AssetPath);	
+	const bool ImportResult = LoadFromCompilationFolder(Asset, CompilationFolder, OutResultMessages);
 	
-	BeforeDeletionCallback.ExecuteIfBound(Asset, CompiledFile, ImportResult, OutResultMessages);
+	BeforeDeletionCallback.ExecuteIfBound(Asset, CompilationFolder, ImportResult, OutResultMessages);
 
 	if(ImportResult)
 	{
@@ -468,6 +468,10 @@ bool FFaceFXEditorTools::ImportFaceFXAsset(UFaceFXAsset* Asset, const FString& A
 	{
 		OutResultMessages.AddModifyError(LOCTEXT("ImportFaceFXAssetFail", "(Re)Importing FaceFX asset failed."), Asset);
 	}
+
+#if FACEFX_DELETE_EMPTY_COMPILATION_FOLDER
+	CleanupCompilationFolder(CompilationFolder);
+#endif //FACEFX_DELETE_EMPTY_COMPILATION_FOLDER
 
 	return ImportResult;
 }
@@ -776,10 +780,6 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXActor* Asset, const FS
 		}
 	}
 
-#if FACEFX_DELETE_EMPTY_COMPILATION_FOLDER
-	CleanupCompilationFolder(Folder);
-#endif //FACEFX_DELETE_EMPTY_COMPILATION_FOLDER
-
 	return true;
 }
 
@@ -854,19 +854,32 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAnim* Asset, const FSt
 	Asset->Reset();
 #endif //FACEFX_DELETE_IMPORTED_ANIM
 
+	//indicator if import for all platforms succeeded
+	bool allSuccess = true;
+
 	for(int8 i=0; i<EFaceFXTargetPlatform::MAX; ++i)
 	{
 		const EFaceFXTargetPlatform::Type Target = EFaceFXTargetPlatform::Type(i);
 
+		const FString File = GetAnimAssetFileName(Folder, Asset->GetGroup().ToString(), Asset->GetName().ToString(), Target);
+		const bool FileExists = FPaths::FileExists(File);
+
+#if FACEFX_DELETE_IMPORTED_ANIM
+		if(FileExists)
+		{
+			ImportedFiles.Add(File);
+		}
+#endif //FACEFX_DELETE_IMPORTED_ANIM
+
+		//check for existing amap entry
 		TArray<FFaceFXAudioMapEntry> AudioMapData;
 		if(!LoadAudioMapData(Asset, Folder, Target, AudioMapData, OutResultMessages))
 		{
 			//audio map file does not exist
 			OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetAmapMissing", "Audio map file is missing for platform {0}."), 
 				FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target))), Asset);
-			//reset asset again
-			Asset->Reset();
-			return false;
+			allSuccess = false;
+			continue;
 		}
 
 		if(!IsAnimationExistInAudioMap(Asset, AudioMapData))
@@ -876,28 +889,31 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAnim* Asset, const FSt
 				FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target))), Asset);
 
 			//reset asset again
-			Asset->Reset();
-			return false;
+			allSuccess = false;
+			continue;;
 		}
 
-		const FString File = GetAnimAssetFileName(Folder, Asset->GetGroup().ToString(), Asset->GetName().ToString(), Target);
-
-#if FACEFX_DELETE_IMPORTED_ANIM
-		if(!FPaths::FileExists(File))
+		if(!FileExists)
 		{
+#if FACEFX_DELETE_IMPORTED_ANIM
 			//source file does not exist -> we consider this asset as being up-to-date and keep it as long as the current data is valid and its listed inside the audio map file
 			FFaceFXAnimData* PlatformData = Asset->GetPlatformData(Target);
 			if(!PlatformData || !PlatformData->IsValid())
+#endif //FACEFX_DELETE_IMPORTED_ANIM
 			{
 				//Platform data does not exist or is invalid so we actually miss the import data -> reset whole asset again
 				OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetFailedMissing", "Loading initial animation data failed. Source file for platform {0} does not exist: {0}"), 
 					FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target)), FText::FromString(File)), Asset);
-				Asset->Reset();
-				return false;
+				allSuccess = false;
 			}
 			continue;
 		}
-#endif //FACEFX_DELETE_IMPORTED_ANIM
+
+		if(!allSuccess)
+		{
+			//at least one failed already -> stop importing, asset will be reset afterwards
+			continue;
+		}
 
 		//fetch target data container reset in case it existed already (reimport with new data)
 		FFaceFXAnimData& TargetData = Asset->GetOrCreatePlatformData(Target);
@@ -913,11 +929,6 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAnim* Asset, const FSt
 			Asset->Reset();
 			return false;
 		}
-
-
-#if FACEFX_DELETE_IMPORTED_ANIM
-		ImportedFiles.Add(File);
-#endif //FACEFX_DELETE_IMPORTED_ANIM
 	}
 
 #if FACEFX_DELETE_IMPORTED_ANIM
@@ -927,14 +938,15 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAnim* Asset, const FSt
 	}
 #endif //FACEFX_DELETE_IMPORTED_ANIM
 
-	const bool Result = !IsImportAudio() || LoadAudio(Asset, Folder, OutResultMessages);
-
-#if FACEFX_DELETE_EMPTY_COMPILATION_FOLDER
-	CleanupCompilationFolder(Folder);
-#endif //FACEFX_DELETE_EMPTY_COMPILATION_FOLDER
+	if(!allSuccess)
+	{
+		//reset asset again
+		Asset->Reset();
+		return false;
+	}
 
 	//as a last step load the audio asset if desired
-	return Result;
+	return !IsImportAudio() || LoadAudio(Asset, Folder, OutResultMessages);
 }
 
 bool FFaceFXEditorTools::LoadAudio(UFaceFXAnim* Asset, const FString& Folder, FFaceFXImportResult& OutResultMessages)
