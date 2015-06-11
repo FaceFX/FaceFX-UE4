@@ -294,7 +294,7 @@ bool FFaceFXImportActionResult::Rollback()
 
 const FString& FFaceFXEditorTools::GetFaceFXStudioPath()
 {
-	static FString StudioPath = TEXT("C:/Program Files (x86)/FaceFX/FaceFX 2015/facefx-studio.exe");
+	static FString StudioPath = TEXT("C:/Program Files (x86)/FaceFX/FaceFX Studio Professional 2015/facefx-studio.exe");
 	static bool bIsLoaded = false;
 	if(!bIsLoaded)
 	{
