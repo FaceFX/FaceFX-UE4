@@ -34,11 +34,9 @@ The following steps describe how to install the FaceFX UE4 plugin:
 
 1. [Download](http://unreal.facefx.com) the pre-built binaries distribution.
 
-2. Create a directory named **FaceFX** in your **UnrealEngine/Engine/Plugins/Runtime** directory. You should now have this directory: **UnrealEngine/Engine/Plugins/Runtime/FaceFX**.
+2. Unzip the pre-built binaries distribution into your **UnrealEngine/Engine/Plugins/Runtime** directory. You should now have this directory: **UnrealEngine/Engine/Plugins/Runtime/FaceFX**.
 
-3. Unzip the contents of the binary distribution's .zip file into the newly created **FaceFX** directory.
-
-4. Run UE4
+3. Run UE4
 
 #### Source
 
