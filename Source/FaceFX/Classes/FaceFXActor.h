@@ -170,7 +170,7 @@ public:
 	*/
 	inline FFaceFXActorData* GetPlatformData(EFaceFXTargetPlatform::Type Platform = EFaceFXTargetPlatform::PC)
 	{
-		return PlatformData.FindByKey(EFaceFXTargetPlatform::PC);
+		return PlatformData.FindByKey(Platform);
 	}
 
 	/** 
