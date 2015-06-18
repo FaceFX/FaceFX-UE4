@@ -48,13 +48,15 @@ The following steps describe how to install the FaceFX UE4 plugin:
 
 4. Copy the contents of your cloned repository from step 1 into the newly created **FaceFX** directory.
 
-5. Create a directory named **facefx-1.0.0** in your **UnrealEngine/Engine/Plugins/Runtime/FaceFX/Source/FaceFXLib** directory. You should now have this directory: **UnrealEngine/Engine/Plugins/Runtime/FaceFX/Source/FaceFXLib/facefx-1.0.0**.
+5. Unzip the FaceFX Runtime distribution .zip file you downloaded in step 2.
 
-6. Unzip the contents of the FaceFX Runtime distribution .zip file you downloaded in step 2 into the newly created **facefx-1.0.0** directory.
+6. Inside the extracted folder from step 5 you should find a **facefx-runtime-1.0.0** directory.
 
-7. Run the **GenerateProjectFiles.bat** files located in your **UnrealEngine** directory.
+7. Copy the **facefx-runtime-1.0.0** directory into your **UnrealEngine/Engine/Plugins/Runtime/FaceFX/Source/FaceFXLib** directory. You should now have this directory: **UnrealEngine/Engine/Plugins/Runtime/FaceFX/Source/FaceFXLib/facefx-1.0.0**.
 
-8. Load the UE4 solution in Visual Studio and do Build -> Clean Solution followed by Build -> Rebuild Solution.
+8. Run the **GenerateProjectFiles.bat** files located in your **UnrealEngine** directory.
+
+9. Load the UE4 solution in Visual Studio and do Build -> Clean Solution followed by Build -> Rebuild Solution.
 
 Contributing
 ------------
