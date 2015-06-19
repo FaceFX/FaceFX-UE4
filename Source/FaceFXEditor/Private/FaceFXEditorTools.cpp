@@ -191,14 +191,14 @@ bool LoadAudioMapData(UFaceFXAsset* Asset, const FString& Folder, EFaceFXTargetP
 					if(NewEntry.Group.Contains(TEXT("/")))
 					{
 						UE_LOG(LogFaceFX, Warning, TEXT("FFaceFXEditorTools::LoadAudioMapData. The audio mapping file contains an invalid '/' character in the animation group name. Entry will be ignored. File: %s. Asset: %s. Line: %s"), *AudioMapFile, *GetNameSafe(Asset), *Line);
-						OutResultMessages.AddCreateWarning(FText::Format(LOCTEXT("LoadAudioMapDataBadCharGroup", "The audio mapping file contains an invalid '/' character in the animation group name. Entry will be ignored. File: {0}, Line: {1}"), FText::FromString(AudioMapFile), FText::FromString(Line)), Asset);
+						OutResultMessages.AddModifyWarning(FText::Format(LOCTEXT("LoadAudioMapDataBadCharGroup", "The audio mapping file contains an invalid '/' character in the animation group name. Entry will be ignored. File: {0}, Line: {1}"), FText::FromString(AudioMapFile), FText::FromString(Line)), Asset);
 						continue;
 					}
 
 					if(NewEntry.AnimationId.Contains(TEXT("/")))
 					{
 						UE_LOG(LogFaceFX, Warning, TEXT("FFaceFXEditorTools::LoadAudioMapData. The audio mapping file contains an invalid '/' character in the animation name. Entry will be ignored. File: %s. Asset: %s. Line: %s"), *AudioMapFile, *GetNameSafe(Asset), *Line);
-						OutResultMessages.AddCreateWarning(FText::Format(LOCTEXT("LoadAudioMapDataBadCharAnimId", "The audio mapping file contains an invalid '/' character in the animation name. Entry will be ignored. File: {0}, Line: {1}"), FText::FromString(AudioMapFile), FText::FromString(Line)), Asset);
+                        OutResultMessages.AddModifyWarning(FText::Format(LOCTEXT("LoadAudioMapDataBadCharAnimId", "The audio mapping file contains an invalid '/' character in the animation name. Entry will be ignored. File: {0}, Line: {1}"), FText::FromString(AudioMapFile), FText::FromString(Line)), Asset);
 						continue;
 					}
 
@@ -216,12 +216,12 @@ bool LoadAudioMapData(UFaceFXAsset* Asset, const FString& Folder, EFaceFXTargetP
 		}
 		else
 		{
-			OutResultMessages.AddCreateError(FText::Format(LOCTEXT("LoadAudioMapDataLoadFailed", "The audio mapping file could not be loaded. File: {0}"), FText::FromString(AudioMapFile)), Asset);
+            OutResultMessages.AddModifyWarning(FText::Format(LOCTEXT("LoadAudioMapDataLoadFailed", "The audio mapping file could not be loaded. File: {0}"), FText::FromString(AudioMapFile)), Asset);
 		}
 	}
 	else
 	{
-		OutResultMessages.AddCreateError(FText::Format(LOCTEXT("LoadAudioMapDataMissingFile", "The audio mapping file does not exist. File: {0}"), FText::FromString(AudioMapFile)), Asset);
+        OutResultMessages.AddModifyWarning(FText::Format(LOCTEXT("LoadAudioMapDataMissingFile", "The audio mapping file does not exist. File: {0}"), FText::FromString(AudioMapFile)), Asset);
 	}
 	return false;
 }
