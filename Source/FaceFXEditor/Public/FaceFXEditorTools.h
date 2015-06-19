@@ -620,14 +620,14 @@ private:
 	*/
 	static bool LoadFromCompilationFolder(class UFaceFXAnim* Asset, const FName& Group, const FName& Animation, const FString& Folder, FFaceFXImportResult& OutResultMessages);
 
-	/** 
-	* Loads all assets from a given folder into the given target struct
-	* @param Folder The path to the folder to load the compiled assets from
-	* @param AssetName The name of the assets to load without any extension
-	* @param TargetData The target struct to load into
-	* @returns True if succeeded, else false
-	*/
-	static bool LoadCompiledData(const FString& Folder, const FString& AssetName, FFaceFXActorData& TargetData);
+    /**
+    * Loads all actor data from a given folder into the given asset
+    * @param Asset The target asset
+    * @param Folder The path to the folder to load the compiled data from
+    * @param OutResultMessages The result set
+    * @returns True if succeeded, else false
+    */
+    static bool LoadCompiledPlatformActorData(UFaceFXActor* Asset, const FString& Folder, FFaceFXImportResult& OutResultMessages);
 
 	/**
 	* Loads the audio file that is mapped to the given asset within the audio map file in the given folder and links to it. Creates a new USound asset if needed

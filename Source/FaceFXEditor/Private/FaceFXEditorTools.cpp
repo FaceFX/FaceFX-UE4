@@ -476,62 +476,104 @@ bool FFaceFXEditorTools::ImportFaceFXAsset(UFaceFXAsset* Asset, const FString& A
 	return ImportResult;
 }
 
-bool FFaceFXEditorTools::LoadCompiledData(const FString& Folder, const FString& AssetName, FFaceFXActorData& TargetData)
+bool FFaceFXEditorTools::LoadCompiledPlatformActorData(UFaceFXActor* Asset, const FString& Folder, FFaceFXImportResult& OutResultMessages)
 {
-	//reset all
-	TargetData.Ids.Empty();
-	TargetData.BonesRawData.Empty();
-	TargetData.ActorRawData.Empty();
+    const FString& AssetName = Asset->AssetName;
 
-	if(!IFileManager::Get().DirectoryExists(*Folder))
-	{
-		//folder not exist
-		return false;
-	}
+    bool allPresent = true;
 
-	//load .ffxactor
-	const FString AssetPathActor = FPaths::Combine(*Folder, *(AssetName + FACEFX_FILEEXT_ACTOR));
-	if(FPaths::FileExists(AssetPathActor))
-	{
-		FFileHelper::LoadFileToArray(TargetData.ActorRawData, *AssetPathActor);
-	}
+    //check that all required files and folders are present
+    for(int8 i = 0; i<EFaceFXTargetPlatform::MAX; ++i)
+    {
+        const EFaceFXTargetPlatform::Type Target = EFaceFXTargetPlatform::Type(i);
 
-	//load .ffxbones
-	const FString AssetPathBones = FPaths::Combine(*Folder, *(AssetName + FACEFX_FILEEXT_BONES));
-	if(FPaths::FileExists(AssetPathBones))
-	{
-		FFileHelper::LoadFileToArray(TargetData.BonesRawData, *AssetPathBones);
-	}
+        const FString PlatformFolder = GetPlatformFolder(Folder, Target);
 
-	//load .ffxids
-	const FString AssetPathIds = FPaths::Combine(*Folder, *(AssetName + FACEFX_FILEEXT_ANIMID));
-	if(FPaths::FileExists(AssetPathIds))
-	{
-		TArray<FString> Lines;
-		if(FFileHelper::LoadANSITextFileToStrings(*AssetPathIds, nullptr, Lines))
-		{
-			for(const FString& Line : Lines)
-			{
-				FString Ids, Name;
-				if(Line.Split(":", &Ids, &Name))
-				{
-					if(Ids.Len() <= 16)
-					{
-						//accept only max 8 hex values as input
-						uint64 Id = 0;
-						while(Ids.Len() > 0)
-						{
-							Id = Id << 8;
-							Id |= FParse::HexNumber(*(Ids.Left(2)));
-							Ids = Ids.RightChop(2);
-						}
-						TargetData.Ids.Add(FFaceFXIdData(Id, FName(*Name)));
-					}
-				}
-			}
-		}
-	}
-	return true;
+        if(!IFileManager::Get().DirectoryExists(*PlatformFolder))
+        {
+            OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetFailed", "Loading compiled data for platform {0} failed. Folder doesn't exist: {1}"),
+                FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target)), FText::FromString(PlatformFolder)), Asset);
+            allPresent = false;
+        }
+        else //if the folder doesn't exist there's no point checking for the files
+        {
+            const FString AssetPathActor = FPaths::Combine(*PlatformFolder, *(AssetName + FACEFX_FILEEXT_ACTOR));
+            if(!FPaths::FileExists(AssetPathActor))
+            {
+                OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetFailed", "Loading compiled data for platform {0} failed. File doesn't exist: {1}"),
+                    FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target)), FText::FromString(AssetPathActor)), Asset);
+                allPresent = false;
+            }
+
+            const FString AssetPathBones = FPaths::Combine(*PlatformFolder, *(AssetName + FACEFX_FILEEXT_BONES));
+            if(!FPaths::FileExists(AssetPathBones))
+            {
+                OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetFailed", "Loading compiled data for platform {0} failed. File doesn't exist: {1}"),
+                    FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target)), FText::FromString(AssetPathBones)), Asset);
+                allPresent = false;
+            }
+
+            const FString AssetPathIds = FPaths::Combine(*PlatformFolder, *(AssetName + FACEFX_FILEEXT_ANIMID));
+            if(!FPaths::FileExists(AssetPathIds))
+            {
+                OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetFailed", "Loading compiled data for platform {0} failed. File doesn't exist: {1}"),
+                    FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target)), FText::FromString(AssetPathIds)), Asset);
+                allPresent = false;
+            }
+        }
+    }
+
+
+    if(!allPresent)
+    {
+        return false;
+    }
+
+    //load the data (we know all the folders and files exist at this point)
+    Asset->Reset();
+    for(int8 i = 0; i<EFaceFXTargetPlatform::MAX; ++i)
+    {
+        const EFaceFXTargetPlatform::Type Target = EFaceFXTargetPlatform::Type(i);
+
+        const FString PlatformFolder = GetPlatformFolder(Folder, Target);
+
+        FFaceFXActorData& TargetData = Asset->GetOrCreatePlatformData(Target);
+
+        TargetData.Reset();
+        
+        const FString AssetPathActor = FPaths::Combine(*PlatformFolder, *(AssetName + FACEFX_FILEEXT_ACTOR));
+        FFileHelper::LoadFileToArray(TargetData.ActorRawData, *AssetPathActor);
+       
+        const FString AssetPathBones = FPaths::Combine(*PlatformFolder, *(AssetName + FACEFX_FILEEXT_BONES));
+        FFileHelper::LoadFileToArray(TargetData.BonesRawData, *AssetPathBones);
+
+        const FString AssetPathIds = FPaths::Combine(*PlatformFolder, *(AssetName + FACEFX_FILEEXT_ANIMID));
+        TArray<FString> Lines;
+        if (FFileHelper::LoadANSITextFileToStrings(*AssetPathIds, nullptr, Lines))
+        {
+            for (const FString& Line : Lines)
+            {
+                FString Ids, Name;
+                if (Line.Split(":", &Ids, &Name))
+                {
+                    if (Ids.Len() <= 16)
+                    {
+                        //accept only max 8 hex values as input
+                        uint64 Id = 0;
+                        while (Ids.Len() > 0)
+                        {
+                            Id = Id << 8;
+                            Id |= FParse::HexNumber(*(Ids.Left(2)));
+                            Ids = Ids.RightChop(2);
+                        }
+                        TargetData.Ids.Add(FFaceFXIdData(Id, FName(*Name)));
+                    }
+                }
+            }
+        }
+    }
+
+    return true;
 }
 
 bool FFaceFXEditorTools::GetAnimationGroupsInFolder(const FString& Folder, TArray<FString>* OutGroups, TArray<FString>* OutAnimGroupIds)
@@ -735,9 +777,6 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXActor* Asset, const FS
 		return false;
 	}
 
-	//reset platform data
-	Asset->Reset();
-
 #if FACEFX_USEANIMATIONLINKAGE
 	if(Asset->Animations.Num() > 0)
 	{
@@ -762,25 +801,7 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXActor* Asset, const FS
 	}
 #endif //FACEFX_USEANIMATIONLINKAGE
 
-	for(int8 i=0; i<EFaceFXTargetPlatform::MAX; ++i)
-	{
-		const EFaceFXTargetPlatform::Type Target = EFaceFXTargetPlatform::Type(i);
-
-		//fetch target data container reset in case it existed already
-		FFaceFXActorData& TargetData = Asset->GetOrCreatePlatformData(Target);
-		
-		if(!LoadCompiledData(GetPlatformFolder(Folder, Target), Asset->AssetName, TargetData))
-		{
-			OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetFailed", "Loading compiled data for platform {0} failed. Folder: {1}"), 
-				FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target)), FText::FromString(Folder)), Asset);
-
-			//reset asset again
-			Asset->Reset();
-			return false;
-		}
-	}
-
-	return true;
+    return LoadCompiledPlatformActorData(Asset, Folder, OutResultMessages);
 }
 
 bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAnim* Asset, const FString& Folder, FFaceFXImportResult& OutResultMessages)
