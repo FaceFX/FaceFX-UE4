@@ -61,12 +61,12 @@ struct FFaceFXStyle
 
 private:
 	
-	/**
-	* Gets the filepath for a file located inside the FaceFX plugin content directory
-	* @param RelativePath The path relative to the content directory
-	* @param Extension The file extension
-	*/
-	static FString GetContentPath(const FString& RelativePath, const ANSICHAR* Extension);
+    /**
+    * Gets the filepath for a file located inside the FaceFX plugin resources directory
+    * @param RelativePath The path relative to the resources directory
+    * @param Extension The file extension
+    */
+    static FString FFaceFXStyle::GetResourcePath(const FString& RelativePath, const ANSICHAR* Extension);
 	
 	/** The style set instance */
 	static TSharedPtr< class FSlateStyleSet > StyleSet;
