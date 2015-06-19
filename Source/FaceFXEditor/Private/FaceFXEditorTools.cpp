@@ -505,13 +505,7 @@ bool FFaceFXEditorTools::LoadCompiledPlatformActorData(UFaceFXActor* Asset, cons
                 allPresent = false;
             }
 
-            const FString AssetPathBones = FPaths::Combine(*PlatformFolder, *(AssetName + FACEFX_FILEEXT_BONES));
-            if(!FPaths::FileExists(AssetPathBones))
-            {
-                OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetFailed", "Loading compiled data for platform {0} failed. File doesn't exist: {1}"),
-                    FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target)), FText::FromString(AssetPathBones)), Asset);
-                allPresent = false;
-            }
+            //bones are optional, so don't include the file in the checks here.
 
             const FString AssetPathIds = FPaths::Combine(*PlatformFolder, *(AssetName + FACEFX_FILEEXT_ANIMID));
             if(!FPaths::FileExists(AssetPathIds))
@@ -522,15 +516,27 @@ bool FFaceFXEditorTools::LoadCompiledPlatformActorData(UFaceFXActor* Asset, cons
             }
         }
     }
-
-
+    
     if(!allPresent)
     {
         return false;
     }
 
     //load the data (we know all the folders and files exist at this point)
+
+    bool PlatformDataPreviouslyHadBones[EFaceFXTargetPlatform::MAX];
+
+    for(int8 i = 0; i<EFaceFXTargetPlatform::MAX; ++i)
+    {
+        const EFaceFXTargetPlatform::Type Target = EFaceFXTargetPlatform::Type(i);
+
+        FFaceFXActorData& TargetData = Asset->GetOrCreatePlatformData(Target);
+
+        PlatformDataPreviouslyHadBones[i] = TargetData.BonesRawData.Num() > 0;
+    }
+
     Asset->Reset();
+
     for(int8 i = 0; i<EFaceFXTargetPlatform::MAX; ++i)
     {
         const EFaceFXTargetPlatform::Type Target = EFaceFXTargetPlatform::Type(i);
@@ -544,8 +550,21 @@ bool FFaceFXEditorTools::LoadCompiledPlatformActorData(UFaceFXActor* Asset, cons
         const FString AssetPathActor = FPaths::Combine(*PlatformFolder, *(AssetName + FACEFX_FILEEXT_ACTOR));
         FFileHelper::LoadFileToArray(TargetData.ActorRawData, *AssetPathActor);
        
+        //bones are optional
         const FString AssetPathBones = FPaths::Combine(*PlatformFolder, *(AssetName + FACEFX_FILEEXT_BONES));
-        FFileHelper::LoadFileToArray(TargetData.BonesRawData, *AssetPathBones);
+        if(FPaths::FileExists(AssetPathBones))
+        {
+            FFileHelper::LoadFileToArray(TargetData.BonesRawData, *AssetPathBones);
+        }
+        else
+        {
+            //if the platform data previously had bones but now it doesn't, issue a warning
+            if(PlatformDataPreviouslyHadBones[i])
+            {
+                OutResultMessages.AddModifyWarning(FText::Format(LOCTEXT("LoadingCompiledAsset", "The asset previously contained bones data, but now it does not. On platform {0} the file doesn't exist: {1}"),
+                    FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target)), FText::FromString(AssetPathBones)), Asset);
+            }
+        }
 
         const FString AssetPathIds = FPaths::Combine(*PlatformFolder, *(AssetName + FACEFX_FILEEXT_ANIMID));
         TArray<FString> Lines;

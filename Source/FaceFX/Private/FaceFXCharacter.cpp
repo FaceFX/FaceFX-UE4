@@ -473,15 +473,26 @@ bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset)
 
 	const FFaceFXActorData& ActorData = FaceFXActor->GetData();
 
-	//  We chose a global context for this sample.
 	ffx_context_t Context = FFaceFXContext::CreateContext();
 
-	if (!Check(ffx_create_bone_set_handle((char*)(&ActorData.BonesRawData[0]), ActorData.BonesRawData.Num(), FFX_RUN_INTEGRITY_CHECK, FFX_USE_FULL_XFORMS, &BoneSetHandle, &Context))) 
-	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Unable to create FaceFX bone handle. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
-		Reset();
-		return false;
-	}
+    //only create the bone set handle if there is bone set data
+    if(ActorData.BonesRawData.Num() > 0)
+    {
+	    if (!Check(ffx_create_bone_set_handle((char*)(&ActorData.BonesRawData[0]), ActorData.BonesRawData.Num(), FFX_RUN_INTEGRITY_CHECK, FFX_USE_FULL_XFORMS, &BoneSetHandle, &Context))) 
+	    {
+		    UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Unable to create FaceFX bone handle. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
+		    Reset();
+		    return false;
+	    }
+    }
+
+    //make sure there is actor data
+    if(ActorData.ActorRawData.Num() == 0)
+    {
+        UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. No FaceFX actor data present. Asset: %s"), *GetNameSafe(FaceFXActor));
+        Reset();
+        return false;
+    }
 
 	static size_t channel_count  = FACEFX_CHANNELS;
 	if (!Check(ffx_create_actor_handle((char*)(&ActorData.ActorRawData[0]), ActorData.ActorRawData.Num(), FFX_RUN_INTEGRITY_CHECK, channel_count, &ActorHandle, &Context)))
@@ -498,32 +509,32 @@ bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset)
 		return false;
 	}
 
+    if(BoneSetHandle)
+    {
+	    size_t XFormCount = 0;
+	    if (!Check(ffx_get_bone_set_bone_count(BoneSetHandle, &XFormCount)))
+	    {
+		    UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Unable to receive FaceFX bone count. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
+		    Reset();
+		    return false;
+	    }
 
-	size_t XFormCount = 0;
-	if (!Check(ffx_get_bone_set_bone_count(BoneSetHandle, &XFormCount)))
-	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Unable to receive FaceFX bone count. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
-		Reset();
-		return false;
-	}
 
-
-	if(XFormCount > 0)
-	{
-		//prepare buffer
-		XForms.AddUninitialized(XFormCount);
+	    if(XFormCount > 0)
+	    {
+		    //prepare buffer
+		    XForms.AddUninitialized(XFormCount);
 		
-		//retrieve bone names
-		BoneIds.AddUninitialized(XFormCount);
+		    //retrieve bone names
+		    BoneIds.AddUninitialized(XFormCount);
 
-		if(!Check(ffx_get_bone_set_bone_ids(BoneSetHandle, reinterpret_cast<uint64_t*>(BoneIds.GetData()), XFormCount)))
-		{
-			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Unable to receive FaceFX bone names. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
-			Reset();
-			return false;
-		}
+		    if(!Check(ffx_get_bone_set_bone_ids(BoneSetHandle, reinterpret_cast<uint64_t*>(BoneIds.GetData()), XFormCount)))
+		    {
+			    UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Unable to receive FaceFX bone names. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
+			    Reset();
+			    return false;
+		    }
 
-		{
 			//prepare transform buffer
 			BoneTransforms.AddZeroed(XFormCount);
 
@@ -539,8 +550,8 @@ bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset)
 					UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::Load. Unknown bone id. %i. Asset: %s"), BoneIdHash, *GetNameSafe(FaceFXActor));
 				}
 			}
-		}
-	}
+	    }
+    }
 
 	return true;
 }
@@ -730,38 +741,35 @@ bool UFaceFXCharacter::ResumeAudio()
 void UFaceFXCharacter::UpdateTransforms()
 {
 	SCOPE_CYCLE_COUNTER(STAT_FaceFXUpdateTransforms);
-	
-	if(XForms.Num() == 0)
-	{
-		//no buffer created yet
-		return;
-	}
 
-	if(!Check(ffx_calc_frame_bone_xforms(BoneSetHandle, FrameState, &XForms[0], XForms.Num())))
-	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::UpdateTransforms. Calculating bone transforms failed. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
-		return;
-	}
+    if(BoneSetHandle && XForms.Num() > 0)
+    {
+	    if(!Check(ffx_calc_frame_bone_xforms(BoneSetHandle, FrameState, &XForms[0], XForms.Num())))
+	    {
+		    UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::UpdateTransforms. Calculating bone transforms failed. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
+		    return;
+	    }
 
-	//fill transform buffer
-	for(int32 i=0; i<XForms.Num(); ++i)
-	{
-		const ffx_bone_xform_t& XForm = XForms[i];
+	    //fill transform buffer
+	    for(int32 i=0; i<XForms.Num(); ++i)
+	    {
+		    const ffx_bone_xform_t& XForm = XForms[i];
 
-		//the coordinate system of bones is just like the old FaceFX in UE3: native for the animation package you used to create the actor, with the w component of the quaternion negated
-		//All transforms are in parent space.
-		//We also need to bring form FaceFX to UE space by reverting rotation.z and translation.y
+		    //the coordinate system of bones is just like the old FaceFX in UE3: native for the animation package you used to create the actor, with the w component of the quaternion negated
+		    //All transforms are in parent space.
+		    //We also need to bring form FaceFX to UE space by reverting rotation.z and translation.y
 
-		BoneTransforms[i].SetComponents(
-			//w, x, y, z quaternion rotation
-			FQuat(XForm.rot[1], -XForm.rot[2], XForm.rot[3], XForm.rot[0]),
-			//x, y, z position
-			FVector(XForm.pos[0], -XForm.pos[1], XForm.pos[2]), 
-			//x, y, z scale
-			FVector(XForm.scl[0], XForm.scl[1], XForm.scl[2]));
-	}
+		    BoneTransforms[i].SetComponents(
+			    //w, x, y, z quaternion rotation
+			    FQuat(XForm.rot[1], -XForm.rot[2], XForm.rot[3], XForm.rot[0]),
+			    //x, y, z position
+			    FVector(XForm.pos[0], -XForm.pos[1], XForm.pos[2]), 
+			    //x, y, z scale
+			    FVector(XForm.scl[0], XForm.scl[1], XForm.scl[2]));
+	    }
 
-	bIsDirty = false;
+	    bIsDirty = false;
+    }
 }
 
 FString UFaceFXCharacter::GetFaceFXError()
