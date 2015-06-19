@@ -1,16 +1,18 @@
 {
 	"FileVersion" : 1,
 
-	"FriendlyName" : "FaceFX Plugin",
+	"FriendlyName" : "FaceFX",
 	"Version" : 1,
 	"VersionName" : "1.0",
-	"CreatedBy" : "OC3 Entertainment",
+	"CreatedBy" : "OC3 Entertainment, Inc.",
 	"CreatedByURL" : "http://www.facefx.com/",
+    "DocsURL" : "http://unreal.facefx.com/",
 	"EngineVersion" : "4.8.0",
-	"Description" : "Support for facial animations powered by FaceFX",
+	"Description" : "Enables engine and editor support for facial animations powered by FaceFX.",
 	"Category" : "FaceFX",
 	"EnabledByDefault" : true,
-	"CanContainContent" : true,
+	"CanContainContent" : false,
+    "IsBetaVersion" : true,
 
 	"Modules" :
 	[
