@@ -20,10 +20,7 @@
 
 #pragma once
 
-//PCH includes
-#include "EngineMinimal.h"
-#include "Engine/StreamableManager.h"
-#include "Stats.h"
+#include "Engine.h"
 #include "FaceFXCharacter.h"
 #include "FaceFXActor.h"
 #include "FaceFXAnim.h"
