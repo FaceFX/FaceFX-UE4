@@ -32,11 +32,13 @@ The following steps describe how to install the FaceFX UE4 plugin:
 
 #### Pre-built binaries
 
+**Note**: The pre-built binaries distribution will only work with the version of UE4 4.8 that is installed from inside the Epic Games Launcher application. If you are using the UE4 GitHub source code you need to follow the directions for building the plugin from source.
+
 1. [Download](http://unreal.facefx.com) the pre-built binaries distribution.
 
-2. Unzip the pre-built binaries distribution into your **UnrealEngine/Engine/Plugins/Runtime** directory. You should now have this directory: **UnrealEngine/Engine/Plugins/Runtime/FaceFX**.
+2. Unzip the pre-built binaries distribution into your **C:\Program Files\Unreal Engine\4.8\Engine\Plugins\Runtime** directory. You should now have this directory: **C:\Program Files\Unreal Engine\4.8\Engine\Plugins\Runtime\FaceFX**.
 
-3. Run UE4
+3. Run UE4 from the Epic Games Launcher.
 
 #### Source
 
