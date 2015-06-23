@@ -53,16 +53,9 @@ public class FaceFXLib : ModuleRules
     /// <param name="FaceFXDirLib">The result facefx directory for libraries</param>
     /// <param name="FaceFXLib">The actual lib filename</param>
     /// <returns>True if all libs were found, else false</returns>
-    private static bool GetLibs(TargetInfo Target, out string FaceFXDir, out string FaceFXDirLib, out string FaceFXLib)
+    private bool GetLibs(TargetInfo Target, out string FaceFXDir, out string FaceFXDirLib, out string FaceFXLib)
     {
-	// NOTE: when building for Rocket via (from *inside* C:\Program Files\Unreal Engine\ver\Engine\Build\BatchFiles):
-	// RunUAT.bat BuildPlugin -Plugin="C:\MyPlugin\MyPlugin.uplugin" -Package="C:\MyPlugin_Dist" -Rocket
-	// You need to comment out the following line and uncomment the line after it which uses C:\RuntimeFolder. In order for
-	// it to build, you need to copy the facefx-runtime-1.0.0 folder to C:.
-	// This is because when the batch file runs, the current working directory is C:\Program Files\Unreal Engine\ver\Engine\Source
-	// and the build tool will not be able to find the RuntimeFolder.
-	FaceFXDir = Path.Combine(new []{ "..", "Plugins", "Runtime", "FaceFX", "Source", "FaceFXLib", RuntimeFolder });
-        //FaceFXDir = Path.Combine(new []{ "C:\\", RuntimeFolder });
+        FaceFXDir = Path.Combine(new []{ this.ModuleDirectory, RuntimeFolder });
         FaceFXDirLib = string.Empty;
         FaceFXLib = string.Empty;
 
@@ -126,18 +119,5 @@ public class FaceFXLib : ModuleRules
         }
 
         return true;
-    }
-
-    /// <summary>
-    /// Gets the indicator if FaceFX can be used on the given target
-    /// </summary>
-    /// <param name="Target">The target info</param>
-    /// <returns>True if can be used, else false</returns>
-    public static bool IsSupported(TargetInfo Target)
-    {
-        string FaceFXDir;
-        string FaceFXDirLib;
-        string FaceFXLib;
-        return GetLibs(Target, out FaceFXDir, out FaceFXDirLib, out FaceFXLib);
     }
 }
