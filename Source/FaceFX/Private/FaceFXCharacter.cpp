@@ -22,11 +22,10 @@
 #include "FaceFXContext.h"
 
 #include "GameFramework/Actor.h"
-#include "Animation/FaceFxComponent.h"
+#include "Animation/FaceFXComponent.h"
 #include "Components/AudioComponent.h"
 #include "Sound/SoundWave.h"
 
-DECLARE_STATS_GROUP(TEXT("FaceFX"),STATGROUP_FACEFX, STATCAT_Advance);
 DECLARE_CYCLE_STAT(TEXT("Tick FaceFX Character"), STAT_FaceFXTick, STATGROUP_FACEFX);
 DECLARE_CYCLE_STAT(TEXT("Update FaceFX Transforms"), STAT_FaceFXUpdateTransforms, STATGROUP_FACEFX);
 DECLARE_CYCLE_STAT(TEXT("Load FaceFX Assets"), STAT_FaceFXLoad, STATGROUP_FACEFX);

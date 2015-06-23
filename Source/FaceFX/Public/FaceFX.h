@@ -21,14 +21,16 @@
 #pragma once
 
 //PCH includes
-#include "Core.h"
-#include "CoreUObject.h"
+#include "EngineMinimal.h"
+#include "Engine/StreamableManager.h"
+#include "Stats.h"
 #include "FaceFXCharacter.h"
 #include "FaceFXActor.h"
 #include "FaceFXAnim.h"
 #include "FaceFXConfig.h"
 
 FACEFX_API DECLARE_LOG_CATEGORY_EXTERN(LogFaceFX, Display, All);
+DECLARE_STATS_GROUP(TEXT("FaceFX"),STATGROUP_FACEFX, STATCAT_Advance);
 
 struct FACEFX_API FaceFX
 {

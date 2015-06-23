@@ -19,6 +19,7 @@
 *******************************************************************************/
 
 #include "FaceFXEditor.h"
+#include "FaceFXEditorTools.h"
 #include "FaceFX.h"
 #include "AssetTypeActions_FaceFXActor.h"
 

@@ -26,6 +26,7 @@
 #include "FaceFXCharacter.h"
 #include "FaceFXActor.h"
 
+#include "AssetToolsModule.h"
 #include "SlateBasics.h"
 #include "ObjectTools.h"
 #include "Factories/Factory.h"

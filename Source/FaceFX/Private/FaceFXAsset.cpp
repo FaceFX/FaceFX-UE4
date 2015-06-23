@@ -19,6 +19,7 @@
 *******************************************************************************/
 
 #include "FaceFX.h"
+#include "FaceFXAsset.h"
 #include "FaceFXData.h"
 #include "TargetPlatform.h"
 
@@ -81,5 +82,9 @@ template <typename T> bool UFaceFXAsset::ClearPlatformData(const FArchive& Ar, T
 
 	return true;
 }
+
+// Explicitly instantiate the implementations we need since the definition is in a .cpp file here.
+template bool UFaceFXAsset::ClearPlatformData<TArray<FFaceFXActorData>>(const class FArchive& Ar, TArray<FFaceFXActorData>&);
+template bool UFaceFXAsset::ClearPlatformData<TArray<FFaceFXAnimData>>(const class FArchive& Ar, TArray<FFaceFXAnimData>&); 
 
 #endif //WITH_EDITORONLY_DATA

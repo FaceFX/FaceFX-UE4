@@ -20,5 +20,7 @@
 
 #pragma once
 
+#include "UnrealEd.h"
+
 /** The callback for when assets get imported and we want to do something before the compiled data gets deleted */
 DECLARE_DELEGATE_FourParams(FCompilationBeforeDeletionDelegate, class UObject* /** Asset */, const FString& /* CompilationFolder */, bool /** ImportResult */, struct FFaceFXImportResult& /** ResultMessages */)
