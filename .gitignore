@@ -33,4 +33,5 @@ Thumbs.db
 # FaceFX Runtime & Build binaries
 Binaries
 Intermediate
+Build
 Source/FaceFXLib/facefx-runtime-1.0.0
