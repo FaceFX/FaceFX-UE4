@@ -35,7 +35,4 @@ class UFaceFXAnimFactory : public UFactory
 	{
 		return FFaceFXStyle::GetBrushIdFxAnim();
 	}
-
-	/** Indicator if we only want to create a new asset without actually loading the content */
-	uint8 bOnlyCreate : 1;
 };

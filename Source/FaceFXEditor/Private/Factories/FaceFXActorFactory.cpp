@@ -86,7 +86,6 @@ void UFaceFXActorFactory::OnFxActorCompilationBeforeDelete(UObject* Asset, const
 		//generate proper factory
 		UFaceFXAnimFactory* Factory = NewObject<UFaceFXAnimFactory>(UFaceFXAnimFactory::StaticClass());
 		check(Factory);
-		Factory->bOnlyCreate = true;
 
 		//prevent GC
 		FScopedObjectRoot ScopedRoot(Factory);
@@ -146,7 +145,7 @@ void UFaceFXActorFactory::HandleFaceFXActorCreated(UFaceFXActor* Asset, const FS
 }
 
 /**
-* Performs some steps during asset import after the asset got create and before the actual import starts. Gives a chance to prepare the asset and adjust the asset to load from
+* Performs some steps during asset import after the asset got created and before the actual import starts. Gives a chance to prepare the asset and adjust the asset to load from
 * @param Asset The asset that got created
 * @param OutFaceFXAsset The asset import string
 * @param OutResult The result messages
@@ -154,52 +153,6 @@ void UFaceFXActorFactory::HandleFaceFXActorCreated(UFaceFXActor* Asset, const FS
 */
 bool OnPreInitialization(UFaceFXAsset* Asset, FString& OutFaceFXAsset, FFaceFXImportResultSet& OutResult)
 {
-	UFaceFXAnim* AnimAsset = Cast<UFaceFXAnim>(Asset);
-	if(AnimAsset && OutFaceFXAsset.EndsWith(FACEFX_FILEEXT_ANIM))
-	{
-		//we actually directly import from an animation asset instead from the .fxactor root folder -> transform back to the root folder and set asset ids
-		//C:\_FaceFX_Compiled_Wav\Slade-UE4.ffxc\x86\Text - No Tweaking/the-proposal-001-CHUBUKOV.ffxc
-		//C:/_FaceFX_Compiled_Wav/Slade-UE4.ffxc
-		const FString GroupPath = FPaths::GetPath(OutFaceFXAsset);
-		const FString AnimName = FPaths::GetBaseFilename(OutFaceFXAsset);
-		const FString AnimGroup = FPaths::GetBaseFilename(GroupPath);
-		FFaceFXAnimId& AssetAnimId = AnimAsset->GetId();
-		AssetAnimId.Group = FName(*AnimGroup);
-		AssetAnimId.Name = FName(*AnimName);
-
-		const FString CompilationFolder = FPaths::GetPath(FPaths::GetPath(GroupPath));
-		const FString CompilationFolderName = FPaths::GetBaseFilename(CompilationFolder);
-
-		//create the path to the .fxactor file. The asset knows know what animation/group the load process shall target so we can use the more generic .fxactor approach now
-		OutFaceFXAsset = CompilationFolder / TEXT("../") + CompilationFolderName + FACEFX_FILEEXT_FACEFX;
-
-		if(!FPaths::FileExists(*OutFaceFXAsset))
-		{
-			//.facefx file missing -> rename asset to additionally mark as stale
-			IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
-
-			const FString NewAssetPackageName = Asset->GetOutermost()->GetName();
-			const FString ShortName = FPackageName::GetShortName(NewAssetPackageName);
-			const FString AssetPath = FPackageName::GetLongPackagePath(NewAssetPackageName);
-
-			//Create new unique asset name in the format: <AssetPath>/DeleteMe_<AssetName>
-			FString NewAssetName, NewPackageName;
-			AssetTools.CreateUniqueAssetName(AssetPath / (FString(TEXT("DeleteMe_") + ShortName)), TEXT(""), NewPackageName, NewAssetName);
-
-			TArray<FAssetRenameData> DataArray;
-			new(DataArray) FAssetRenameData(Asset, FPackageName::GetLongPackagePath(NewAssetPackageName), NewAssetName);
-			AssetTools.RenameAssets(DataArray);
-
-			const FString FaceFXAssetAbs = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*OutFaceFXAsset);
-			const FText Msg = FText::Format(LOCTEXT("CreateFxAnimMissingFxActor", "Invalid .ffxanim location.  Delete the asset, regenerate the .ffxanim file from the FaceFX Runtime Plugin with default settings, and reimport it from its default location. Location: {0}"), FText::FromString(FaceFXAssetAbs));
-			OutResult.GetOrAdd(Asset).AddCreateError(Msg, Asset);
-			return false;
-		}
-
-		return true;
-	}
-
-	//type does not need to pre preinitialized
 	return true;
 }
 

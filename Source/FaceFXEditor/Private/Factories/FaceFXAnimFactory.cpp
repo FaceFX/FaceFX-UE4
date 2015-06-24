@@ -24,14 +24,12 @@
 #include "FaceFXAnim.h"
 
 UFaceFXAnimFactory::UFaceFXAnimFactory(const class FObjectInitializer& PCIP)
-	: Super(PCIP), bOnlyCreate(false)
+	: Super(PCIP)
 {
 	SupportedClass = UFaceFXAnim::StaticClass();
-	bCreateNew = true;
-	bEditorImport = true;
+	bCreateNew = false;
+	bEditorImport = false;
 	bText = false;
-
-	Formats.Add(TEXT("ffxanim;FaceFX Animation Asset"));
 }
 
 uint32 UFaceFXAnimFactory::GetMenuCategories() const
@@ -41,11 +39,6 @@ uint32 UFaceFXAnimFactory::GetMenuCategories() const
 
 UObject* UFaceFXAnimFactory::FactoryCreateNew(UClass* Class, UObject* InParent, FName Name, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn)
 {
-	if(bOnlyCreate)
-	{
-		return NewObject<UFaceFXAsset>(InParent, Class, Name, Flags);
-	}
 
-	//pass along the current filename to support drag'n'drop support of .ffanim files. Will be handled specifically inside UFaceFXActorFactory::OnPreInit
-	return UFaceFXActorFactory::CreateNew(Class, InParent, Name, Flags, FCompilationBeforeDeletionDelegate(), GetCurrentFilename());
+	return NewObject<UFaceFXAsset>(InParent, Class, Name, Flags);
 }
