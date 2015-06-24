@@ -139,7 +139,15 @@ void FAssetTypeActions_FaceFXBase::ExecuteSetSource(TArray<TWeakObjectPtr<UObjec
 
 		//assign new file and reimport
 		FFaceFXImportResultSet ResultSet;
-		FFaceFXEditorTools::InitializeFromFile(FaceFXAsset, Files[0], ResultSet.GetOrAdd(FaceFXAsset), FCompilationBeforeDeletionDelegate::CreateStatic(&UFaceFXActorFactory::OnFxActorCompilationBeforeDelete));
+        
+        FCompilationBeforeDeletionDelegate DeletionDelegate;
+        if(FaceFXAsset->IsA(UFaceFXActor::StaticClass()) && FFaceFXEditorTools::IsImportAnimationOnActorImport())
+        {
+            //actor assets may lead to changed animation sets
+            DeletionDelegate = FCompilationBeforeDeletionDelegate::CreateStatic(&UFaceFXActorFactory::OnFxActorCompilationBeforeDelete);
+        }
+
+		FFaceFXEditorTools::InitializeFromFile(FaceFXAsset, Files[0], ResultSet.GetOrAdd(FaceFXAsset), DeletionDelegate);
 
 		FFaceFXResultWidget::Create(LOCTEXT("ShowSetSourceResultTitle", "Set Source Result"), ResultSet);
 	}
