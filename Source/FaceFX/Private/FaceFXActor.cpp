@@ -190,12 +190,10 @@ const UFaceFXAnim* UFaceFXActor::GetAnimation(const FName& AnimGroup, const FNam
 	{
 		if(Animation && (IsNoneGroup || Animation->GetGroup() == AnimGroup))
 		{
-			if(IsNoneGroup && Animation->GetName() != AnimName)
+			if(Animation->GetName() == AnimName)
 			{
-				//animation not found and no group specified -> look further
-				continue;
+				return Animation;
 			}
-			return Animation;
 		}
 	}
 	return nullptr;
