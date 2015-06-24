@@ -1009,7 +1009,7 @@ bool FFaceFXEditorTools::LoadAudio(UFaceFXAnim* Asset, const FString& Folder, FF
 			if(Asset->AudioPath.Equals(AudioMapEntry.AudioPath) && Asset->IsAudioAssetSet())
 			{
 				//no change
-				OutResultMessages.AddCreateSuccess(LOCTEXT("LoadAudioFailedImportNoChange", "Animation already links to the right Audio Asset"), Asset, Asset->Audio);
+                OutResultMessages.AddModifySuccess(LOCTEXT("LoadAudioFailedImportNoChange", "Animation already links to the right Audio Asset"), Asset, Asset->Audio);
 				return true;
 			}
 
