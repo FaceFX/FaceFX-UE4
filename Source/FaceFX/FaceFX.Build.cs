@@ -35,7 +35,5 @@ public class FaceFX : ModuleRules
         );
 
         PublicIncludePathModuleNames.Add("FaceFXLib");
-
-        Definitions.Add("FACEFX_RUNTIMEHEADER=\"" + FaceFXLib.RuntimeFolder + "/facefx.h\"");
 	}
 }

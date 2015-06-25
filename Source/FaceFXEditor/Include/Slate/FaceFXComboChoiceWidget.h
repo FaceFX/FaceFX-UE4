@@ -81,7 +81,7 @@ public:
 
 private:
 
-	FReply HandleButtonClicked(EAppReturnType::Type Response);
+	FReply HandleButtonClicked(EAppReturnType::Type Response_);
 
 	/**
 	* Generates the widget for a given combo item option

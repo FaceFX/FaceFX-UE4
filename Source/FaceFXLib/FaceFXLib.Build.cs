@@ -38,9 +38,16 @@ public class FaceFXLib : ModuleRules
         string FaceFXDirLib;
         if (GetLibs(Target, out FaceFXDir, out FaceFXDirLib, out FaceFXLib))
         {
-            PublicIncludePaths.Add(Path.Combine(new[] { FaceFXDir, "common", "src" }));
             PublicLibraryPaths.Add(FaceFXDirLib);
-            PublicAdditionalLibraries.Add(FaceFXLib);
+
+            if (Target.Platform == UnrealTargetPlatform.Mac)
+            {
+                PublicAdditionalLibraries.Add(FaceFXDirLib + "/" + FaceFXLib);
+            }
+            else
+            {
+                PublicAdditionalLibraries.Add(FaceFXLib);
+            }
         }
     }
 
@@ -66,7 +73,14 @@ public class FaceFXLib : ModuleRules
         }
 
         //default static lib file
-        FaceFXLib = "libfacefx.lib";
+        if (Target.Platform == UnrealTargetPlatform.Mac)
+        {
+            FaceFXLib = "libfacefx.a";
+        }
+        else
+        {
+            FaceFXLib = "libfacefx.lib";
+        }
 
         string CompilerFolder = WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2013 ? "vs12" : "vs11";
 
@@ -79,6 +93,9 @@ public class FaceFXLib : ModuleRules
                 break;
             case UnrealTargetPlatform.Win64:
                 PlatformFolder = Path.Combine(new[] { "windows", CompilerFolder, "x64" });
+                break;
+            case UnrealTargetPlatform.Mac:
+                PlatformFolder = Path.Combine(new[] { "osx" });
                 break;
             //case UnrealTargetPlatform.XboxOne:
             //    PlatformFolder = Path.Combine(new[] { "xboxone", CompilerFolder });

@@ -20,7 +20,6 @@
 
 #pragma once
 
-#include FACEFX_RUNTIMEHEADER
 #include "FaceFXConfig.h"
 #include "FaceFXData.h"
 #include "Tickable.h"

@@ -66,7 +66,7 @@ private:
     * @param RelativePath The path relative to the resources directory
     * @param Extension The file extension
     */
-    static FString FFaceFXStyle::GetResourcePath(const FString& RelativePath, const ANSICHAR* Extension);
+    static FString GetResourcePath(const FString& RelativePath, const ANSICHAR* Extension);
 	
 	/** The style set instance */
 	static TSharedPtr< class FSlateStyleSet > StyleSet;

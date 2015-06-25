@@ -46,7 +46,5 @@ public class FaceFXEditor : ModuleRules
         );
 
         DynamicallyLoadedModuleNames.Add("AssetTools");
-
-        Definitions.Add("FACEFX_RUNTIMEFOLDER=\"" + FaceFXLib.RuntimeFolder + "\"");
     }
 }

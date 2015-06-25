@@ -18,8 +18,6 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include FACEFX_RUNTIMEHEADER
-
 #include "FaceFX.h"
 #include "ModuleManager.h"
 #include "Engine/StreamableManager.h"

@@ -126,9 +126,9 @@ TSharedRef<SWidget> FFaceFXComboChoiceWidget::MakeComboItemWidget(TSharedPtr<FSt
 		.ToolTipText(FText::FromString(ValueS));
 }
 
-FReply FFaceFXComboChoiceWidget::HandleButtonClicked(EAppReturnType::Type Response)
+FReply FFaceFXComboChoiceWidget::HandleButtonClicked(EAppReturnType::Type Response_)
 {
-	Response = Response;
+	Response = Response_;
 	return FReply::Handled();
 }
 

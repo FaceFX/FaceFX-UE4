@@ -119,8 +119,8 @@ private:
 		*/
 		inline class SWindow* GetWindow() const
 		{
-			SWidget* Widget = Window.Pin().Get();
-			return Widget ? static_cast<SWindow*>(Widget) : nullptr;
+			SWidget* ResultWidget = Window.Pin().Get();
+			return ResultWidget ? static_cast<SWindow*>(ResultWidget) : nullptr;
 		}
 		
 		/** 
