@@ -33,7 +33,7 @@
 #include "SNotificationList.h"
 #include "NotificationManager.h"
 
-#define LOCTEXT_NAMESPACE "AssetTypeActions"
+#define LOCTEXT_NAMESPACE "FaceFX"
 
 uint32 FAssetTypeActions_FaceFXBase::GetCategories() 
 { 
@@ -269,3 +269,5 @@ bool FAssetTypeActions_FaceFXBase::CanExecuteOpenFolder(const TArray<UObject*> O
 }
 
 #endif
+
+#undef LOCTEXT_NAMESPACE

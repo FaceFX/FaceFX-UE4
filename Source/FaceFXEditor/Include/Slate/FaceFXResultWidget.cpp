@@ -430,3 +430,5 @@ TSharedRef<SWidget> FFaceFXResultWidget::ListRowWidget::GenerateWidgetForColumn(
 
 	return SNew(STextBlock);
 }
+
+#undef LOCTEXT_NAMESPACE
