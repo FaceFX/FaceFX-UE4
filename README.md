@@ -5,6 +5,8 @@ Welcome to the FaceFX Unreal Engine 4 plugin source code!
 
 This repository gives you all the information you need to successfully compile and install the FaceFX UE4 plugin.
 
+The FaceFX UE4 plugin currently supports the Windows (Win32 and Win64) and Mac platforms.
+
 Documentation and tutorials can be found on the plugin's [official website](http://unreal.facefx.com).
 
 License
@@ -32,7 +34,9 @@ The following steps describe how to install the FaceFX UE4 plugin:
 
 #### Pre-built binaries
 
-**Note**: The pre-built binaries distribution will only work with the version of UE4 4.8 that is installed from inside the Epic Games Launcher application. If you are using the UE4 GitHub source code you need to follow the directions for building the plugin from source.
+**Note**: The pre-built binaries distribution will only work with the version of UE4 that is installed from inside the Epic Games Launcher application (currently 4.8.1). If you are using the UE4 GitHub source code you need to follow the directions for building the plugin from source.
+
+##### Windows
 
 1. [Download](http://unreal.facefx.com) the pre-built binaries distribution.
 
@@ -40,7 +44,20 @@ The following steps describe how to install the FaceFX UE4 plugin:
 
 3. Run UE4 from the Epic Games Launcher.
 
+##### Mac
+
+1. [Download](http://unreal.facefx.com) the pre-built binaries distribution.
+
+2. Unzip the pre-built binaries distribution into your **/Users/Shared/UnrealEngine/4.8/Engine/Plugins/Runtime** directory. You should now have this directory: **/Users/Shared/UnrealEngine/4.8/Engine/Plugins/Runtime/FaceFX**.
+
+3. Run UE4 from the Epic Games Launcher.
+
+
 #### Source
+
+First, make sure you are familiar with the process of cloning Unreal Engine from GitHub and have performed the necessary UE4 build steps for your target platform. The following instructions assume you know how to successfully build the GitHub version of Unreal Engine 4.
+
+##### Windows
 
 1. [Fork and clone this repository](https://guides.github.com/activities/forking/).
 
@@ -56,9 +73,33 @@ The following steps describe how to install the FaceFX UE4 plugin:
 
 7. Copy the **facefx-runtime-1.0.0** directory into your **UnrealEngine/Engine/Plugins/Runtime/FaceFX/Source/FaceFXLib** directory. You should now have this directory: **UnrealEngine/Engine/Plugins/Runtime/FaceFX/Source/FaceFXLib/facefx-1.0.0**.
 
-8. Run the **GenerateProjectFiles.bat** files located in your **UnrealEngine** directory.
+8. Run the **GenerateProjectFiles.bat** file located in your **UnrealEngine** directory.
 
-9. Load the UE4 solution in Visual Studio and do Build -> Clean Solution followed by Build -> Rebuild Solution.
+9. Load the UE4 solution in Visual Studio. Set your solution configuration to **Development Editor** and your solution platform to **Win64**, then right click on the **UE4** target and select **Build**.
+
+10. Run UnrealEd according to Epic's instructions.
+
+##### Mac
+
+1. [Fork and clone this repository](https://guides.github.com/activities/forking/).
+
+2. In order to build the source code you need to [download](http://www.facefx.com) the FaceFX Runtime distribution.
+
+3. Create a directory named **FaceFX** in your **UnrealEngine/Engine/Plugins/Runtime** directory. You should now have this directory: **UnrealEngine/Engine/Plugins/Runtime/FaceFX**.
+
+4. Copy the contents of your cloned repository from step 1 into the newly created **FaceFX** directory.
+
+5. Unzip the FaceFX Runtime distribution .zip file you downloaded in step 2.
+
+6. Inside the extracted folder from step 5 you should find a **facefx-runtime-1.0.0** directory.
+
+7. Copy the **facefx-runtime-1.0.0** directory into your **UnrealEngine/Engine/Plugins/Runtime/FaceFX/Source/FaceFXLib** directory. You should now have this directory: **UnrealEngine/Engine/Plugins/Runtime/FaceFX/Source/FaceFXLib/facefx-1.0.0**.
+
+8. Run the **GenerateProjectFiles.sh** or double-click the **GenerateProjectFiles.command** file located in your **UnrealEngine** directory.
+
+9. Load the UE4 project in Xcode. Select the **UE4Editor - Mac** for **My Mac** target in the title bar, then select the 'Product > Build' menu item.
+
+10. Run UnrealEd according to Epic's instructions.
 
 Contributing
 ------------
