@@ -33,7 +33,7 @@ private:
 	FFaceFXContext(){}
 
 	/** The memory allocation callback */
-	static inline void* AllocCallback(size_t ByteCount, size_t Alignment, void* UserDdata)
+	static inline void* AllocCallback(size_t ByteCount, size_t Alignment, void* UserData)
 	{
 		return FMemory::Malloc(ByteCount, Alignment);
 	}
