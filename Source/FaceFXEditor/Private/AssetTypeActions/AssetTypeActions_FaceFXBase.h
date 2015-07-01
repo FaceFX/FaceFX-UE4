@@ -51,15 +51,11 @@ protected:
 	/** Determine if we can show details */
 	bool CanExecuteShowDetails(const TArray<UObject*> Objects) const;
 
-#if PLATFORM_WINDOWS
-
 	/** Handler for when OpenFolder is selected */
 	void ExecuteOpenFolder(TArray<TWeakObjectPtr<UObject>> Objects);
 
 	/** Determine if we can open the source asset folder */
 	bool CanExecuteOpenFolder(const TArray<UObject*> Objects) const;
-
-#endif
 
 	/** 
 	* Shows a slate error message

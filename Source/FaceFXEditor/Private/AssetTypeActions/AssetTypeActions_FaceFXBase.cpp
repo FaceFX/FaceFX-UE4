@@ -219,7 +219,6 @@ void FAssetTypeActions_FaceFXBase::ExecuteShowDetails(TArray<TWeakObjectPtr<UObj
 	}
 }
 
-#if PLATFORM_WINDOWS
 /** Handler for when OpenFolder is selected */
 void FAssetTypeActions_FaceFXBase::ExecuteOpenFolder(TArray<TWeakObjectPtr<UObject>> Objects)
 {
@@ -234,8 +233,23 @@ void FAssetTypeActions_FaceFXBase::ExecuteOpenFolder(TArray<TWeakObjectPtr<UObje
 				const FString PathAbs = FaceFXAsset->GetAssetPathAbsolute();
 				if(FPaths::FileExists(PathAbs))
 				{
+#if PLATFORM_WINDOWS
 					//fire and forget
 					FPlatformProcess::CreateProc(TEXT("explorer.exe"), *FString::Printf(TEXT("/select,\"%s\""), *PathAbs.Replace(TEXT("/"), TEXT("\\"))), true, false, false, nullptr, 0, nullptr, nullptr);
+#elif PLATFORM_MAC
+                    int32 lastSlashIdx;
+                    if(PathAbs.FindLastChar('/', lastSlashIdx))
+                    {
+                        const FString Folder = PathAbs.LeftChop(PathAbs.Len()-lastSlashIdx-1);
+                        if(Folder.Len() > 0)
+                        {
+					        //fire and forget
+					        FPlatformProcess::CreateProc(TEXT("/usr/bin/open"), *FString::Printf(TEXT("\"%s\""), *Folder), true, false, false, nullptr, 0, nullptr, nullptr);
+                        }
+                    }
+#else
+#error Unsupported platform for FAssetTypeActions_FaceFXBase::ExecuteOpenFolder.
+#endif
 				}
 				else
 				{
@@ -267,7 +281,5 @@ bool FAssetTypeActions_FaceFXBase::CanExecuteOpenFolder(const TArray<UObject*> O
 	}
 	return false;
 }
-
-#endif
 
 #undef LOCTEXT_NAMESPACE

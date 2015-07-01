@@ -42,7 +42,6 @@ UClass* FAssetTypeActions_FaceFXAnim::GetSupportedClass() const
 
 void FAssetTypeActions_FaceFXAnim::GetActions( const TArray<UObject*>& InObjects, FMenuBuilder& MenuBuilder )
 {
-#if PLATFORM_WINDOWS
 	MenuBuilder.AddMenuEntry(
 		LOCTEXT("Asset_OpenFolder","Open FaceFX Studio Asset Folder"),
 		LOCTEXT("Asset_OpenFolderTooltip", "Opens the folder where the FaceFX Studio Asset is located in."),
@@ -52,7 +51,6 @@ void FAssetTypeActions_FaceFXAnim::GetActions( const TArray<UObject*>& InObjects
 		FCanExecuteAction::CreateSP(this, &FAssetTypeActions_FaceFXAnim::CanExecuteOpenFolder, InObjects)
 		)
 		);
-#endif
 
 	MenuBuilder.AddMenuEntry(
 		LOCTEXT("Asset_Reimport","Reimport FaceFX Studio Assets"),

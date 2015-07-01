@@ -42,6 +42,7 @@ UClass* FAssetTypeActions_FaceFXActor::GetSupportedClass() const
 
 void FAssetTypeActions_FaceFXActor::GetActions( const TArray<UObject*>& InObjects, FMenuBuilder& MenuBuilder )
 {
+#if PLATFORM_WINDOWS
 	MenuBuilder.AddMenuEntry(
 		LOCTEXT("Asset_Edit","Open in FaceFX Studio"),
 		LOCTEXT("Asset_EditTooltip", "Opens the Face FX asset within FaceFX studio."),
@@ -51,8 +52,8 @@ void FAssetTypeActions_FaceFXActor::GetActions( const TArray<UObject*>& InObject
 		FCanExecuteAction::CreateSP(this, &FAssetTypeActions_FaceFXActor::CanExecuteEdit, InObjects)
 		)
 	);
+#endif
 
-#if PLATFORM_WINDOWS
 	MenuBuilder.AddMenuEntry(
 		LOCTEXT("Asset_OpenFolder","Open FaceFX Studio Asset Folder"),
 		LOCTEXT("Asset_OpenFolderTooltip", "Opens the folder where the FaceFX Studio Asset is located in."),
@@ -62,7 +63,6 @@ void FAssetTypeActions_FaceFXActor::GetActions( const TArray<UObject*>& InObject
 		FCanExecuteAction::CreateSP(this, &FAssetTypeActions_FaceFXActor::CanExecuteOpenFolder, InObjects)
 		)
 		);
-#endif
 
 	MenuBuilder.AddMenuEntry(
 		LOCTEXT("Asset_Reimport","Reimport FaceFX Studio Assets"),
