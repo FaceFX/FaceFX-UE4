@@ -7,12 +7,10 @@ This repository gives you all the information you need to successfully compile a
 
 The FaceFX UE4 plugin currently supports the Windows (Win32 and Win64) and Mac platforms.
 
-Documentation and tutorials can be found on the plugin's [official website](http://unreal.facefx.com).
-
 License
 -------
 
-Complete licensing information can be found in the **LICENSE.md** file located in this repository. The short version is:
+Complete licensing information can be found in the [LICENSE.md](LICENSE.md) file located in this repository. The short version is:
 
 - The FaceFX UE4 plugin source code is licensed under the **MIT license** (this is the code that interfaces with UE4; in other words, the code contained in this repository).
 
@@ -38,7 +36,7 @@ The following steps describe how to install the FaceFX UE4 plugin:
 
 ##### Windows
 
-1. [Download](http://unreal.facefx.com) the pre-built binaries distribution.
+1. [Download](https://unreal.facefx.com) the pre-built binaries distribution.
 
 2. Unzip the pre-built binaries distribution into your **C:\Program Files\Epic Games\4.8\Engine\Plugins\Runtime** directory. You should now have this directory: **C:\Program Files\Epic Games\4.8\Engine\Plugins\Runtime\FaceFX**.
 
@@ -46,7 +44,7 @@ The following steps describe how to install the FaceFX UE4 plugin:
 
 ##### Mac
 
-1. [Download](http://unreal.facefx.com) the pre-built binaries distribution.
+1. [Download](https://unreal.facefx.com) the pre-built binaries distribution.
 
 2. Unzip the pre-built binaries distribution into your **/Users/Shared/UnrealEngine/4.8/Engine/Plugins/Runtime** directory. You should now have this directory: **/Users/Shared/UnrealEngine/4.8/Engine/Plugins/Runtime/FaceFX**.
 
@@ -61,7 +59,7 @@ First, make sure you are familiar with the process of cloning Unreal Engine from
 
 1. [Fork and clone this repository](https://guides.github.com/activities/forking/).
 
-2. In order to build the source code you need to [download](http://www.facefx.com) the FaceFX Runtime distribution.
+2. In order to build the source code you need to [download](https://www.facefx.com) the FaceFX Runtime distribution.
 
 3. Create a directory named **FaceFX** in your **UnrealEngine/Engine/Plugins/Runtime** directory. You should now have this directory: **UnrealEngine/Engine/Plugins/Runtime/FaceFX**.
 
@@ -83,7 +81,7 @@ First, make sure you are familiar with the process of cloning Unreal Engine from
 
 1. [Fork and clone this repository](https://guides.github.com/activities/forking/).
 
-2. In order to build the source code you need to [download](http://www.facefx.com) the FaceFX Runtime distribution.
+2. In order to build the source code you need to [download](https://www.facefx.com) the FaceFX Runtime distribution.
 
 3. Create a directory named **FaceFX** in your **UnrealEngine/Engine/Plugins/Runtime** directory. You should now have this directory: **UnrealEngine/Engine/Plugins/Runtime/FaceFX**.
 
@@ -100,6 +98,11 @@ First, make sure you are familiar with the process of cloning Unreal Engine from
 9. Load the UE4 project in Xcode. Select the **UE4Editor - Mac** for **My Mac** target in the title bar, then select the 'Product > Build' menu item.
 
 10. Run UnrealEd according to Epic's instructions.
+
+Documentation
+-------------
+
+The [FaceFX UE4 Plugin documentation](Documentation/Index.md) is located in the **Documentation** directory of this GitHub repository.
 
 Contributing
 ------------
