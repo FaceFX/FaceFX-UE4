@@ -9,6 +9,6 @@ If the Face Graph was changed, all animations will be recompiled and need to be 
 
 Any assets that were updated are present in the **.ffxc** folder and are ready to be re-imported into UE4. To do this, right-click the **FaceFXActor** asset that was created from the modified **.facefx** file and select the "Reimport FaceFX Studio Assets" option.
 
-![](Images/FaceFXActorContextMenu.png =205x154)
+<img src="Images/FaceFXActorContextMenu.png" width="205">
 
 **Note:** Any animations that were deleted or renamed in the **.facefx** file will still have a UE4 asset, but will be stranded and risk becoming stale if the actor's face graph is ever modified. Warnings are generated during the import to remind you to delete these assets.

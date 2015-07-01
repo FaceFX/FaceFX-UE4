@@ -48,7 +48,7 @@ In order for the FaceFX UE4 Plugin to control a character, the character first n
 
 + Create a **Blueprint Class** for the character that is based on **SkeletalMeshActor** and references the **Animation Blueprint** created in the previous step. Add a **FaceFX** component and an **Audio** component to the **Blueprint Class**.
 
-![](Images/FaceFXAndAudioComponents.png =300x300)
+<img src="Images/FaceFXAndAudioComponents.png" width="300">
 
 + In the **Construction Script** of the **Blueprint Class** created in the previous step, add a **Setup FaceFX** node. Drag the **Skeletal Mesh Component** from the **Components** list into the **Construction Script** and wire it up to the **Setup FaceFX** node's **Skel Mesh Comp** slot. Finally, wire the **Construction Script** node to the **Setup FaceFX** node.
 
@@ -56,4 +56,4 @@ In order for the FaceFX UE4 Plugin to control a character, the character first n
 
 + Animations can be played with **Play** or **Play By Id** FaceFX Blueprint nodes if they are compatible with the actor. A compatible animation is one that was compiled with the actor or compiled with an actor having an identical Face Graph setup.
 
-![](Images/FaceFXPlayBlueprintNode.png =508x250)
+<img src="Images/FaceFXPlayBlueprintNode.png" width="508">

@@ -8,7 +8,7 @@ All FaceFX Blueprint nodes require a **FaceFX Component** to be wired to their r
 Setup
 -----
 
-![](Images/FaceFXSetupBlueprintNode.png =508x250)
+<img src="Images/FaceFXSetupBlueprintNode.png" width="508">
 
 The FaceFX Setup Blueprint node intitializes the linked **FaceFX Component** with the linked **Skeletal Mesh Component** and specified **FaceFXActor** asset. It must be called in the **Construction Script** before any other FaceFX Blueprint node.
 
@@ -23,7 +23,7 @@ The FaceFX Setup Blueprint node intitializes the linked **FaceFX Component** wit
 Play
 ----
 
-![](Images/FaceFXPlayBlueprintNode.png =508x250)
+<img src="Images/FaceFXPlayBlueprintNode.png" width="508">
 
 The FaceFX Play Blueprint node plays the linked **FaceFXAnim** asset.
 
@@ -38,7 +38,7 @@ The FaceFX Play Blueprint node plays the linked **FaceFXAnim** asset.
 Play by Id
 ----------
 
-![](Images/FaceFXPlayByIdBlueprintNode.png =508x250)
+<img src="Images/FaceFXPlayByIdBlueprintNode.png" width="508">
 
 The FaceFX Play by Id Blueprint node plays a **FaceFXAnim** asset using a string ID created in the form **Group/AnimName**. The **FaceFXAnim** asset *must* be linked to the **FaceFXActor** asset in order for it to be found and played.
 
@@ -55,7 +55,7 @@ The FaceFX Play by Id Blueprint node plays a **FaceFXAnim** asset using a string
 Pause
 -----
 
-![](Images/FaceFXPauseBlueprintNode.png =508x200)
+<img src="Images/FaceFXPauseBlueprintNode.png" width="508">
 
 The FaceFX Pause Blueprint node pauses all FaceFX animations and audio files playing on an actor.
 
@@ -66,7 +66,7 @@ The FaceFX Pause Blueprint node pauses all FaceFX animations and audio files pla
 Resume
 ------
 
-![](Images/FaceFXResumeBlueprintNode.png =508x200)
+<img src="Images/FaceFXResumeBlueprintNode.png" width="508">
 
 The FaceFX Resume Blueprint node resumes all paused FaceFX animations and audio files.
 
@@ -77,7 +77,7 @@ The FaceFX Resume Blueprint node resumes all paused FaceFX animations and audio 
 Stop
 ----
 
-![](Images/FaceFXStopBlueprintNode.png =508x200)
+<img src="Images/FaceFXStopBlueprintNode.png" width="508">
 
 The FaceFX Stop Blueprint node stops all FaceFX animations and audio files playing on an actor.
 

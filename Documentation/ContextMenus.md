@@ -6,7 +6,7 @@ The FaceFX UE4 Plugin adds several new options to the Unreal Editor asset right-
 FaceFXActor Asset
 -----------------
 
-![](Images/FaceFXActorContextMenu.png =205x154)
+<img src="Images/FaceFXActorContextMenu.png" width="205">
 
 ##### Open in FaceFX Studio
 
@@ -41,7 +41,7 @@ Unlinks animations from the actor.
 FaceFXAnim Asset
 ----------------
 
-![](Images/FaceFXAnimationContextMenu.png =206x150)
+<img src="Images/FaceFXAnimationContextMenu.png" width="206">
 
 ##### Open FaceFX Studio Asset Folder
 
