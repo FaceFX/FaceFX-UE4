@@ -160,6 +160,12 @@ public:
 	*/
 	void GetAnimationGroups(TArray<FName>& OutGroups) const;
 
+	/**
+	* Gets all animation ids
+	* @param OutAnimIds The animation ids
+	*/
+	void GetAnimationIds(TArray<FFaceFXAnimId>& OutAnimIds) const;
+
 #endif //FACEFX_USEANIMATIONLINKAGE
 
 #if WITH_EDITORONLY_DATA

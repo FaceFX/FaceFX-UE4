@@ -24,10 +24,6 @@
 
 DEFINE_LOG_CATEGORY(LogFaceFX);
 
-/**
-* Gets the FaceFX version
-* @returns The FaceFX version string
-*/
 FString FaceFX::GetVersion()
 {
 	char ffx_version_string[32];
@@ -36,10 +32,6 @@ FString FaceFX::GetVersion()
 	return FString(ANSI_TO_TCHAR(ffx_version_string));
 }
 
-/**
-* Gets the FaceFX platform
-* @returns The FaceFX platform string
-*/
 FString FaceFX::GetPlatform()
 {
 	ffx_platform_info_t ffx_platform;
@@ -51,10 +43,6 @@ FString FaceFX::GetPlatform()
 	return FString(ANSI_TO_TCHAR(ffx_platform_string));
 }
 
-/**
-* Gets the global streamer for FaceFX assets
-* @returns The streamer
-*/
 FStreamableManager& FaceFX::GetStreamer()
 {
 	/** the global streamer for FaceFX assets */

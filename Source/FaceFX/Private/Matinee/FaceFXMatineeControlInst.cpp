@@ -18,34 +18,21 @@
   SOFTWARE.
 *******************************************************************************/
 
-using UnrealBuildTool;
+#include "FaceFX.h"
+#include "Matinee/FaceFXMatineeControlInst.h"
 
-public class FaceFXEditor : ModuleRules
+#include "Matinee/InterpGroupInst.h"
+#include "Matinee/MatineeActor.h"
+
+UFaceFXMatineeControlInst::UFaceFXMatineeControlInst(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), 
+	LastUpdatePosition(0.F)
 {
-    public FaceFXEditor(TargetInfo Target)
-    {
-        PrivateDependencyModuleNames.AddRange(
-            new string[] {
-                "Core",
-                "CoreUObject",
-                "Engine",
-                "UnrealEd",
-                "EditorStyle",
-                "Slate",
-                "SlateCore",
-                "InputCore",
-                "AssetTools",
-                "AssetRegistry",
-                "ContentBrowser",
-                "MainFrame",
-                "DesktopPlatform",
-                "AnimGraph",
-                "BlueprintGraph",
-                "Matinee",
-                "FaceFX"
-            }
-        );
+}
 
-        DynamicallyLoadedModuleNames.Add("AssetTools");
-    }
+void UFaceFXMatineeControlInst::InitTrackInst(UInterpTrack* Track)
+{
+	UInterpGroupInst* GrInst = CastChecked<UInterpGroupInst>( GetOuter() );
+	AMatineeActor* MatineeActor = CastChecked<AMatineeActor>( GrInst->GetOuter() );
+
+	LastUpdatePosition = MatineeActor->InterpPosition;
 }
