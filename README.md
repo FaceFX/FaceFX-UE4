@@ -59,7 +59,7 @@ First, make sure you are familiar with the process of cloning Unreal Engine from
 
 1. [Fork and clone this repository](https://guides.github.com/activities/forking/).
 
-2. In order to build the source code you need to [download](https://www.facefx.com) the FaceFX Runtime distribution.
+2. In order to build the source code you need to [download](https://unreal.facefx.com) the FaceFX Runtime distribution.
 
 3. Create a directory named **FaceFX** in your **UnrealEngine/Engine/Plugins/Runtime** directory. You should now have this directory: **UnrealEngine/Engine/Plugins/Runtime/FaceFX**.
 
@@ -81,7 +81,7 @@ First, make sure you are familiar with the process of cloning Unreal Engine from
 
 1. [Fork and clone this repository](https://guides.github.com/activities/forking/).
 
-2. In order to build the source code you need to [download](https://www.facefx.com) the FaceFX Runtime distribution.
+2. In order to build the source code you need to [download](https://unreal.facefx.com) the FaceFX Runtime distribution.
 
 3. Create a directory named **FaceFX** in your **UnrealEngine/Engine/Plugins/Runtime** directory. You should now have this directory: **UnrealEngine/Engine/Plugins/Runtime/FaceFX**.
 
