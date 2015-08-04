@@ -103,6 +103,17 @@ bool UFaceFXComponent::Stop(USkeletalMeshComponent* SkelMeshComp, const UObject*
 	return false;
 }
 
+void UFaceFXComponent::StopAll()
+{
+	for(FFaceFXEntry& Entry : Entries)
+	{
+		if(Entry.Character)
+		{
+			Entry.Character->Stop();
+		}
+	}
+}
+
 bool UFaceFXComponent::Pause(USkeletalMeshComponent* SkelMeshComp, const UObject* Caller)
 {
 	if(UFaceFXCharacter* Character = GetCharacter(SkelMeshComp))

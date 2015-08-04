@@ -224,6 +224,22 @@ void UFaceFXMatineeControl::PreviewUpdateTrack( float NewPosition, UInterpTrackI
 	}
 }
 
+void UFaceFXMatineeControl::PreviewStopPlayback(UInterpTrackInst* TrInst)
+{
+	check(TrInst);
+	AActor* Actor = TrInst->GetGroupActor();
+	if(!Actor)
+	{
+		return;
+	}
+
+	if(UFaceFXComponent* FaceFXComp = Actor->FindComponentByClass<UFaceFXComponent>())
+	{
+		//playback stopped
+		FaceFXComp->StopAll();
+	}
+}
+
 void UFaceFXMatineeControl::GetTrackKeyForTime(float InTime, TArray<TPair<int32, const FFaceFXTrackKey*>>& OutResult, TArray<FFaceFXSkelMeshComponentId>* OutNoTracks) const
 {
 	//build a list of all keys for all skelmesh component ids
@@ -360,7 +376,7 @@ void UFaceFXMatineeControl::UpdateTrack( float NewPosition, UInterpTrackInst* Tr
 
 			const bool IsPaused = FaceFXComp->IsPaused(SkelMeshTarget, this);
 			const bool IsPlayingOrPaused = IsPaused || FaceFXComp->IsPlaying(SkelMeshTarget, this);
-			
+
 			if(!IsPlayingOrPaused || TrackKeyPair.Key != TrackInstFaceFX->GetCurrentTrackIndex(SkelMeshTarget))
 			{
 				//start playback of a new animation

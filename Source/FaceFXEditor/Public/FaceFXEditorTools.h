@@ -605,6 +605,18 @@ struct FACEFXEDITOR_API FFaceFXEditorTools
 	*/
 	static void DeleteAsset(UObject* Asset);
 
+	/** 
+	* Shows a slate error message
+	* @param msg The error message to show
+	*/
+	static void ShowError(const FText& Msg);
+
+	/** 
+	* Shows a slate info message
+	* @param msg The info message to show
+	*/
+	static void ShowInfo(const FText& Msg);
+
 private:
 
 	FFaceFXEditorTools(){}

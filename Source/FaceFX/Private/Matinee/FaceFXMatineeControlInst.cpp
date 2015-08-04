@@ -20,6 +20,7 @@
 
 #include "FaceFX.h"
 #include "Matinee/FaceFXMatineeControlInst.h"
+#include "Animation/FaceFXComponent.h"
 
 #include "Matinee/InterpGroupInst.h"
 #include "Matinee/MatineeActor.h"
@@ -35,4 +36,18 @@ void UFaceFXMatineeControlInst::InitTrackInst(UInterpTrack* Track)
 	AMatineeActor* MatineeActor = CastChecked<AMatineeActor>( GrInst->GetOuter() );
 
 	LastUpdatePosition = MatineeActor->InterpPosition;
+}
+
+void UFaceFXMatineeControlInst::RestoreActorState(UInterpTrack* Track)
+{
+	UInterpGroupInst* GrInst = CastChecked<UInterpGroupInst>( GetOuter() );
+	
+	//called when matinee closes. In that case we stop any running animation/sounds
+	if(const AActor* GroupActor = GrInst->GetGroupActor())
+	{
+		if(UFaceFXComponent* FaceFXComp = GroupActor->FindComponentByClass<UFaceFXComponent>())
+		{
+			FaceFXComp->StopAll();
+		}
+	}
 }

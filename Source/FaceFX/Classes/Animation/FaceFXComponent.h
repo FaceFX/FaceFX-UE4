@@ -122,6 +122,12 @@ public:
 	bool Stop(USkeletalMeshComponent* SkelMeshComp = nullptr, const UObject* Caller = nullptr);
 
 	/**
+	* Stops the playback of all currently playing facial animations for any skel mesh components character
+	*/
+	UFUNCTION(BlueprintCallable, Category=FaceFX)
+	void StopAll();
+
+	/**
 	* Pause the playback of the currently playing facial animation for a given skel mesh components character
 	* @param SkelMeshComp The skelmesh component to pause the playback for. Keep nullptr to use the first setup skelmesh component character instead
 	* @returns True if succeeded, else false

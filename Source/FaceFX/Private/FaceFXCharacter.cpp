@@ -72,7 +72,7 @@ void UFaceFXCharacter::BeginDestroy()
 	Reset();	
 }
 
-bool UFaceFXCharacter::TickUntil(float Duration, bool& OutAudioStarted, float& OutAudioStart)
+bool UFaceFXCharacter::TickUntil(float Duration, bool& OutAudioStarted)
 {
 	if(!bCanPlay || Duration < 0.F)
 	{
@@ -85,31 +85,18 @@ bool UFaceFXCharacter::TickUntil(float Duration, bool& OutAudioStarted, float& O
 	/** The steps to perform */
 	static const float TickSteps = 0.1F;
 
-	do
+	CurrentTime = Duration;
+	if (!Check(ffx_process_frame(ActorHandle, FrameState, 0.F)) || !Check(ffx_process_frame(ActorHandle, FrameState, CurrentTime)))
 	{
-		if (!Check(ffx_process_frame(ActorHandle, FrameState, CurrentTime)))
-		{
-			//update failed
-			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::TickUntil. FaceFX call <ffx_process_frame> failed. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
-			return false;
-		}
+		//update failed
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::TickUntil. FaceFX call <ffx_process_frame> failed. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
+		return false;
+	}
 
-		if(IsAudioStarted())
-		{
-			OutAudioStart = CurrentTime;
-			OutAudioStarted = true;
-		}
-
-		if(CurrentTime == Duration)
-		{
-			//End reached
-			break;
-		}
-
-		//determine new current time
-		CurrentTime = FMath::Clamp(CurrentTime + TickSteps, 0.F, Duration);
-
-	}while(CurrentTime <= Duration);
+	if(IsAudioStarted())
+	{
+		OutAudioStarted = true;
+	}	
 
 	CurrentAnimProgress = CurrentTime - CurrentAnimStart;
 	bIsDirty = true;
@@ -503,7 +490,6 @@ bool UFaceFXCharacter::JumpTo(float Position)
 {
 	if(Position < 0.F || (!IsLooping() && Position > CurrentAnimDuration))
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::JumpTo. Invalid position range. Value: %.2f, Asset: %s"), Position, *GetNameSafe(FaceFXActor));
 		return false;
 	}
 
@@ -549,10 +535,11 @@ bool UFaceFXCharacter::JumpTo(float Position)
 	}
 
 	bool IsAudioStarted = false;
-	float AudioStartPosition = 0.F;
-	if(TickUntil(Position, IsAudioStarted, AudioStartPosition) && IsAudioStarted)
+	if(TickUntil(Position, IsAudioStarted) && IsAudioStarted)
 	{
-		PlayAudio(Position - AudioStartPosition);
+		const float AudioPosition = Position + CurrentAnimStart;
+		checkf(AudioPosition >= 0.F, TEXT("Invalid audio playback range."));
+		PlayAudio(AudioPosition);
 	}
 	else
 	{
@@ -871,7 +858,7 @@ bool UFaceFXCharacter::PauseAudio()
 
 bool UFaceFXCharacter::StopAudio()
 {
-	if(!IsPlayingAudio())
+	if(!IsPlayingOrPausedAudio())
 	{
 		//nothing playing right now
 		return true;
@@ -882,6 +869,7 @@ bool UFaceFXCharacter::StopAudio()
 
 	if(UAudioComponent* AudioComp = GetAudioComponent())
 	{
+		AudioComp->SetSound(nullptr);
 		AudioComp->Stop();
 		return true;
 	}

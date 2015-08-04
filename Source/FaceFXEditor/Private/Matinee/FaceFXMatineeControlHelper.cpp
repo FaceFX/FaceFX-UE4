@@ -72,20 +72,23 @@ bool UFaceFXMatineeControlHelper::PreCreateTrack( UInterpGroup* Group, const UIn
 		if(!Actor->FindComponentByClass<UFaceFXComponent>())
 		{
 			UE_LOG(LogFaceFX, Warning, TEXT("InterpGroup : FaceFX component missing (%s)"), *Actor->GetName());
-
 			if(bAllowPrompts)
 			{
-				FNotificationInfo Info(LOCTEXT("MatineeFaceFXMissingComponent", "Unable to add FaceFX Track. Selected actor does not own a FaceFX Component."));
-				Info.ExpireDuration = 10.F;
-				Info.bUseLargeFont = false;
-				Info.Image = FEditorStyle::GetBrush(TEXT("MessageLog.Error"));
-				FSlateNotificationManager::Get().AddNotification(Info);
+				FFaceFXEditorTools::ShowError(LOCTEXT("MatineeFaceFXMissingComponent", "Unable to add FaceFX Track. Selected actor does not own a FaceFX Component."));
 			}
-
 			return false;
 		}
+		return true;
 	}
-	return true;
+	else
+	{
+		UE_LOG(LogFaceFX, Warning, TEXT("InterpGroup : Actor missing"));
+		if(bAllowPrompts)
+		{
+			FFaceFXEditorTools::ShowError(LOCTEXT("MatineeFaceFXMissingActor", "Unable to add FaceFX Track. No actor selected. Select an actor with a FaceFX component and try again."));
+		}
+	}
+	return false;
 }
 
 bool UFaceFXMatineeControlHelper::PreCreateKeyframe( UInterpTrack *Track, float fTime ) const

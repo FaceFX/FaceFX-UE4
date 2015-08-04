@@ -34,6 +34,7 @@ class UFaceFXMatineeControlInst : public UInterpTrackInst
 	
 	// Begin UInterpTrackInst Instance
 	virtual void InitTrackInst(UInterpTrack* Track) override;
+	virtual void RestoreActorState(UInterpTrack* Track) override;
 	// End UInterpTrackInst Instance
 
 	/** 

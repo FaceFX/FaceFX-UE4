@@ -37,6 +37,8 @@
 #include "ContentBrowserModule.h"
 #include "Sound/SoundWave.h"
 #include "Editor.h"
+#include "SNotificationList.h"
+#include "NotificationManager.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 
@@ -1225,6 +1227,24 @@ void FFaceFXEditorTools::DeleteAsset(UObject* Asset)
 	TArray<UObject*> Objects;
 	Objects.Add(Asset);
 	ObjectTools::ForceDeleteObjects(Objects, false);
+}
+
+void FFaceFXEditorTools::ShowError(const FText& Msg)
+{
+	FNotificationInfo Info(Msg);
+	Info.ExpireDuration = 10.F;
+	Info.bUseLargeFont = false;
+	Info.Image = FEditorStyle::GetBrush(TEXT("MessageLog.Error"));
+	FSlateNotificationManager::Get().AddNotification(Info);
+}
+
+void FFaceFXEditorTools::ShowInfo(const FText& Msg)
+{
+	FNotificationInfo Info(Msg);
+	Info.ExpireDuration = 10.F;
+	Info.bUseLargeFont = false;
+	Info.Image = FEditorStyle::GetBrush(TEXT("Icons.Info"));
+	FSlateNotificationManager::Get().AddNotification(Info);
 }
 
 #undef LOCTEXT_NAMESPACE

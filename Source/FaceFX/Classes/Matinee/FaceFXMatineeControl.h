@@ -110,6 +110,7 @@ class UFaceFXMatineeControl : public UInterpTrack
 	virtual bool GetClosestSnapPosition( float InPosition, TArray<int32>& IgnoreKeys, float& OutPosition ) override;
 	virtual int32 AddKeyframe( float Time, UInterpTrackInst* TrackInst, EInterpCurveMode InitInterpMode ) override;
 	virtual void PreviewUpdateTrack( float NewPosition, UInterpTrackInst* TrackInst ) override;
+	virtual void PreviewStopPlayback(class UInterpTrackInst* TrInst) override;
 	virtual void DrawTrack( FCanvas* Canvas, UInterpGroup* Group, const FInterpTrackDrawParams& Params ) override;
 
 #if WITH_EDITORONLY_DATA

@@ -192,6 +192,15 @@ public:
 		return AudioPlaybackState == EPlaybackState::Playing;
 	}
 
+	/** 
+	* Gets the indicator if the audio is currently playing or paused
+	* @returns True if paused or playing, else false
+	*/
+	inline bool IsPlayingOrPausedAudio() const
+	{
+		return AudioPlaybackState != EPlaybackState::Stopped;
+	}
+
 	/**
 	* Gets the indicator if the current animation is looping
 	* @returns True if looping else false
@@ -444,10 +453,9 @@ private:
 	* Performs ticks from 0 to Duration in small enough timesteps to find out the location where the audio was triggered
 	* @param Duration The duration until to tick to
 	* @param OutAudioStarted True if the audio was started until the duration was reached, else false
-	* @param OutAudioStart The start location of audio if true was returned
 	* @returns True if succeeded with ticking until the duration, else false
 	*/
-	bool TickUntil(float Duration, bool& OutAudioStarted, float& OutAudioStart);
+	bool TickUntil(float Duration, bool& OutAudioStarted);
 
 	/**
 	* Gets the latest internal facefx error message
