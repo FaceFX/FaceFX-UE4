@@ -86,14 +86,18 @@ bool UFaceFXCharacter::TickUntil(float Duration, bool& OutAudioStarted)
 	static const float TickSteps = 0.1F;
 
 	CurrentTime = Duration;
-	if (!Check(ffx_process_frame(ActorHandle, FrameState, 0.F)) || !Check(ffx_process_frame(ActorHandle, FrameState, CurrentTime)))
+
+	const bool ProcessZeroSuccess = Check(ffx_process_frame(ActorHandle, FrameState, 0.F));
+	const bool bIsAudioStartedAtZero = IsAudioStarted();
+
+	if (!ProcessZeroSuccess || !Check(ffx_process_frame(ActorHandle, FrameState, CurrentTime)))
 	{
 		//update failed
 		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::TickUntil. FaceFX call <ffx_process_frame> failed. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
 		return false;
 	}
 
-	if(IsAudioStarted())
+	if(bIsAudioStartedAtZero || IsAudioStarted())
 	{
 		OutAudioStarted = true;
 	}	
