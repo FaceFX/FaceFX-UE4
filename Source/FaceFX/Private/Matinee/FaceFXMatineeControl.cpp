@@ -418,8 +418,6 @@ void UFaceFXMatineeControl::UpdateTrack( float NewPosition, UInterpTrackInst* Tr
 	TrackInstFaceFX->LastUpdatePosition = NewPosition;	
 }
 
-
-#if WITH_EDITORONLY_DATA
 void UFaceFXMatineeControl::DrawTrack( FCanvas* Canvas, UInterpGroup* Group, const FInterpTrackDrawParams& Params )
 {
 	static const FColor	KeySelectedColor(255,128,0);
@@ -529,7 +527,6 @@ void UFaceFXMatineeControl::DrawTrack( FCanvas* Canvas, UInterpGroup* Group, con
 		}
 	}
 }
-#endif // WITH_EDITORONLY_DATA
 
 float FFaceFXTrackKey::GetAnimationDuration(const AActor* Actor) const
 {

@@ -112,11 +112,7 @@ class UFaceFXMatineeControl : public UInterpTrack
 	virtual void PreviewUpdateTrack( float NewPosition, UInterpTrackInst* TrackInst ) override;
 	virtual void PreviewStopPlayback(class UInterpTrackInst* TrInst) override;
 	virtual void DrawTrack( FCanvas* Canvas, UInterpGroup* Group, const FInterpTrackDrawParams& Params ) override;
-
-#if WITH_EDITORONLY_DATA
 	virtual void UpdateTrack( float NewPosition, UInterpTrackInst* TrackInst, bool bJump ) override;
-#endif // WITH_EDITORONLY_DATA
-
 
 	virtual const FString GetSlateHelperClassName() const override
 	{
