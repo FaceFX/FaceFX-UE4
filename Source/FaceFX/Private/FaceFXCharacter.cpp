@@ -62,6 +62,9 @@ UFaceFXCharacter::UFaceFXCharacter(const class FObjectInitializer& PCIP) : Super
 	,LastFrameNumber(0)
 #endif
 {
+#if WITH_EDITOR
+	OnFaceFXAnimChangedHandle = UFaceFXCharacter::OnAssetChanged.AddUObject(this, &UFaceFXCharacter::OnFaceFXAssetChanged);
+#endif
 }
 
 void UFaceFXCharacter::BeginDestroy()
@@ -69,7 +72,11 @@ void UFaceFXCharacter::BeginDestroy()
 	Super::BeginDestroy();
 
 	bCanPlay = false;
-	Reset();	
+	Reset();
+
+#if WITH_EDITOR
+	UFaceFXCharacter::OnAssetChanged.Remove(OnFaceFXAnimChangedHandle);
+#endif
 }
 
 bool UFaceFXCharacter::TickUntil(float Duration, bool& OutAudioStarted)
@@ -948,3 +955,18 @@ FString UFaceFXCharacter::GetFaceFXError()
 		return TEXT("Unable to retrieve additional FaceFX error message.");
 	}
 }
+
+#if WITH_EDITOR
+
+UFaceFXCharacter::FOnAssetChangedSignature UFaceFXCharacter::OnAssetChanged;
+
+void UFaceFXCharacter::OnFaceFXAssetChanged(UFaceFXAsset* Asset)
+{
+	UFaceFXAnim* AnimAsset = Cast<UFaceFXAnim>(Asset);
+	if(Asset && (Asset == FaceFXActor || (AnimAsset && CurrentAnim == AnimAsset->GetId())))
+	{
+		//currently playing actor/anim asset changed -> stop to prevent out of sync playback
+		Stop();
+	}
+}
+#endif //WITH_EDITOR

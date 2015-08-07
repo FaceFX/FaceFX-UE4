@@ -476,6 +476,9 @@ bool FFaceFXEditorTools::ImportFaceFXAsset(UFaceFXAsset* Asset, const FString& A
 	CleanupCompilationFolder(CompilationFolder);
 #endif //FACEFX_DELETE_EMPTY_COMPILATION_FOLDER
 
+	//inform FaceFX characters about updated asset
+	UFaceFXCharacter::OnAssetChanged.Broadcast(Asset);
+
 	return ImportResult;
 }
 

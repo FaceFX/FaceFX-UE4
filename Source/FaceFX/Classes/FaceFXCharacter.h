@@ -543,5 +543,20 @@ private:
 
 #if WITH_EDITOR
 	uint32 LastFrameNumber;
+
+	/** The event callback handle for OnFaceFXAnimChanged */
+	FDelegateHandle OnFaceFXAnimChangedHandle;
+
+	/** 
+	* Callback for when an asset changed
+	* @param Asset The asset which changed
+	*/
+	void OnFaceFXAssetChanged(class UFaceFXAsset* Asset);
+
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnAssetChangedSignature, class UFaceFXAsset* /*Asset*/);
+
+public:
+	/** Event that gets triggered when an animation asset gets loaded */
+	static FOnAssetChangedSignature OnAssetChanged;
 #endif //WITH_EDITOR
 };
