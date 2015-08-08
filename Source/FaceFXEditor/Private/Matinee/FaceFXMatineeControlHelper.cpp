@@ -66,6 +66,19 @@ bool UFaceFXMatineeControlHelper::PreCreateTrack( UInterpGroup* Group, const UIn
 	UInterpGroupInst* GrInst = InterpEd->GetMatineeActor()->FindFirstGroupInst(Group);
 	check(GrInst);
 
+	//check if the matinee actor already contains a facefx track
+	TArray<UInterpTrack*> Tracks;
+	Group->FindTracksByClass(UFaceFXMatineeControl::StaticClass(), Tracks);
+	if(Tracks.Num() > 0)
+	{
+		UE_LOG(LogFaceFX, Warning, TEXT("InterpGroup : Matinee group aready contains a FaceFX track (%s)"), *Group->GroupName.ToString());
+		if(bAllowPrompts)
+		{
+			FFaceFXEditorTools::ShowError(LOCTEXT("MatineeFaceFXAlreadyHasTrack", "Unable to add FaceFX Track. Target matinee group already contains a FaceFX track."));
+		}
+		return false;
+	}
+
 	if (AActor* Actor = GrInst->GetGroupActor())
 	{
 		//Locate FaceFX component
