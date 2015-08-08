@@ -694,6 +694,11 @@ UFaceFXAnim* FFaceFXEditorTools::ReimportOrCreateAnimAsset(const FString& Compil
 				OutResultMessages.AddModifySuccess(LOCTEXT("CreateAssetAnimExistSuccess", "Reimported already existing animation Asset."), ExistingAnim);
 #endif //FACEFX_USEANIMATIONLINKAGE
 	
+				SavePackage(ExistingAnim->GetOutermost());
+
+				//inform FaceFX characters about updated asset
+				UFaceFXCharacter::OnAssetChanged.Broadcast(ExistingAnim);
+
 				return ExistingAnim;
 			}
 			else
@@ -727,6 +732,9 @@ UFaceFXAnim* FFaceFXEditorTools::ReimportOrCreateAnimAsset(const FString& Compil
 #endif //FACEFX_USEANIMATIONLINKAGE
 
 			SavePackage(NewAsset->GetOutermost());
+
+			//inform FaceFX characters about updated asset
+			UFaceFXCharacter::OnAssetChanged.Broadcast(NewAsset);
 
 			return NewAsset;
 		}

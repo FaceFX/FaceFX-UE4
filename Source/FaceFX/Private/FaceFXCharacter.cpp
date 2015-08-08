@@ -63,7 +63,10 @@ UFaceFXCharacter::UFaceFXCharacter(const class FObjectInitializer& PCIP) : Super
 #endif
 {
 #if WITH_EDITOR
-	OnFaceFXAnimChangedHandle = UFaceFXCharacter::OnAssetChanged.AddUObject(this, &UFaceFXCharacter::OnFaceFXAssetChanged);
+	if(!IsTemplate())
+	{
+		OnFaceFXAnimChangedHandle = UFaceFXCharacter::OnAssetChanged.AddUObject(this, &UFaceFXCharacter::OnFaceFXAssetChanged);
+	}
 #endif
 }
 
@@ -965,8 +968,16 @@ void UFaceFXCharacter::OnFaceFXAssetChanged(UFaceFXAsset* Asset)
 	UFaceFXAnim* AnimAsset = Cast<UFaceFXAnim>(Asset);
 	if(Asset && (Asset == FaceFXActor || (AnimAsset && CurrentAnim == AnimAsset->GetId())))
 	{
-		//currently playing actor/anim asset changed -> stop to prevent out of sync playback
-		Stop();
+		if(UFaceFXActor* ActorAsset = Cast<UFaceFXActor>(Asset))
+		{
+			//actor asset changed -> reload whole actor
+			Load(ActorAsset);
+		}
+		else
+		{
+			//currently playing actor/anim asset changed -> stop to prevent out of sync playback
+			Stop();
+		}
 	}
 }
 #endif //WITH_EDITOR
