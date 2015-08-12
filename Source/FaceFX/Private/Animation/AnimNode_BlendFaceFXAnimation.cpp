@@ -113,7 +113,7 @@ void FAnimNode_BlendFaceFXAnimation::LoadFaceFXData(UAnimInstance* AnimInstance)
 			else
 			{
 				//no FaceFX character exist yet -> check if we're currently loading one async
-				bFaceFXCharacterLoadingCompleted = !FaceFXComp->IsLoadingCharacterAsync();
+				bFaceFXCharacterLoadingCompleted = !FaceFXComp->IsLoadingCharacterAsync() && FaceFXComp->IsRegistered();
 			}
 		}
 	}
