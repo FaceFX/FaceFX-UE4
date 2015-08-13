@@ -29,10 +29,14 @@ public class FaceFX : ModuleRules
                 "Core",
                 "CoreUObject",
                 "Engine",
-                "TargetPlatform",
                 "FaceFXLib"
             }
         );
+
+        if (UEBuildConfiguration.bBuildEditor)
+        {
+            PrivateDependencyModuleNames.Add("TargetPlatform");
+        }
 
         PublicIncludePathModuleNames.Add("FaceFXLib");
 	}
