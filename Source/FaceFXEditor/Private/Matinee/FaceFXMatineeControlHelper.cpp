@@ -63,10 +63,7 @@ bool UFaceFXMatineeControlHelper::PreCreateTrack( UInterpGroup* Group, const UIn
 	IMatineeBase* InterpEd = Mode->InterpEd;
 	check(InterpEd);
 
-	UInterpGroupInst* GrInst = InterpEd->GetMatineeActor()->FindFirstGroupInst(Group);
-	check(GrInst);
-
-	//check if the matinee actor already contains a facefx track
+	//check if the matinee group already contains a facefx track
 	TArray<UInterpTrack*> Tracks;
 	Group->FindTracksByClass(UFaceFXMatineeControl::StaticClass(), Tracks);
 	if(Tracks.Num() > 0)
@@ -78,6 +75,30 @@ bool UFaceFXMatineeControlHelper::PreCreateTrack( UInterpGroup* Group, const UIn
 		}
 		return false;
 	}
+
+	//determine the actor linked to this group. There must be ONLY one
+	UInterpGroupInst* GrInst = nullptr;
+	AMatineeActor* MatineeActor = InterpEd->GetMatineeActor();
+	check(MatineeActor);
+	for(UInterpGroupInst* GroupInst : MatineeActor->GroupInst)
+	{
+		if(GroupInst && GroupInst->Group == Group)
+		{
+			if(GrInst)
+			{
+				//there are more than one actor
+				UE_LOG(LogFaceFX, Warning, TEXT("InterpGroup : Can't create FaceFX track for Matinee groups with more than one actor. Select a group for one actor only and try again. Group: (%s)"), *Group->GroupName.ToString());
+				if(bAllowPrompts)
+				{
+					FFaceFXEditorTools::ShowError(LOCTEXT("MatineeFaceFXAlreadyHadGroupActor", "Can't create FaceFX track for Matinee groups with more than one actor. Select a group for one actor only and try again."));
+				}
+				return false;
+			}
+			GrInst = GroupInst;
+		}
+	}
+
+	check(GrInst);
 
 	if (AActor* Actor = GrInst->GetGroupActor())
 	{
