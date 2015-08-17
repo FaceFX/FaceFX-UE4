@@ -21,6 +21,12 @@ Supported Unreal Engine 4 versions
 
 The FaceFX UE4 plugin currently supports UE4 version 4.8.0 and up. It will not work unmodified on earlier versions of UE4.
 
+Documentation
+-------------
+
+The [FaceFX UE4 Plugin documentation](Documentation/Index.md) is located in the **Documentation** directory of this GitHub repository. Be sure to check out the [Troubleshooting](Documentation/Troubleshooting.md) section if you run into any problems.
+
+
 Installation
 ------------
 
@@ -98,11 +104,6 @@ First, make sure you are familiar with the process of cloning Unreal Engine from
 9. Load the UE4 project in Xcode. Select the **UE4Editor - Mac** for **My Mac** target in the title bar, then select the 'Product > Build' menu item.
 
 10. Run UnrealEd according to Epic's instructions.
-
-Documentation
--------------
-
-The [FaceFX UE4 Plugin documentation](Documentation/Index.md) is located in the **Documentation** directory of this GitHub repository.
 
 Contributing
 ------------

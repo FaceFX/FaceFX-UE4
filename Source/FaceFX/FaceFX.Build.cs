@@ -29,7 +29,6 @@ public class FaceFX : ModuleRules
                 "Core",
                 "CoreUObject",
                 "Engine",
-                "TargetPlatform",
                 "FaceFXLib"
             }
         );
