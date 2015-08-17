@@ -21,7 +21,10 @@
 #include "FaceFX.h"
 #include "FaceFXAsset.h"
 #include "FaceFXData.h"
+
+#if WITH_EDITORONLY_DATA
 #include "TargetPlatform.h"
+#endif
 
 UFaceFXAsset::UFaceFXAsset(const class FObjectInitializer& PCIP) : Super(PCIP)
 {

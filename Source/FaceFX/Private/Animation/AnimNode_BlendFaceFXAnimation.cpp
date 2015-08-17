@@ -63,13 +63,28 @@ void FAnimNode_BlendFaceFXAnimation::LoadFaceFXData(UAnimInstance* AnimInstance)
 	QUICK_SCOPE_CYCLE_COUNTER(STAT_FaceFXBlendLoad);
 
 	BoneIndices.Empty();
-	bFaceFXCharacterLoadingCompleted = true;
 
-	if(USkeletalMeshComponent* Component = AnimInstance ? AnimInstance->GetSkelMeshComponent() : nullptr)
+	if(!AnimInstance)
+	{
+		//wait until we have a proper anim instance
+		bFaceFXCharacterLoadingCompleted = false;
+		return;
+	}
+
+	if(USkeletalMeshComponent* Component = AnimInstance->GetSkelMeshComponent())
 	{
 		AActor* Owner = Component->GetOwner();
 
-		if(UFaceFXComponent* FaceFXComp = Owner ? Owner->FindComponentByClass<UFaceFXComponent>() : nullptr)
+		if(!Owner)
+		{
+			//wait until we have a proper owner
+			bFaceFXCharacterLoadingCompleted = false;
+			return;
+		}
+
+		bFaceFXCharacterLoadingCompleted = true;
+
+		if(UFaceFXComponent* FaceFXComp = Owner->FindComponentByClass<UFaceFXComponent>())
 		{
 			if(UFaceFXCharacter* FaceFXChar = FaceFXComp->GetCharacter(Component))
 			{
@@ -113,7 +128,7 @@ void FAnimNode_BlendFaceFXAnimation::LoadFaceFXData(UAnimInstance* AnimInstance)
 			else
 			{
 				//no FaceFX character exist yet -> check if we're currently loading one async
-				bFaceFXCharacterLoadingCompleted = !FaceFXComp->IsLoadingCharacterAsync();
+				bFaceFXCharacterLoadingCompleted = !FaceFXComp->IsLoadingCharacterAsync() && FaceFXComp->IsRegistered();
 			}
 		}
 	}

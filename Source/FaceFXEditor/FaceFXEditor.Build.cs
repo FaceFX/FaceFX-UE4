@@ -40,6 +40,7 @@ public class FaceFXEditor : ModuleRules
                 "MainFrame",
                 "AnimGraph",
                 "BlueprintGraph",
+                "Matinee",
                 "FaceFX"
             }
         );

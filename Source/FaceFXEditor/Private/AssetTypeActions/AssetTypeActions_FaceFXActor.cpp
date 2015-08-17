@@ -237,7 +237,7 @@ void FAssetTypeActions_FaceFXActor::OpenAssetEditor( const TArray<UObject*>& InO
 			FString ErrMsg;
 			if(!FFaceFXEditorTools::OpenFaceFXStudio(FaceFXActor, &ErrMsg))
 			{
-				ShowError(FText::FromString(ErrMsg));
+				FFaceFXEditorTools::ShowError(FText::FromString(ErrMsg));
 				bAnyError = true;
 			}
 		}
@@ -245,7 +245,7 @@ void FAssetTypeActions_FaceFXActor::OpenAssetEditor( const TArray<UObject*>& InO
 
 	if(!bAnyError)
 	{
-		ShowInfo(LOCTEXT("Asset_OpenAsset","Opening asset(s) in background process successfully completed."));
+		FFaceFXEditorTools::ShowInfo(LOCTEXT("Asset_OpenAsset","Opening asset(s) in background process successfully completed."));
 	}
 }
 
