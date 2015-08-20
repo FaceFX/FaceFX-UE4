@@ -38,8 +38,10 @@ public class FaceFXEditor : ModuleRules
                 "AssetRegistry",
                 "ContentBrowser",
                 "MainFrame",
+                "DesktopPlatform",
                 "AnimGraph",
                 "BlueprintGraph",
+                "Matinee",
                 "FaceFX"
             }
         );

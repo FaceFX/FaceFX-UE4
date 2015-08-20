@@ -27,8 +27,7 @@
 #include "FaceFXCharacter.h"
 #include "FaceFXEditorTools.h"
 
-#include "SNotificationList.h"
-#include "NotificationManager.h"
+#include "Matinee/MatineeActor.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 
@@ -88,16 +87,34 @@ private:
 	{
 		checkf(GIsEditor, TEXT("Must only be called from within the editor"));
 
+		//Handle errors differently when being inside matinee to prevent error spamming on the UI when scrubbing/playing through invalid animations
+		static AMatineeActor* ShownMatineeErrorsOwner = nullptr;
+		static TArray<TPair<UFaceFXCharacter*, const UFaceFXAnim*>> ShownMatineeErrors;
+		AMatineeActor* MatineeActor = GEditor->ActiveMatinee.Get();
+		if(MatineeActor && ShownMatineeErrorsOwner == MatineeActor)
+		{
+			//while being within matinee we only show the error once
+			TPairInitializer<UFaceFXCharacter*, const UFaceFXAnim*> Entry(Character, Asset);
+			if(ShownMatineeErrors.Contains(Entry))
+			{
+				//already shown once
+				return;
+			}
+			ShownMatineeErrors.Add(Entry);
+		}
+		else
+		{
+			ShownMatineeErrors.Reset();
+		}
+		ShownMatineeErrorsOwner = MatineeActor;
+		
+		//prepare and show error messaghe
 		const AActor* CharacterOwner = Character ? Character->GetTypedOuter<AActor>() : nullptr;
 
 		const FText Msg = FText::Format(LOCTEXT("OnFaceFXCharacterPlayAssetIncompatible", "FaceFX Animation \"{0}\" incompatible with FaceFX instance of actor {1}"), 
 			Asset ? FText::FromString(Asset->GetName().ToString()) : FText::GetEmpty(), FText::FromString(CharacterOwner ? CharacterOwner->GetName() : GetNameSafe(Character)));
 
-		FNotificationInfo Info(Msg);
-		Info.ExpireDuration = 10.F;
-		Info.bUseLargeFont = false;
-		Info.Image = FEditorStyle::GetBrush(TEXT("MessageLog.Error"));
-		FSlateNotificationManager::Get().AddNotification(Info);
+		FFaceFXEditorTools::ShowError(Msg);
 	}
 
 	FDelegateHandle OnFaceFXCharacterPlayAssetIncompatibleHandle;

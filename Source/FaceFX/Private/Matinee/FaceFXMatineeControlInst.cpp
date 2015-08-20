@@ -1,4 +1,4 @@
-﻿/*******************************************************************************
+/*******************************************************************************
   The MIT License (MIT)
   Copyright (c) 2015 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -18,26 +18,36 @@
   SOFTWARE.
 *******************************************************************************/
 
-using UnrealBuildTool;
+#include "FaceFX.h"
+#include "Matinee/FaceFXMatineeControlInst.h"
+#include "Animation/FaceFXComponent.h"
 
-public class FaceFX : ModuleRules
+#include "Matinee/InterpGroupInst.h"
+#include "Matinee/MatineeActor.h"
+
+UFaceFXMatineeControlInst::UFaceFXMatineeControlInst(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), 
+	LastUpdatePosition(0.F)
 {
-    public FaceFX(TargetInfo Target)
+}
+
+void UFaceFXMatineeControlInst::InitTrackInst(UInterpTrack* Track)
+{
+	UInterpGroupInst* GrInst = CastChecked<UInterpGroupInst>( GetOuter() );
+	AMatineeActor* MatineeActor = CastChecked<AMatineeActor>( GrInst->GetOuter() );
+
+	LastUpdatePosition = MatineeActor->InterpPosition;
+}
+
+void UFaceFXMatineeControlInst::RestoreActorState(UInterpTrack* Track)
+{
+	UInterpGroupInst* GrInst = CastChecked<UInterpGroupInst>( GetOuter() );
+	
+	//called when matinee closes. In that case we stop any running animation/sounds
+	if(const AActor* GroupActor = GrInst->GetGroupActor())
 	{
-        PrivateDependencyModuleNames.AddRange(
-            new string[] {
-                "Core",
-                "CoreUObject",
-                "Engine",
-                "FaceFXLib"
-            }
-        );
-
-        if (UEBuildConfiguration.bBuildEditor)
-        {
-            PrivateDependencyModuleNames.Add("TargetPlatform");
-        }
-
-        PublicIncludePathModuleNames.Add("FaceFXLib");
+		if(UFaceFXComponent* FaceFXComp = GroupActor->FindComponentByClass<UFaceFXComponent>())
+		{
+			FaceFXComp->StopAll();
+		}
 	}
 }

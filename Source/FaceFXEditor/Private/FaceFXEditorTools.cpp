@@ -37,6 +37,8 @@
 #include "ContentBrowserModule.h"
 #include "Sound/SoundWave.h"
 #include "Editor.h"
+#include "SNotificationList.h"
+#include "NotificationManager.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 
@@ -474,6 +476,9 @@ bool FFaceFXEditorTools::ImportFaceFXAsset(UFaceFXAsset* Asset, const FString& A
 	CleanupCompilationFolder(CompilationFolder);
 #endif //FACEFX_DELETE_EMPTY_COMPILATION_FOLDER
 
+	//inform FaceFX characters about updated asset
+	UFaceFXCharacter::OnAssetChanged.Broadcast(Asset);
+
 	return ImportResult;
 }
 
@@ -689,6 +694,11 @@ UFaceFXAnim* FFaceFXEditorTools::ReimportOrCreateAnimAsset(const FString& Compil
 				OutResultMessages.AddModifySuccess(LOCTEXT("CreateAssetAnimExistSuccess", "Reimported already existing animation Asset."), ExistingAnim);
 #endif //FACEFX_USEANIMATIONLINKAGE
 	
+				SavePackage(ExistingAnim->GetOutermost());
+
+				//inform FaceFX characters about updated asset
+				UFaceFXCharacter::OnAssetChanged.Broadcast(ExistingAnim);
+
 				return ExistingAnim;
 			}
 			else
@@ -722,6 +732,9 @@ UFaceFXAnim* FFaceFXEditorTools::ReimportOrCreateAnimAsset(const FString& Compil
 #endif //FACEFX_USEANIMATIONLINKAGE
 
 			SavePackage(NewAsset->GetOutermost());
+
+			//inform FaceFX characters about updated asset
+			UFaceFXCharacter::OnAssetChanged.Broadcast(NewAsset);
 
 			return NewAsset;
 		}
@@ -1225,6 +1238,24 @@ void FFaceFXEditorTools::DeleteAsset(UObject* Asset)
 	TArray<UObject*> Objects;
 	Objects.Add(Asset);
 	ObjectTools::ForceDeleteObjects(Objects, false);
+}
+
+void FFaceFXEditorTools::ShowError(const FText& Msg)
+{
+	FNotificationInfo Info(Msg);
+	Info.ExpireDuration = 10.F;
+	Info.bUseLargeFont = false;
+	Info.Image = FEditorStyle::GetBrush(TEXT("MessageLog.Error"));
+	FSlateNotificationManager::Get().AddNotification(Info);
+}
+
+void FFaceFXEditorTools::ShowInfo(const FText& Msg)
+{
+	FNotificationInfo Info(Msg);
+	Info.ExpireDuration = 10.F;
+	Info.bUseLargeFont = false;
+	Info.Image = FEditorStyle::GetBrush(TEXT("Icons.Info"));
+	FSlateNotificationManager::Get().AddNotification(Info);
 }
 
 #undef LOCTEXT_NAMESPACE
