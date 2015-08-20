@@ -284,3 +284,41 @@ struct FFaceFXActorData
 	}
 #endif //WITH_EDITORONLY_DATA
 };
+
+/** A struct that represents a skel mesh component on a FaceFX Component */
+USTRUCT()
+struct FFaceFXSkelMeshComponentId
+{
+	GENERATED_USTRUCT_BODY()
+
+	FFaceFXSkelMeshComponentId() : Index(INDEX_NONE) {}
+
+	/** The index of the setup within a FaceFX component */
+	UPROPERTY()
+	int32 Index;
+
+	/** The expected name of the skel mesh component */
+	UPROPERTY()
+	FName Name;
+
+	/** 
+	* Gets the indicator if this is a valid id
+	* @returns True if valid, else false
+	*/
+	inline bool IsValid() const
+	{
+		return Index != INDEX_NONE && !Name.IsNone();
+	}
+
+	/** Reset the id */
+	inline void Reset()
+	{
+		Index = INDEX_NONE;
+		Name = NAME_None;
+	}
+
+	FORCEINLINE bool operator==(const FFaceFXSkelMeshComponentId& Id) const
+	{
+		return Index == Id.Index && Name == Id.Name;
+	}
+};

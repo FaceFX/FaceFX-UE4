@@ -107,7 +107,7 @@ void UFaceFXActor::GetDetails(FString& OutDetails) const
 #if FACEFX_USEANIMATIONLINKAGE
 	//Animation references
 	TArray<FString> AnimRefs;
-	for(UFaceFXAnim* AnimRef : Animations)
+	for(const UFaceFXAnim* AnimRef : Animations)
 	{
 		if(AnimRef)
 	{
@@ -168,11 +168,11 @@ void UFaceFXActor::GetDetails(FString& OutDetails) const
 int32 UFaceFXActor::GetAnimationCount() const
 {
 	int32 Result = 0;
-	for(auto AnimSet : Animations)
+	for(const UFaceFXAnim* Animation : Animations)
 	{
-		if(AnimSet)
+		if(Animation)
 		{
-			Result += AnimSet->GetAnimationCount();
+			Result += Animation->GetAnimationCount();
 		}
 	}
 	return Result;
@@ -186,7 +186,7 @@ const UFaceFXAnim* UFaceFXActor::GetAnimation(const FName& AnimGroup, const FNam
 {
 	const bool IsNoneGroup = AnimGroup.IsNone();
 
-	for(auto Animation : Animations)
+	for(const UFaceFXAnim* Animation : Animations)
 	{
 		if(Animation && (IsNoneGroup || Animation->GetGroup() == AnimGroup))
 		{
@@ -201,11 +201,22 @@ const UFaceFXAnim* UFaceFXActor::GetAnimation(const FName& AnimGroup, const FNam
 
 void UFaceFXActor::GetAnimationGroups(TArray<FName>& OutGroups) const
 {
-	for(auto AnimSet : Animations)
+	for(const UFaceFXAnim* Animation : Animations)
 	{
-		if(AnimSet)
+		if(Animation)
 		{
-			OutGroups.AddUnique(AnimSet->GetGroup());
+			OutGroups.AddUnique(Animation->GetGroup());
+		}
+	}
+}
+
+void UFaceFXActor::GetAnimationIds(TArray<FFaceFXAnimId>& OutAnimIds) const
+{
+	for(const UFaceFXAnim* Animation : Animations)
+	{
+		if(Animation)
+		{
+			OutAnimIds.Add(Animation->GetId());
 		}
 	}
 }

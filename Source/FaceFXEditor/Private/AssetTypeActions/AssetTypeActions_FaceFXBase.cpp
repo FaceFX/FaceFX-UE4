@@ -30,40 +30,12 @@
 #include "ModuleManager.h"
 #include "DesktopPlatformModule.h"
 #include "ContentBrowserModule.h"
-#include "SNotificationList.h"
-#include "NotificationManager.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 
 uint32 FAssetTypeActions_FaceFXBase::GetCategories() 
 { 
 	return FFaceFXEditorTools::AssetCategory; 
-}
-
-/** 
-* Shows a slate error message
-* @param Msg The error message to show
-*/
-void FAssetTypeActions_FaceFXBase::ShowError(const FText& Msg)
-{
-	FNotificationInfo Info(Msg);
-	Info.ExpireDuration = 10.F;
-	Info.bUseLargeFont = false;
-	Info.Image = FEditorStyle::GetBrush(TEXT("MessageLog.Error"));
-	FSlateNotificationManager::Get().AddNotification(Info);
-}
-
-/** 
-* Shows a slate info message
-* @param Msg The info message to show
-*/
-void FAssetTypeActions_FaceFXBase::ShowInfo(const FText& Msg)
-{
-	FNotificationInfo Info(Msg);
-	Info.ExpireDuration = 10.F;
-	Info.bUseLargeFont = false;
-	Info.Image = FEditorStyle::GetBrush(TEXT("Icons.Info"));
-	FSlateNotificationManager::Get().AddNotification(Info);
 }
 
 /** Determine if we can recompile assets */
@@ -97,7 +69,7 @@ void FAssetTypeActions_FaceFXBase::ExecuteSetSource(TArray<TWeakObjectPtr<UObjec
 	if(Objects.Num() == 0)
 	{
 		//failure
-		ShowError(LOCTEXT("SetSourceFailedMissing","Missing asset."));
+		FFaceFXEditorTools::ShowError(LOCTEXT("SetSourceFailedMissing","Missing asset."));
 		return;
 	}
 
@@ -105,7 +77,7 @@ void FAssetTypeActions_FaceFXBase::ExecuteSetSource(TArray<TWeakObjectPtr<UObjec
 	if(!FaceFXAsset)
 	{
 		//failure
-		ShowError(LOCTEXT("SetSourceFailedInvalid","Invalid asset type."));
+		FFaceFXEditorTools::ShowError(LOCTEXT("SetSourceFailedInvalid","Invalid asset type."));
 		return;
 	}
 
@@ -127,7 +99,7 @@ void FAssetTypeActions_FaceFXBase::ExecuteSetSource(TArray<TWeakObjectPtr<UObjec
 		if(Files.Num() <= 0)
 		{
 			//no file selected
-			ShowError(LOCTEXT("SetSourceFailedCancelled", "FaceFX asset selection cancelled."));
+			FFaceFXEditorTools::ShowError(LOCTEXT("SetSourceFailedCancelled", "FaceFX asset selection cancelled."));
 			return;
 		}
 
@@ -154,7 +126,7 @@ void FAssetTypeActions_FaceFXBase::ExecuteSetSource(TArray<TWeakObjectPtr<UObjec
 	else
 	{
 		//failure
-		ShowError(LOCTEXT("SetSourceFailedPlatform","Unable to fetch desktop platform module."));
+		FFaceFXEditorTools::ShowError(LOCTEXT("SetSourceFailedPlatform","Unable to fetch desktop platform module."));
 	}
 }
 
@@ -262,7 +234,7 @@ void FAssetTypeActions_FaceFXBase::ExecuteOpenFolder(TArray<TWeakObjectPtr<UObje
 	if(!Errors.IsEmpty())
 	{
 		//we have some errors
-		ShowError(FText::FromString(Errors));
+		FFaceFXEditorTools::ShowError(FText::FromString(Errors));
 	}
 }
 

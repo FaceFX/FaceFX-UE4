@@ -53,15 +53,21 @@ UFaceFXCharacter::UFaceFXCharacter(const class FObjectInitializer& PCIP) : Super
 	CurrentAnimProgress(0.F),
 	CurrentAnimDuration(.0F),
 	CurrentAudioProgress(0.F),
+	AnimPlaybackState(EPlaybackState::Stopped),
+	AudioPlaybackState(EPlaybackState::Stopped),
 	bIsDirty(true),
-	bIsPlaying(false),
-	bIsPlayingAudio(false),
 	bIsLooping(false),
 	bCanPlay(true)
 #if WITH_EDITOR
 	,LastFrameNumber(0)
 #endif
 {
+#if WITH_EDITOR
+	if(!IsTemplate())
+	{
+		OnFaceFXAnimChangedHandle = UFaceFXCharacter::OnAssetChanged.AddUObject(this, &UFaceFXCharacter::OnFaceFXAssetChanged);
+	}
+#endif
 }
 
 void UFaceFXCharacter::BeginDestroy()
@@ -69,14 +75,55 @@ void UFaceFXCharacter::BeginDestroy()
 	Super::BeginDestroy();
 
 	bCanPlay = false;
-	Reset();	
+	Reset();
+
+#if WITH_EDITOR
+	UFaceFXCharacter::OnAssetChanged.Remove(OnFaceFXAnimChangedHandle);
+#endif
+}
+
+bool UFaceFXCharacter::TickUntil(float Duration, bool& OutAudioStarted)
+{
+	if(!bCanPlay || Duration < 0.F)
+	{
+		return false;
+	}
+	
+	CurrentTime = 0.F;
+	CurrentAnimProgress = 0.F;
+
+	/** The steps to perform */
+	static const float TickSteps = 0.1F;
+
+	CurrentTime = Duration;
+
+	const bool ProcessZeroSuccess = Check(ffx_process_frame(ActorHandle, FrameState, 0.F));
+	const bool bIsAudioStartedAtZero = IsAudioStarted();
+
+	if (!ProcessZeroSuccess || !Check(ffx_process_frame(ActorHandle, FrameState, CurrentTime)))
+	{
+		//update failed
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::TickUntil. FaceFX call <ffx_process_frame> failed. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
+		return false;
+	}
+
+	if(bIsAudioStartedAtZero || IsAudioStarted())
+	{
+		OutAudioStarted = true;
+	}	
+
+	CurrentAnimProgress = CurrentTime - CurrentAnimStart;
+	bIsDirty = true;
+
+	return true;
 }
 
 void UFaceFXCharacter::Tick(float DeltaTime)
 {
 	QUICK_SCOPE_CYCLE_COUNTER(STAT_FaceFXTick);
 
-	checkf(bCanPlay, TEXT("Internal Error: FaceFX character is not allowed to tick."));
+	const bool IsNonZeroTick = DeltaTime > 0.F;
+	checkf(!IsNonZeroTick || bCanPlay, TEXT("Internal Error: FaceFX character is not allowed to tick."));
 
 #if WITH_EDITOR
 	if(LastFrameNumber == GFrameNumber)
@@ -96,7 +143,7 @@ void UFaceFXCharacter::Tick(float DeltaTime)
 		CurrentAudioProgress += DeltaTime;
 	}
 
-	if(CurrentAnimProgress >= CurrentAnimDuration)
+	if(IsNonZeroTick && CurrentAnimProgress >= CurrentAnimDuration)
 	{
 		//end of animation reached
 		if(IsLooping())
@@ -112,31 +159,17 @@ void UFaceFXCharacter::Tick(float DeltaTime)
 	if (!Check(ffx_process_frame(ActorHandle, FrameState, CurrentTime)))
 	{
 		//update failed
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Tick. Update failed. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Tick. FaceFX call <ffx_process_frame> failed. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
 		return;
 	}
 
-	if(OnPlaybackStartAudio.IsBound())
+	if(IsAudioStarted())
 	{
-		int channelFlags[FACEFX_CHANNELS];
-		if(Check(ffx_read_frame_channel_flags(FrameState, channelFlags, FACEFX_CHANNELS)))
-		{
-			if(channelFlags[0] & FFX_START_AUDIO)
-			{
-				{
-					SCOPE_CYCLE_COUNTER(STAT_FaceFXEvents);
-					UAudioComponent* AudioCompStartedOn = nullptr;
-					const bool AudioStarted = PlayAudio(&AudioCompStartedOn);
-					
-					OnPlaybackStartAudio.Broadcast(this, CurrentAnim, AudioStarted, AudioCompStartedOn);
-					
-				}
-			}		
-		}
-		else
-		{
-			UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::Tick. Retrieving channel states for StartAudio event failed. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
-		}
+		SCOPE_CYCLE_COUNTER(STAT_FaceFXEvents);
+		UAudioComponent* AudioCompStartedOn = nullptr;
+		const bool AudioStarted = PlayAudio(&AudioCompStartedOn);
+		
+		OnPlaybackStartAudio.Broadcast(this, CurrentAnim, AudioStarted, AudioCompStartedOn);					
 	}
 
 	bIsDirty = true;
@@ -152,6 +185,76 @@ TStatId UFaceFXCharacter::GetStatId() const
 	RETURN_QUICK_DECLARE_CYCLE_STAT(UFaceFXCharacter, STATGROUP_Tickables);
 }
 
+bool UFaceFXCharacter::GetAnimationBounds(const UFaceFXAnim* Animation, float& OutStart, float& OutEnd)
+{
+	ffx_anim_handle_t* AnimHandle = LoadAnimation(Animation->GetData());
+	if(!AnimHandle)
+	{
+		return false;
+	}
+
+	bool Result = true;
+	if(!Check(ffx_get_anim_bounds(AnimHandle, &OutStart, &OutEnd)))
+	{
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::GetAnimationBounds. FaceFX call <ffx_get_anim_bounds> failed. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(Animation));
+		Result = false;
+	}
+
+	ffx_destroy_anim_handle(&AnimHandle, nullptr, nullptr);
+	AnimHandle = nullptr;	
+
+	return Result;
+}
+
+#if FACEFX_USEANIMATIONLINKAGE
+bool UFaceFXCharacter::GetAnimationBoundsById(const AActor* Actor, const FFaceFXAnimId& AnimId, float& OutStart, float& OutEnd)
+{
+	if(Actor)
+	{
+		if(const UFaceFXComponent* FaceFXComp = Actor->FindComponentByClass<UFaceFXComponent>())
+		{
+			if(const UFaceFXCharacter* FxCharacter = FaceFXComp->GetCharacter())
+			{
+				return FxCharacter->GetAnimationBoundsById(AnimId, OutStart, OutEnd);
+			}
+		}
+	}
+	return false;
+}
+
+bool UFaceFXCharacter::GetAnimationBoundsById(const FFaceFXAnimId& AnimId, float& OutStart, float& OutEnd) const
+{
+	if(!FaceFXActor)
+	{
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::GetAnimationBoundsById. FaceFX asset not loaded."));
+		return false;
+	}
+
+	if(const UFaceFXAnim* Anim = FaceFXActor->GetAnimation(AnimId))
+	{
+		return GetAnimationBounds(Anim, OutStart, OutEnd);
+	}
+	else
+	{
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::GetAnimationBoundsById. Animation does not exist. Group=%s, Anim=%s. Asset: %s"), *AnimId.Group.GetPlainNameString(), *AnimId.Name.GetPlainNameString(), *GetNameSafe(FaceFXActor));
+	}
+
+	return false;
+}
+
+bool UFaceFXCharacter::GetAllLinkedAnimationIds(TArray<FFaceFXAnimId>& OutAnimIds) const
+{
+	if(!FaceFXActor)
+	{
+		return false;
+	}
+
+	FaceFXActor->GetAnimationIds(OutAnimIds);
+	return true;
+}
+
+#endif //FACEFX_USEANIMATIONLINKAGE
+
 bool UFaceFXCharacter::GetAnimationBounds(float& OutStart, float& OutEnd) const
 {
 	if(!IsPlaying() || !CurrentAnimHandle)
@@ -162,7 +265,7 @@ bool UFaceFXCharacter::GetAnimationBounds(float& OutStart, float& OutEnd) const
 	//get anim bounds
 	if(!Check(ffx_get_anim_bounds(CurrentAnimHandle, &OutStart, &OutEnd)))
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::GetAnimationBounds. FaceFX call failed. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::GetAnimationBounds. FaceFX call <ffx_get_anim_bounds> failed. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
 		return false;
 	}
 
@@ -185,7 +288,13 @@ bool UFaceFXCharacter::Play(const FFaceFXAnimId& AnimId, bool Loop)
 		return false;
 	}
 
-	return Play(FaceFXActor->GetAnimation(AnimId), Loop);
+	if(const UFaceFXAnim* Anim = FaceFXActor->GetAnimation(AnimId))
+	{
+		return Play(Anim, Loop);
+	}
+
+	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Play. Unknown animation name/group. Group=%s, Anim=%s. Asset: %s"), *AnimId.Group.GetPlainNameString(), *AnimId.Name.GetPlainNameString(), *GetNameSafe(FaceFXActor));
+	return false;
 }
 
 #endif //FACEFX_USEANIMATIONLINKAGE
@@ -223,9 +332,13 @@ bool UFaceFXCharacter::Play(const UFaceFXAnim* Animation, bool Loop)
 		return false;
 	}
 
-	if(IsPlaying())
+	if(IsPlayingOrPaused())
 	{
-		UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::Play. Animation already playing. Stopping now. Actor: %s. Animation: %s"), *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
+		if(CurrentAnim != Animation->GetId())
+		{
+			//warn only about any animation that is not getting restarted
+			UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::Play. Animation already playing/paused. Stopping now. Actor: %s. Animation: %s"), *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
+		}
 		Stop();
 	}
 
@@ -255,7 +368,7 @@ bool UFaceFXCharacter::Play(const UFaceFXAnim* Animation, bool Loop)
 	float AnimEnd = .0F;
 	if(!Check(ffx_get_anim_bounds(CurrentAnimHandle, &AnimStart, &AnimEnd)))
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Play. FaceFX call failed. %s. Actor: %s. Animation: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Play. FaceFX call <ffx_get_anim_bounds> failed. %s. Actor: %s. Animation: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
 		return false;
 	}
 
@@ -269,15 +382,19 @@ bool UFaceFXCharacter::Play(const UFaceFXAnim* Animation, bool Loop)
 
 	if(!Check(ffx_play(ActorHandle, CurrentAnimHandle, nullptr)))
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Play. FaceFX call failed. %s. Actor: %s. Animation: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Play. FaceFX call <ffx_play> failed. %s. Actor: %s. Animation: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
 		return false;
 	}
 
 	//reset timers and states
 	CurrentAnimProgress = 0.F;
 	CurrentAnim = Animation->GetId();
-	bIsPlaying = true;
+	CurrentAnimStart = AnimStart;
+	AnimPlaybackState = EPlaybackState::Playing;
 	bIsLooping = Loop;
+
+	//tick once so we update the transforms at least once (in case another animation was playing before and we pause directly after play)
+	EnforceZeroTick();
 
 	{
 		SCOPE_CYCLE_COUNTER(STAT_FaceFXEvents);
@@ -308,11 +425,11 @@ bool UFaceFXCharacter::Resume()
 
 	if(!Check(ffx_resume(ActorHandle, CurrentTime)))
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Resume. FaceFX call failed. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Resume. FaceFX call <ffx_resume> failed. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
 		return false;
 	}
 	
-	bIsPlaying = true;
+	AnimPlaybackState = EPlaybackState::Playing;
 	ResumeAudio();
 
 	return true;
@@ -328,11 +445,11 @@ bool UFaceFXCharacter::Pause()
 
 	if (IsPlaying() && !Check(ffx_pause(ActorHandle, CurrentTime)))
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Pause. FaceFX call failed. Asset: %s"), *GetNameSafe(FaceFXActor));
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Pause. FaceFX call <ffx_pause> failed. Asset: %s"), *GetNameSafe(FaceFXActor));
 		return false;
 	}
 
-	bIsPlaying = false;
+	AnimPlaybackState = EPlaybackState::Paused;
 	PauseAudio();
 
 	{
@@ -351,10 +468,17 @@ bool UFaceFXCharacter::Stop()
 		return false;
 	}
 
-	if ((IsPlaying() || IsPaused()) && !Check(ffx_stop(ActorHandle)))
+	const bool WasPlayingOrPaused = IsPlayingOrPaused();
+	if(WasPlayingOrPaused)
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Stop. FaceFX call failed. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
-		return false;
+		if (!Check(ffx_stop(ActorHandle)))
+		{
+			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Stop. FaceFX call <ffx_stop> failed. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
+			return false;
+		}
+
+		//enforce a processing so we reset to the initial transforms on the next update
+		EnforceZeroTick();
 	}
 
 	const FFaceFXAnimId StoppedAnimId = CurrentAnim;
@@ -362,11 +486,12 @@ bool UFaceFXCharacter::Stop()
 	//reset timer and audio query indicator
 	CurrentAnimProgress = .0F;
 	CurrentAnim.Reset();
-	bIsPlaying = false;
+	AnimPlaybackState = EPlaybackState::Stopped;
 	StopAudio();
 
 	UnloadCurrentAnim();
 
+	if(WasPlayingOrPaused)
 	{
 		SCOPE_CYCLE_COUNTER(STAT_FaceFXEvents);
 		OnPlaybackStopped.Broadcast(this, StoppedAnimId);
@@ -375,8 +500,13 @@ bool UFaceFXCharacter::Stop()
 	return true;
 }
 
-bool UFaceFXCharacter::Restart()
+bool UFaceFXCharacter::JumpTo(float Position)
 {
+	if(Position < 0.F || (!IsLooping() && Position > CurrentAnimDuration))
+	{
+		return false;
+	}
+
 	if(!bCanPlay)
 	{
 		return false;
@@ -384,33 +514,52 @@ bool UFaceFXCharacter::Restart()
 
 	if(!IsLoaded())
 	{
-		UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::Restart. FaceFX character not loaded. Asset: %s"), *GetNameSafe(FaceFXActor));
+		UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::JumpTo. FaceFX character not loaded. Asset: %s"), *GetNameSafe(FaceFXActor));
 		return false;
 	}
 
 	if(!CurrentAnimHandle)
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Restart. Current animation is invalid. Asset: %s"), *GetNameSafe(FaceFXActor));
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::JumpTo. Current animation is invalid. Asset: %s"), *GetNameSafe(FaceFXActor));
 		return false;
 	}
 
 	//explicitly stop and start the playback again
 	if (!Check(ffx_stop(ActorHandle)))
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Restart. FaceFX call failed. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::JumpTo. FaceFX call <ffx_stop> failed. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
 		return false;
 	}
+	
+	AnimPlaybackState = EPlaybackState::Stopped;
 
 	//play again
 	if(!Check(ffx_play(ActorHandle, CurrentAnimHandle, nullptr)))
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Restart. FaceFX call failed. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::JumpTo. FaceFX call <ffx_play> failed. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
 		return false;
 	}
 
-	//reset timer
-	CurrentAnimProgress = 0.F;
+	AnimPlaybackState = EPlaybackState::Playing;
 	
+	if(Position > CurrentAnimDuration)
+	{
+		//cap the position to the animation range
+		Position = FMath::Fmod(Position, CurrentAnimDuration);
+	}
+
+	bool IsAudioStarted = false;
+	if(TickUntil(Position, IsAudioStarted) && IsAudioStarted)
+	{
+		const float AudioPosition = Position + CurrentAnimStart;
+		checkf(AudioPosition >= 0.F, TEXT("Invalid audio playback range."));
+		PlayAudio(AudioPosition);
+	}
+	else
+	{
+		StopAudio();
+	}
+
 	return true;
 }
 
@@ -448,6 +597,11 @@ void UFaceFXCharacter::Reset()
 	FaceFXActor = nullptr;
 
 	bIsDirty = true;
+}
+
+bool UFaceFXCharacter::IsPlayingOrPaused(const class UFaceFXAnim* Animation) const
+{
+	return Animation && IsPlayingOrPaused(Animation->GetId());
 }
 
 bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset)
@@ -565,6 +719,20 @@ bool UFaceFXCharacter::IsCanPlay(ffx_anim_handle_t* AnimationHandle) const
 	return ActorHandle && AnimationHandle && Check(ffx_check_actor_compatibility_with_anim(ActorHandle, AnimationHandle));
 }
 
+bool UFaceFXCharacter::IsAudioStarted()
+{
+	int ChannelFlags[FACEFX_CHANNELS];
+	if(Check(ffx_read_frame_channel_flags(FrameState, ChannelFlags, FACEFX_CHANNELS)))
+	{
+		return (ChannelFlags[0] & FFX_START_AUDIO) != 0;
+	}
+	else
+	{
+		UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::IsAudioStarted. Retrieving channel states for StartAudio event failed. %s"), *GetFaceFXError());
+	}
+	return false;
+}
+
 int32 UFaceFXCharacter::GetBoneNameTransformIndex(const FName& Name) const
 {
 	if(const FFaceFXIdData* BoneId = FaceFXActor ? FaceFXActor->GetData().Ids.FindByKey(Name) : nullptr)
@@ -608,7 +776,7 @@ ffx_anim_handle_t* UFaceFXCharacter::LoadAnimation(const FFaceFXAnimData& AnimDa
 	return NewHandle;
 }
 
-AActor* UFaceFXCharacter::GetOwnningActor() const
+AActor* UFaceFXCharacter::GetOwningActor() const
 {
 	const UFaceFXComponent* OwnerComp = Cast<UFaceFXComponent>(GetOuter());
 	return OwnerComp ? OwnerComp->GetOwner() : nullptr;
@@ -616,7 +784,11 @@ AActor* UFaceFXCharacter::GetOwnningActor() const
 
 UAudioComponent* UFaceFXCharacter::GetAudioComponent() const
 {
-	AActor* Owner = GetOwnningActor();
+	if(AudioComponent)
+	{
+		return AudioComponent;
+	}
+	AActor* Owner = GetOwningActor();
 	return Owner ? Owner->FindComponentByClass<UAudioComponent>() : nullptr;
 }
 
@@ -635,7 +807,7 @@ void UFaceFXCharacter::PrepareAudio(const UFaceFXAnim* Animation)
 	}
 }
 
-bool UFaceFXCharacter::PlayAudio(class UAudioComponent** OutAudioComp)
+bool UFaceFXCharacter::PlayAudio(float Position, UAudioComponent** OutAudioComp)
 {
 	if(bIsAutoPlaySound && CurrentAnimSound.ToStringReference().IsValid())
 	{
@@ -644,7 +816,7 @@ bool UFaceFXCharacter::PlayAudio(class UAudioComponent** OutAudioComp)
 		if(!AudioComp)
 		{
 			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::PlayAudio. Playing audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAudioComponent. Actor: %s. Asset: %s")
-				, *GetNameSafe(GetOwnningActor()), *CurrentAnimSound.ToStringReference().ToString());
+				, *GetNameSafe(GetOwningActor()), *CurrentAnimSound.ToStringReference().ToString());
 			return false;
 		}
 
@@ -657,20 +829,21 @@ bool UFaceFXCharacter::PlayAudio(class UAudioComponent** OutAudioComp)
 
 		if(Sound)
 		{
+			CurrentAudioProgress = FMath::Clamp(Position, 0.F, Sound->GetDuration());
 			AudioComp->SetSound(Sound);
-			AudioComp->Play();
+			AudioComp->Play(CurrentAudioProgress);			
 
 			if(OutAudioComp)
 			{
 				*OutAudioComp = AudioComp;
 			}
-			bIsPlayingAudio = AudioComp->IsPlaying();
-			return bIsPlayingAudio;
+			AudioPlaybackState = AudioComp->IsPlaying() ? EPlaybackState::Playing : EPlaybackState::Stopped;
+			return IsPlayingAudio();
 		}
 		else
 		{
 			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::PlayAudio. Playing audio failed. Audio asset failed to load. Actor: %s. Asset: %s"), 
-				*GetNameSafe(GetOwnningActor()), *CurrentAnimSound.ToStringReference().ToString());
+				*GetNameSafe(GetOwningActor()), *CurrentAnimSound.ToStringReference().ToString());
 		}
 	}
 
@@ -679,13 +852,13 @@ bool UFaceFXCharacter::PlayAudio(class UAudioComponent** OutAudioComp)
 
 bool UFaceFXCharacter::PauseAudio()
 {
-	if(!bIsPlayingAudio)
+	if(!IsPlayingAudio())
 	{
 		//nothing playing right now
 		return true;
 	}
 
-	bIsPlayingAudio = false;
+	AudioPlaybackState = EPlaybackState::Paused;
 
 	if(UAudioComponent* AudioComp = GetAudioComponent())
 	{
@@ -693,34 +866,35 @@ bool UFaceFXCharacter::PauseAudio()
 		return true;
 	}
 
-	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::PauseAudio. Pausing audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAudioComponent. Actor: %s."), *GetNameSafe(GetOwnningActor()));
+	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::PauseAudio. Pausing audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAudioComponent. Actor: %s."), *GetNameSafe(GetOwningActor()));
 	return false;
 }
 
 bool UFaceFXCharacter::StopAudio()
 {
-	if(!bIsPlayingAudio)
+	if(!IsPlayingOrPausedAudio())
 	{
 		//nothing playing right now
 		return true;
 	}
 
 	CurrentAudioProgress = 0.F;
-	bIsPlayingAudio = false;
+	AudioPlaybackState = EPlaybackState::Stopped;
 
 	if(UAudioComponent* AudioComp = GetAudioComponent())
 	{
+		AudioComp->SetSound(nullptr);
 		AudioComp->Stop();
 		return true;
 	}
 	
-	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::StopAudio. Stopping audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAudioComponent. Actor: %s."), *GetNameSafe(GetOwnningActor()));
+	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::StopAudio. Stopping audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAudioComponent. Actor: %s."), *GetNameSafe(GetOwningActor()));
 	return false;
 }
 
 bool UFaceFXCharacter::ResumeAudio()
 {
-	if(bIsPlayingAudio)
+	if(IsPlayingAudio())
 	{
 		//already playing audio
 		return true;
@@ -728,12 +902,12 @@ bool UFaceFXCharacter::ResumeAudio()
 
 	if(UAudioComponent* AudioComp = GetAudioComponent())
 	{
-		bIsPlayingAudio = true;
+		AudioPlaybackState = EPlaybackState::Playing;
 		AudioComp->Play(CurrentAudioProgress);
 		return true;
 	}
 
-	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::PauseAudio. Pausing audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAudioComponent. Actor: %s."), *GetNameSafe(GetOwnningActor()));
+	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::PauseAudio. Pausing audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAudioComponent. Actor: %s."), *GetNameSafe(GetOwningActor()));
 	return false;
 }
 
@@ -741,16 +915,17 @@ void UFaceFXCharacter::UpdateTransforms()
 {
 	SCOPE_CYCLE_COUNTER(STAT_FaceFXUpdateTransforms);
 
-    if(BoneSetHandle && XForms.Num() > 0)
+	const int32 XFormsNum = XForms.Num();
+    if(BoneSetHandle && XFormsNum > 0)
     {
-	    if(!Check(ffx_calc_frame_bone_xforms(BoneSetHandle, FrameState, &XForms[0], XForms.Num())))
+	    if(!Check(ffx_calc_frame_bone_xforms(BoneSetHandle, FrameState, &XForms[0], XFormsNum)))
 	    {
 		    UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::UpdateTransforms. Calculating bone transforms failed. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
 		    return;
 	    }
 
 	    //fill transform buffer
-	    for(int32 i=0; i<XForms.Num(); ++i)
+	    for(int32 i=0; i<XFormsNum; ++i)
 	    {
 		    const ffx_bone_xform_t& XForm = XForms[i];
 
@@ -783,3 +958,26 @@ FString UFaceFXCharacter::GetFaceFXError()
 		return TEXT("Unable to retrieve additional FaceFX error message.");
 	}
 }
+
+#if WITH_EDITOR
+
+UFaceFXCharacter::FOnAssetChangedSignature UFaceFXCharacter::OnAssetChanged;
+
+void UFaceFXCharacter::OnFaceFXAssetChanged(UFaceFXAsset* Asset)
+{
+	UFaceFXAnim* AnimAsset = Cast<UFaceFXAnim>(Asset);
+	if(Asset && (Asset == FaceFXActor || (AnimAsset && CurrentAnim == AnimAsset->GetId())))
+	{
+		if(UFaceFXActor* ActorAsset = Cast<UFaceFXActor>(Asset))
+		{
+			//actor asset changed -> reload whole actor
+			Load(ActorAsset);
+		}
+		else
+		{
+			//currently playing actor/anim asset changed -> stop to prevent out of sync playback
+			Stop();
+		}
+	}
+}
+#endif //WITH_EDITOR
