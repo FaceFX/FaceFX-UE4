@@ -57,18 +57,6 @@ protected:
 	/** Determine if we can open the source asset folder */
 	bool CanExecuteOpenFolder(const TArray<UObject*> Objects) const;
 
-	/** 
-	* Shows a slate error message
-	* @param msg The error message to show
-	*/
-	static void ShowError(const FText& Msg);
-
-	/** 
-	* Shows a slate info message
-	* @param msg The info message to show
-	*/
-	static void ShowInfo(const FText& Msg);
-
 private:
 
 	/** Callback function for before the compilation folder gets deleted */
