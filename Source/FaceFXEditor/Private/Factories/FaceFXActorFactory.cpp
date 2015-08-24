@@ -31,8 +31,6 @@
 #include "ObjectTools.h"
 #include "ISourceControlModule.h"
 #include "Editor.h"
-#include "SNotificationList.h"
-#include "NotificationManager.h"
 #include "Include/Slate/FaceFXResultWidget.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
@@ -46,32 +44,6 @@ UFaceFXActorFactory::UFaceFXActorFactory(const class FObjectInitializer& PCIP)
 	bText = false;
 
 	Formats.Add(TEXT("facefx;FaceFX Asset"));
-}
-
-/**
-* Shows an error notification message
-* @param msg The message to show
-*/
-void ShowError(const FText& Msg)
-{
-	FNotificationInfo Info(Msg);
-	Info.ExpireDuration = 10.F;
-	Info.bUseLargeFont = false;
-	Info.Image = FEditorStyle::GetBrush(TEXT("MessageLog.Error"));
-	FSlateNotificationManager::Get().AddNotification(Info);
-}
-
-/**
-* Shows an info notification message
-* @param msg The message to show
-*/
-void ShowInfo(const FText& Msg)
-{
-	FNotificationInfo Info(Msg);
-	Info.ExpireDuration = 10.F;
-	Info.bUseLargeFont = false;
-	Info.Image = FEditorStyle::GetBrush(TEXT("Icons.Info"));
-	FSlateNotificationManager::Get().AddNotification(Info);
 }
 
 UObject* UFaceFXActorFactory::FactoryCreateNew(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn)
@@ -181,7 +153,7 @@ UObject* UFaceFXActorFactory::CreateNew(UClass* Class, UObject* InParent, const 
 			if(Files.Num() <= 0)
 			{
 				//no file selected
-				ShowError(LOCTEXT("CreateFail", "Import of FaceFX asset cancelled."));
+				FFaceFXEditorTools::ShowError(LOCTEXT("CreateFail", "Import of FaceFX asset cancelled."));
 				return nullptr;
 			}
 			FaceFXAsset = Files[0];
@@ -189,7 +161,7 @@ UObject* UFaceFXActorFactory::CreateNew(UClass* Class, UObject* InParent, const 
 		}
 		else
 		{
-			ShowError(LOCTEXT("CreateFail", "Internal Error: Retrieving platform module failed."));
+			FFaceFXEditorTools::ShowError(LOCTEXT("CreateFail", "Internal Error: Retrieving platform module failed."));
 			return nullptr;
 		}
 	}
@@ -218,7 +190,7 @@ UObject* UFaceFXActorFactory::CreateNew(UClass* Class, UObject* InParent, const 
 	}
 	else
 	{
-		ShowError(LOCTEXT("CreateFail", "Import failed. FaceFX asset missing."));
+		FFaceFXEditorTools::ShowError(LOCTEXT("CreateFail", "Import failed. FaceFX asset missing."));
 	}
 
 	return nullptr;
