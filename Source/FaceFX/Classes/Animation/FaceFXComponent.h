@@ -35,8 +35,8 @@ struct FACEFX_API FFaceFXEntry
 	GENERATED_USTRUCT_BODY()
 
 	FFaceFXEntry() : SkelMeshComp(nullptr), AudioComp(nullptr), Character(nullptr), bIsAutoPlaySound(true) {}
-	FFaceFXEntry(class USkeletalMeshComponent* InSkelMeshComp, class UAudioComponent* InAudioComp, const TAssetPtr<class UFaceFXActor>& InAsset, bool InIsAutoPlaySound = true) : 
-		SkelMeshComp(InSkelMeshComp), AudioComp(InAudioComp), Asset(InAsset), Character(nullptr), bIsAutoPlaySound(InIsAutoPlaySound) {}
+	FFaceFXEntry(class USkeletalMeshComponent* InSkelMeshComp, class UAudioComponent* InAudioComp, const TAssetPtr<class UFaceFXActor>& InAsset, bool InIsAutoPlaySound = true, bool InIsDisableMorphTargets = false) : 
+		SkelMeshComp(InSkelMeshComp), AudioComp(InAudioComp), Asset(InAsset), Character(nullptr), bIsAutoPlaySound(InIsAutoPlaySound), bIsDisableMorphTargets(InIsDisableMorphTargets) {}
 
 	/** The linked skelmesh component */
 	UPROPERTY(BlueprintReadOnly, Category=FaceFX)
@@ -47,16 +47,20 @@ struct FACEFX_API FFaceFXEntry
 	class UAudioComponent* AudioComp;
 
 	/** The asset to use when instantiating the facial character instance */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=FaceFX, meta=(DisplayName="Asset"))
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=FaceFX)
 	TAssetPtr<class UFaceFXActor> Asset;
 
 	/** The FaceFX character instance that was created for this component */
-	UPROPERTY(Transient, BlueprintReadOnly, Category=FaceFX, meta=(DisplayName="Character"))
+	UPROPERTY(Transient, BlueprintReadOnly, Category=FaceFX)
 	class UFaceFXCharacter* Character;
 
 	/** Indicator that defines if the FaceFX character shall play the sound wave assigned to the FaceFX Animation asset automatically when this animation is getting played */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=FaceFX)
 	uint8 bIsAutoPlaySound : 1;
+
+	/** Indicator if the morph targets are disabled */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=FaceFX)
+	uint8 bIsDisableMorphTargets : 1;
 
 	FORCEINLINE bool operator==(const USkeletalMeshComponent* InComp) const
 	{
@@ -87,10 +91,11 @@ public:
 	* @param AudioComponent The audio component to assign to the FaceFX character. Keep empty to use the first audio component found on the owning actor.
 	* @param Asset The FaceFX asset to use
 	* @param IsAutoPlaySound Indicator that defines if the FaceFX character shall play the sound wave assigned to the FaceFX Animation asset automatically when this animation is getting played
+	* @param IsDisableMorphTargets Indicator if the use of available morph targets shall be disabled
 	* @return True if succeeded, else false
 	*/
 	UFUNCTION(BlueprintCallable, Category=FaceFX, Meta=(IsAutoPlaySound=true, HidePin="Caller", DefaultToSelf="Caller"))
-	bool Setup(USkeletalMeshComponent* SkelMeshComp, class UAudioComponent* AudioComponent, const UFaceFXActor* Asset, bool IsAutoPlaySound, const UObject* Caller = nullptr);
+	bool Setup(USkeletalMeshComponent* SkelMeshComp, class UAudioComponent* AudioComponent, const UFaceFXActor* Asset, bool IsAutoPlaySound, bool IsDisableMorphTargets, const UObject* Caller = nullptr);
 
 	/**
 	* Starts the playback of the given facial animation for a given skel mesh components character
@@ -205,7 +210,7 @@ public:
 	* @param SkelMeshComp The skelmesh component to get the character for. Keep empty to get the FaceFX character for the first skelmesh that was setup
 	* @returns The UFaceFXCharacter for the given skelmesh context
 	*/
-	inline UFaceFXCharacter* GetCharacter(USkeletalMeshComponent* SkelMeshComp = nullptr) const
+	inline UFaceFXCharacter* GetCharacter(const USkeletalMeshComponent* SkelMeshComp = nullptr) const
 	{
 		if(SkelMeshComp)
 		{
@@ -217,6 +222,23 @@ public:
 		}
 
 		return Entries.Num() > 0 ? Entries[0].Character : nullptr;
+	}
+
+	/**
+	* Gets the skel mesh component which owns a given FaceFX character instance
+	* @param FaceFXCharacter The FaceFX character instance to look up the skel mesh component for
+	* @returns The skel mesh component for the given FaceFX character or nullptr if not found
+	*/
+	inline USkeletalMeshComponent* GetSkelMeshTarget(const UFaceFXCharacter* FaceFXCharacter) const
+	{
+		if(FaceFXCharacter)
+		{
+			if(const FFaceFXEntry* Entry = Entries.FindByKey(FaceFXCharacter))
+			{
+				return Entry->SkelMeshComp;
+			}
+		}
+		return nullptr;
 	}
 
 	/** 
