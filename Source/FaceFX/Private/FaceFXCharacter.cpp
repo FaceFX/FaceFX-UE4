@@ -115,6 +115,8 @@ bool UFaceFXCharacter::TickUntil(float Duration, bool& OutAudioStarted)
 	CurrentAnimProgress = CurrentTime - CurrentAnimStart;
 	bIsDirty = true;
 
+	ProcessMorphTargets();
+	
 	return true;
 }
 
@@ -171,6 +173,8 @@ void UFaceFXCharacter::Tick(float DeltaTime)
 		
 		OnPlaybackStartAudio.Broadcast(this, CurrentAnim, AudioStarted, AudioCompStartedOn);					
 	}
+
+	ProcessMorphTargets();
 
 	bIsDirty = true;
 }
@@ -593,7 +597,10 @@ void UFaceFXCharacter::Reset()
 	XForms.Empty();
 	BoneTransforms.Empty();
 	BoneIds.Empty();
-	
+
+	MorphTargetNames.Empty();
+	MorphTargetTrackValues.Empty();
+
 	FaceFXActor = nullptr;
 
 	bIsDirty = true;
@@ -604,7 +611,7 @@ bool UFaceFXCharacter::IsPlayingOrPaused(const class UFaceFXAnim* Animation) con
 	return Animation && IsPlayingOrPaused(Animation->GetId());
 }
 
-bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset)
+bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset, bool IsDisabledMorphTargets)
 {
 	SCOPE_CYCLE_COUNTER(STAT_FaceFXLoad);
 
@@ -706,6 +713,120 @@ bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset)
 	    }
     }
 
+	bDisabledMorphTargets = IsDisabledMorphTargets;
+	if(!bDisabledMorphTargets && !SetupMorphTargets())
+	{
+		Reset();
+		return false;
+	}
+
+	return true;
+}
+
+void UFaceFXCharacter::ProcessMorphTargets()
+{
+	checkf(MorphTargetNames.Num() == MorphTargetTrackValues.Num(), TEXT("Morph target names indices must match the track values buffer"));
+
+	const int32 MorphTargetsToProcess = MorphTargetTrackValues.Num();
+	if(MorphTargetsToProcess == 0)
+	{
+		//no morph target to process
+		return;
+	}
+
+	//read track values
+	if(!Check(ffx_read_frame_track_values(FrameState, &MorphTargetTrackValues[0], MorphTargetsToProcess)))
+	{
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::ProcessMorphTargets. Unable to process morph targets. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
+		return;
+	}
+
+	//apply morph target track values
+	if(USkeletalMeshComponent* SkelMeshComp = GetOwningSkelMeshComponent())
+	{
+		for(int32 Idx = 0; Idx < MorphTargetsToProcess; ++Idx)
+		{
+			SkelMeshComp->SetMorphTarget(MorphTargetNames[Idx], MorphTargetTrackValues[Idx].value);
+		}
+	}
+	else
+	{
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::ProcessMorphTargets. Unable to find owners skel mesh component. Actor: %s. Asset: %s"), *GetNameSafe(GetOwningActor()), *GetNameSafe(FaceFXActor));
+		return;
+	}
+}
+
+bool UFaceFXCharacter::SetupMorphTargets()
+{
+	check(IsLoaded());
+
+	//reset morph target data
+	MorphTargetNames.Reset();
+	MorphTargetTrackValues.Reset();
+
+	if(USkeletalMeshComponent* SkelMeshComp = GetOwningSkelMeshComponent())
+	{
+		const int32 NumMorphTargets = SkelMeshComp->SkeletalMesh ? SkelMeshComp->SkeletalMesh->MorphTargetIndexMap.Num() : 0;
+		if(NumMorphTargets == 0)
+		{
+			//no morph targets in skel mesh
+			return true;
+		}
+		
+		//the lookup for the created facefx ids and the morph target names
+		TMap<uint64_t, FName> NameLookUp;
+		NameLookUp.Reserve(NumMorphTargets);
+
+		TArray<ffx_id_index_t> TrackIndices;
+		TrackIndices.Reserve(NumMorphTargets);
+
+		for(auto It = SkelMeshComp->SkeletalMesh->MorphTargetIndexMap.CreateConstIterator(); It; ++It)
+		{
+			const FName& MorphTarget = It.Key();
+
+			ffx_id_index_t IdIndex;
+			if(!Check(ffx_create_id(TCHAR_TO_ANSI(*MorphTarget.ToString()), &IdIndex.id)))
+			{
+				UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::SetupMorphTargets. Unable to create FaceFX id for FaceFX track <%s>. %s. Asset: %s"), *MorphTarget.ToString(), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
+				return false;
+			}
+
+			TrackIndices.Add(IdIndex);
+			NameLookUp.Add(IdIndex.id, MorphTarget);
+		}
+
+		//fetch the track ids by their facefx ids generated for the morph target names
+		if(!Check(ffx_find_tracks_in_actor_by_id(ActorHandle, &TrackIndices[0], NumMorphTargets)))
+		{
+			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::SetupMorphTargets. Unable to fetch FaceFX track indices. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
+			return false;
+		}
+
+		//map back track indices with morph target names
+		for(const ffx_id_index_t& TrackIndex : TrackIndices)
+		{
+			//lookup name to map track index back to the originating morph target
+			const FName& MorphTarget = NameLookUp.FindChecked(TrackIndex.id);
+
+			if(TrackIndex.index == INDEX_NONE)
+			{
+				//Track was not found -> ignore morph target
+				UE_LOG(LogFaceFX, Verbose, TEXT("UFaceFXCharacter::SetupMorphTargets. No FaceFX track found for SkelMesh Morph Target <%s>. SkelMesh: &s. Asset: %s"), 
+					*MorphTarget.ToString(), *GetNameSafe(SkelMeshComp->SkeletalMesh), *GetNameSafe(FaceFXActor));
+				continue;
+			}
+
+			//store the morph target names
+			MorphTargetNames.Add(MorphTarget);
+
+			//prepare the track value buffer
+			ffx_track_value_t NewTrackValue;
+			NewTrackValue.index = TrackIndex.index;
+			MorphTargetTrackValues.Add(NewTrackValue);
+		}
+	}
+	
+	checkf(MorphTargetNames.Num() == MorphTargetTrackValues.Num(), TEXT("Morph target names indices must match the track values buffer"));
 	return true;
 }
 
@@ -774,6 +895,17 @@ ffx_anim_handle_t* UFaceFXCharacter::LoadAnimation(const FFaceFXAnimData& AnimDa
 	}
 	
 	return NewHandle;
+}
+
+USkeletalMeshComponent* UFaceFXCharacter::GetOwningSkelMeshComponent() const
+{
+	const UFaceFXComponent* FaceFXComp = GetOwningFaceFXComponent();
+	return FaceFXComp ? FaceFXComp->GetSkelMeshTarget(this) : nullptr;
+}
+
+UFaceFXComponent* UFaceFXCharacter::GetOwningFaceFXComponent() const
+{
+	return Cast<UFaceFXComponent>(GetOuter());
 }
 
 AActor* UFaceFXCharacter::GetOwningActor() const
@@ -971,7 +1103,7 @@ void UFaceFXCharacter::OnFaceFXAssetChanged(UFaceFXAsset* Asset)
 		if(UFaceFXActor* ActorAsset = Cast<UFaceFXActor>(Asset))
 		{
 			//actor asset changed -> reload whole actor
-			Load(ActorAsset);
+			Load(ActorAsset, bDisabledMorphTargets);
 		}
 		else
 		{
