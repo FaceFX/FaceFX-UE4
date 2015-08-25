@@ -125,9 +125,10 @@ public:
 	/**
 	* Loads the character data from the given data set
 	* @param Dataset The data set to load from
+	* @param IsDisabledMorphTargets Indicator if the use of available morph targets shall be disabled
 	* @returns True if succeeded, else false
 	*/
-	bool Load(const class UFaceFXActor* Dataset);
+	bool Load(const class UFaceFXActor* Dataset, bool IsDisabledMorphTargets);
 
 	/**
 	* Gets the indicator if this character have been loaded
@@ -351,6 +352,18 @@ private:
 	}
 
 	/** 
+	* Gets the skel mesh component that owns this FaceFX character
+	* @returns The owning skel mesh component or nullptr if not found
+	*/
+	class USkeletalMeshComponent* GetOwningSkelMeshComponent() const;
+
+	/** 
+	* Gets the FaceFX component that owns this FaceFX character instance
+	* @returns The FaceFX component or nullptr if there is no or another owner of this FaceFX character instance
+	*/
+	class UFaceFXComponent* GetOwningFaceFXComponent() const;
+
+	/** 
 	* Gets the owning actor
 	* @returns The actor or nullptr if not belonging to one
 	*/
@@ -457,6 +470,15 @@ private:
 	*/
 	bool TickUntil(float Duration, bool& OutAudioStarted);
 
+	/** 
+	* Retrieves the morph targets for a skel mesh and creates FaceFX indices for the names 
+	* @returns True if setup succeeded, else false
+	*/
+	bool SetupMorphTargets();
+
+	/** Processes the morph targets for the current frame state */
+	void ProcessMorphTargets();
+
 	/**
 	* Gets the latest internal facefx error message
 	* @returns The last error message
@@ -502,6 +524,12 @@ private:
 	/** The bone ids coming from the facefx asset */
 	TArray<uint64> BoneIds;
 
+	/** The list of morph target names retrieved from the skel mesh during asset loading. The indices match the morph target track values: MorphTargetTrackValues */
+	TArray<FName> MorphTargetNames;
+
+	/** The track values buffer for the morph target processing */
+	TArray<ffx_track_value_t> MorphTargetTrackValues;
+
 	/** The overall time progression */
 	float CurrentTime;
 
@@ -540,6 +568,9 @@ private:
 
 	/** Indicator that defines if the FaceFX character shall play the sound wave assigned to the FaceFX Animation asset automatically when this animation is getting played */
 	uint8 bIsAutoPlaySound : 1;
+
+	/** Indicator if the use of available morph targets shall be disabled */
+	uint8 bDisabledMorphTargets : 1;
 
 #if WITH_EDITOR
 	uint32 LastFrameNumber;

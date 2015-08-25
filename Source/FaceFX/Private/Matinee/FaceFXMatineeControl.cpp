@@ -216,7 +216,10 @@ void UFaceFXMatineeControl::PreviewUpdateTrack( float NewPosition, UInterpTrackI
 		for(USkeletalMeshComponent* SkelMeshComp : SkelMeshComps)
 		{
 			// Update space bases so new animation position has an effect.
-			SkelMeshComp->UpdateMaterialParameters();
+			if(SkelMeshComp->AnimScriptInstance)
+			{
+				SkelMeshComp->UpdateMaterialParameters();
+			}
 			SkelMeshComp->RefreshBoneTransforms();
 			SkelMeshComp->RefreshSlaveComponents();
 			SkelMeshComp->UpdateComponentToWorld();
