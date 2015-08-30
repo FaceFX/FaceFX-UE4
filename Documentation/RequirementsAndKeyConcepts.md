@@ -14,8 +14,6 @@ Requirements
 
 + The FaceFX UE4 Plugin, which is available in a [pre-compiled binary distribution](https://unreal.facefx.com) or in [source code](https://www.github.com/FaceFX/FaceFX-UE4) form.
 
-+ A bones-based character to play animations on. The FaceFX UE4 Plugin does not yet support morph target or material parameter animation.
-
 Key Concepts
 ------------
 
