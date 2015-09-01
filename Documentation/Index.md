@@ -13,6 +13,8 @@ The FaceFX UE4 Plugin Documentation is organized into the following main section
 
 + [Blueprint Nodes](BlueprintNodes.md) - Details the FaceFX Blueprint nodes made available by the FaceFX UE4 Plugin.
 
++ [Matinee](Matinee.md) - Details the FaceFX integration with Matinee.
+
 + [Configuration](Configuration.md) - Details FaceFX UE4 Plugin configuration options.
 
 + [Context Menus](ContextMenus.md) - Details the additional items added to Unreal Editor asset right-click context menus by the FaceFX UE4 Plugin.
