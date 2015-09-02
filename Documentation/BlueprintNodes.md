@@ -10,7 +10,7 @@ Setup
 
 <img src="Images/FaceFXSetupBlueprintNode.png" width="508">
 
-The FaceFX Setup Blueprint node intitializes the linked **FaceFX Component** with the linked **Skeletal Mesh Component** and specified **FaceFXActor** asset. It must be called in the **Construction Script** before any other FaceFX Blueprint node.
+The FaceFX Setup Blueprint node initializes the linked **FaceFX Component** with the linked **Skeletal Mesh Component** and specified **FaceFXActor** asset. It must be called in the **Construction Script** before any other FaceFX Blueprint node.
 
 + The **Target** slot is required and should be wired to the **FaceFX Component**.
 
@@ -19,6 +19,8 @@ The FaceFX Setup Blueprint node intitializes the linked **FaceFX Component** wit
 + The **Asset** property is required and should be set to the **FaceFXActor** asset to be used for animation.
 
 + The **Is Auto Play Sound** property is optional. When **checked**, the audio associated with the **FaceFXAnim** asset being played will automatically be started at the appropriate time.
+
++ The **Is Disable Morph Targets** property is optional. When **checked**, FaceFX will not animate any morph targets. When **unchecked**, any morph target on the character that has a matching target name in the specified **FaceFXActor** asset will be animated by FaceFX.
 
 Play
 ----
