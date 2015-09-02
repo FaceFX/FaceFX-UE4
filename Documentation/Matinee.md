@@ -25,16 +25,3 @@ Tutorial
 <img src="Images/SpecifyFaceFXMatineeAnimation.png" width="254">
 
 + Trigger the Matinee.  Once you have set up the Matinee, don't forget to trigger it from your game so you can see the FaceFX animations when you **Play in Editor**.  The easiest way to do this is to select the Matinee Actor from your Scene, and check the **Play on Level Load** checkbox in the Details tab.
-
-Troubleshooting
----------------
-
-#### FaceFX Animations do not play from Matinee tab.
-
-If the animations are played correctly when you use PIE, but not when you click play from the Matinee tab, check the following:
-
-+ **Compile Blueprints** Make sure your Blueprint and Animation Blueprint have been compiled.  In some cases, you must explicitly compile these blueprints with the Compile button prior to them working 
-
-+ **Morph bug** Due to a [potential issue with UE4](https://answers.unrealengine.com/questions/290685/morph-targets-not-updating-from-matinee-tab.html), morphs may not update correctly when played from the Matinee tab.
-
-
