@@ -1140,7 +1140,7 @@ TAssetPtr<USoundWave> FFaceFXEditorTools::LocateAudio(const FString& AudioSource
 
 			checkf(Asset, TEXT("Internal Error. USoundWave asset not loaded. %s"), *AssetData.ToStringReference().ToString());
 
-			const FString AssetFileAbs = FileManager.ConvertToAbsolutePathForExternalAppForRead(*Asset->SourceFilePath);
+			const FString AssetFileAbs = *Asset->AssetImportData->GetFirstFilename();
 			if(AssetFileAbs.Equals(AudioSourceFileAbs, ESearchCase::IgnoreCase))
 			{
 				return Asset;

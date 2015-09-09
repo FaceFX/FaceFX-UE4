@@ -22,7 +22,7 @@
 
 #include "Animation/AnimationAsset.h"	//required by AnimNodeBase.h
 #include "Animation/AnimNodeBase.h"
-#include "Animation/BoneControllers/AnimNode_ModifyBone.h"
+#include "BoneControllers/AnimNode_ModifyBone.h"
 
 #include "AnimNode_BlendFaceFXAnimation.generated.h"
 
@@ -83,7 +83,6 @@ private:
 	void LoadFaceFXData(UAnimInstance* AnimInstance);
 
 	/** The container where we put the current transforms into that are about to get blended. We always only use the very first entry */
-	UPROPERTY()
 	TArray<FBoneTransform> TargetBlendTransform;
 
 	/** Indicator if the async loading process of the FaceFX character has completed. */

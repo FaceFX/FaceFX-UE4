@@ -29,6 +29,7 @@ public class FaceFX : ModuleRules
                 "Core",
                 "CoreUObject",
                 "Engine",
+                "AnimGraphRuntime",
                 "FaceFXLib"
             }
         );
