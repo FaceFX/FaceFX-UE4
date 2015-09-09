@@ -327,7 +327,7 @@ bool UFaceFXMatineeControlHelper::PreCreateKeyframe( UInterpTrack *Track, float 
 		}
 		MenuBuilder.EndSection();
 
-		EntryPopupWindow = FSlateApplication::Get().PushMenu(Parent.ToSharedRef(), MenuBuilder.MakeWidget(), FSlateApplication::Get().GetCursorPos(), FPopupTransitionEffect(FPopupTransitionEffect::TypeInPopup));
+		EntryPopupMenu = FSlateApplication::Get().PushMenu(Parent.ToSharedRef(), FWidgetPath(), MenuBuilder.MakeWidget(), FSlateApplication::Get().GetCursorPos(), FPopupTransitionEffect(FPopupTransitionEffect::TypeInPopup));
 	}
 
 	return false;
@@ -335,9 +335,9 @@ bool UFaceFXMatineeControlHelper::PreCreateKeyframe( UInterpTrack *Track, float 
 
 void UFaceFXMatineeControlHelper::OnAnimAssetSelected(const FAssetData& AssetData, IMatineeBase* Matinee, UInterpTrack* Track)
 {
-	if( EntryPopupWindow.IsValid() )
+	if( EntryPopupMenu.IsValid() )
 	{
-		EntryPopupWindow.Pin()->RequestDestroyWindow();
+		EntryPopupMenu.Pin()->Dismiss();
 	}
 
 	if (UFaceFXAnim* SelectedAnim = Cast<UFaceFXAnim>(AssetData.GetAsset()))
@@ -386,9 +386,9 @@ void UFaceFXMatineeControlHelper::OnAnimGroupCommitted(const FText& Text, ETextC
 		return;
 	}
 
-	if( EntryPopupWindow.IsValid() )
+	if( EntryPopupMenu.IsValid() )
 	{
-		EntryPopupWindow.Pin()->RequestDestroyWindow();
+		EntryPopupMenu.Pin()->Dismiss();
 	}
 
 	Matinee->FinishAddKey(Track, true);
@@ -406,9 +406,9 @@ void UFaceFXMatineeControlHelper::OnAnimIdCommitted(const FText& Text, ETextComm
 		return;
 	}
 
-	if( EntryPopupWindow.IsValid() )
+	if( EntryPopupMenu.IsValid() )
 	{
-		EntryPopupWindow.Pin()->RequestDestroyWindow();
+		EntryPopupMenu.Pin()->Dismiss();
 	}
 
 	Matinee->FinishAddKey(Track, true);
@@ -430,9 +430,9 @@ void UFaceFXMatineeControlHelper::OnAnimIdComboBoxSelected(TSharedPtr<FFaceFXAni
 {
 	check(Matinee);
 
-	if( EntryPopupWindow.IsValid() )
+	if( EntryPopupMenu.IsValid() )
 	{
-		EntryPopupWindow.Pin()->RequestDestroyWindow();
+		EntryPopupMenu.Pin()->Dismiss();
 	}
 
 	if(const FFaceFXAnimId* SelectedAnimId = NewSelection.Get())

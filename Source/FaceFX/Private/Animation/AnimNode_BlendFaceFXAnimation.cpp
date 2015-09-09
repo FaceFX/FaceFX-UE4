@@ -202,16 +202,17 @@ void FAnimNode_BlendFaceFXAnimation::EvaluateComponentSpace(FComponentSpacePoseC
 				{
 					const FTransform& FaceFXBoneTM = FaceFXBoneTransforms[Entry.TransformIdx];
 					const int32 BoneIdx = Entry.BoneIdx;
+          FCompactPoseBoneIndex CompactPoseBoneIndex = Output.Pose.GetPose().GetBoneContainer().MakeCompactPoseIndex(FMeshPoseBoneIndex(BoneIdx));
 
 					//fill target transform
-					TargetBlendTransform[0].Transform = Output.Pose.GetComponentSpaceTransform(BoneIdx);
-					TargetBlendTransform[0].BoneIndex = BoneIdx;
+					TargetBlendTransform[0].Transform = Output.Pose.GetComponentSpaceTransform(CompactPoseBoneIndex);
+					TargetBlendTransform[0].BoneIndex = CompactPoseBoneIndex;
 
 					//convenience alias
 					FTransform& BoneTM = TargetBlendTransform[0].Transform;
 
 					//convert to Bone Space
-					FAnimationRuntime::ConvertCSTransformToBoneSpace(Component, Output.Pose, BoneTM, BoneIdx, BCS_ParentBoneSpace);
+					FAnimationRuntime::ConvertCSTransformToBoneSpace(Component, Output.Pose, BoneTM, CompactPoseBoneIndex, BCS_ParentBoneSpace);
 
 					//apply transformations in bone space
 					if(TranslationMode == BMM_Replace && RotationMode == BMM_Replace && ScaleMode == BMM_Replace)
@@ -243,7 +244,7 @@ void FAnimNode_BlendFaceFXAnimation::EvaluateComponentSpace(FComponentSpacePoseC
 					}
 
 					//convert back to Component Space
-					FAnimationRuntime::ConvertBoneSpaceTransformToCS(Component, Output.Pose, BoneTM, Entry.BoneIdx, BCS_ParentBoneSpace);
+					FAnimationRuntime::ConvertBoneSpaceTransformToCS(Component, Output.Pose, BoneTM, CompactPoseBoneIndex, BCS_ParentBoneSpace);
 
 					//sanity check
 					//checkSlow(!ContainsNaN(resultTransforms));

@@ -134,8 +134,8 @@ private:
 	/** The currently selected skel mesh component */
 	mutable FFaceFXSkelMeshComponentId KeyframeAddSkelMeshComponentId;
 
-	/** The last popup window that was opened */
-	mutable TWeakPtr<class SWindow> EntryPopupWindow;
+	/** The last popup menu that was opened */
+	mutable TWeakPtr<class IMenu> EntryPopupMenu;
 
 	/** Indicator if the keyframe that is about to get created shall loop the animation */
 	mutable uint8 bKeyframeSettingsLoop : 1;

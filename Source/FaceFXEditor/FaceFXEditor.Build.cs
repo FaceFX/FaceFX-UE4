@@ -45,7 +45,5 @@ public class FaceFXEditor : ModuleRules
                 "FaceFX"
             }
         );
-
-        DynamicallyLoadedModuleNames.Add("AssetTools");
     }
 }
