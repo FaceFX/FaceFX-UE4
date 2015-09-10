@@ -10,7 +10,7 @@ Requirements
 
 + The FaceFX Runtime plugin for FaceFX Studio, which is available as part of the [FaceFX Runtime distribution](https://www.facefx.com/runtime-downloads), is required to process content prior to being imported into Unreal Engine 4.
 
-+ [Unreal Engine 4](https://www.unrealengine.com) version 4.8 or later.
++ [Unreal Engine 4](https://www.unrealengine.com) version 4.9 or later.
 
 + The FaceFX UE4 Plugin, which is available in a [pre-compiled binary distribution](https://unreal.facefx.com) or in [source code](https://www.github.com/FaceFX/FaceFX-UE4) form.
 
