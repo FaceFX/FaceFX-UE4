@@ -26,6 +26,8 @@
 
 #include "AnimNode_BlendFaceFXAnimation.generated.h"
 
+struct FAnimInstanceProxy;
+
 /** Anim graph node that blends in facial animation bone transforms into the pose */
 USTRUCT()
 struct FACEFX_API FAnimNode_BlendFaceFXAnimation : public FAnimNode_Base
@@ -80,7 +82,7 @@ private:
 	* Try to load the FaceFX character data
 	* @param AnimInstance The anim graph instance to use
 	*/
-	void LoadFaceFXData(UAnimInstance* AnimInstance);
+	void LoadFaceFXData(FAnimInstanceProxy* AnimInstanceProxy);
 
 	/** The container where we put the current transforms into that are about to get blended. We always only use the very first entry */
 	TArray<FBoneTransform> TargetBlendTransform;

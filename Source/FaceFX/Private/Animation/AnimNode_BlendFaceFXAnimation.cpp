@@ -20,6 +20,7 @@
 
 #include "FaceFX.h"
 
+#include "Animation/AnimInstanceProxy.h"
 #include "Animation/AnimNode_BlendFaceFXAnimation.h"
 #include "Animation/FaceFXComponent.h"
 
@@ -55,23 +56,23 @@ void FAnimNode_BlendFaceFXAnimation::CacheBones(const FAnimationCacheBonesContex
 {
 	ComponentPose.CacheBones(Context);
 
-	LoadFaceFXData(Context.AnimInstance);
+	LoadFaceFXData(Context.AnimInstanceProxy);
 }
 
-void FAnimNode_BlendFaceFXAnimation::LoadFaceFXData(UAnimInstance* AnimInstance)
+void FAnimNode_BlendFaceFXAnimation::LoadFaceFXData(FAnimInstanceProxy* AnimInstanceProxy)
 {
 	QUICK_SCOPE_CYCLE_COUNTER(STAT_FaceFXBlendLoad);
 
 	BoneIndices.Empty();
 
-	if(!AnimInstance)
+	if(!AnimInstanceProxy)
 	{
 		//wait until we have a proper anim instance
 		bFaceFXCharacterLoadingCompleted = false;
 		return;
 	}
 
-	if(USkeletalMeshComponent* Component = AnimInstance->GetSkelMeshComponent())
+	if(USkeletalMeshComponent* Component = AnimInstanceProxy->GetSkelMeshComponent())
 	{
 		AActor* Owner = Component->GetOwner();
 
@@ -144,7 +145,7 @@ void FAnimNode_BlendFaceFXAnimation::Evaluate(FPoseContext& Output)
 {
 	//convert on the fly to component space and back - This should not happen as the node uses CS. 
 	//Yet it happened on invalid VIMs. When this happens the blend node needs to be relinked and the VIM needs to be recompiled and saved
-	FComponentSpacePoseContext InputCSPose(Output.AnimInstance);
+	FComponentSpacePoseContext InputCSPose(Output.AnimInstanceProxy);
 	EvaluateComponentSpace(InputCSPose);
 	InputCSPose.Pose.ConvertToLocalPoses(Output.Pose);
 
@@ -152,7 +153,7 @@ void FAnimNode_BlendFaceFXAnimation::Evaluate(FPoseContext& Output)
 	if(!bIsDebugLocalSpaceBlendShown)
 	{
 		//show warning only once per node to prevent excessive log spam
-		UE_LOG(LogFaceFX, Warning, TEXT("FAnimNode_BlendFacialAnimation::Evaluate. The blend node is using local space input. Please check, relink the blend node and resave VIM. %s. Also contact a FaceFX programmer."), *GetNameSafe(Output.AnimInstance));
+		UE_LOG(LogFaceFX, Warning, TEXT("FAnimNode_BlendFacialAnimation::Evaluate. The blend node is using local space input. Please check, relink the blend node and resave VIM. %s. Also contact a FaceFX programmer."), *GetNameSafe(Output.AnimInstanceProxy->GetAnimInstanceObject()));
 		bIsDebugLocalSpaceBlendShown = true;
 	}
 #endif
@@ -164,7 +165,7 @@ void FAnimNode_BlendFaceFXAnimation::EvaluateComponentSpace(FComponentSpacePoseC
 
 	ComponentPose.EvaluateComponentSpace(Output);
 
-	if(!Output.AnimInstance)
+	if(!Output.AnimInstanceProxy)
 	{
 		return;
 	}
@@ -172,7 +173,7 @@ void FAnimNode_BlendFaceFXAnimation::EvaluateComponentSpace(FComponentSpacePoseC
 	if(!bFaceFXCharacterLoadingCompleted)
 	{
 		//character not done loading yet -> try to retrieve again
-		LoadFaceFXData(Output.AnimInstance);
+		LoadFaceFXData(Output.AnimInstanceProxy);
 	}
 
 	if(BoneIndices.Num() <= 0)
@@ -188,7 +189,7 @@ void FAnimNode_BlendFaceFXAnimation::EvaluateComponentSpace(FComponentSpacePoseC
 		return;
 	}
 
-	if(USkeletalMeshComponent* Component = Output.AnimInstance->GetSkelMeshComponent())
+	if(USkeletalMeshComponent* Component = Output.AnimInstanceProxy->GetSkelMeshComponent())
 	{
 		const AActor* Owner = Component->GetOwner();
 
