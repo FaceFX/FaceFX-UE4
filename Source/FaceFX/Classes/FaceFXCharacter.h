@@ -93,9 +93,10 @@ public:
 
 	/**
 	* Pauses the playback of the facial animation
+	* @param fadeOut Indicator if the audio playback shall fade out quickly instead of stopping
 	* @returns True if succeeded, else false
 	*/
-	bool Pause();
+	bool Pause(bool fadeOut = false);
 
 	/**
 	* Stops the playback of this facial animation
@@ -303,6 +304,16 @@ public:
 	*/
 	static bool GetAnimationBoundsById(const AActor* Actor, const FFaceFXAnimId& AnimId, float& OutStart, float& OutEnd);
 
+	/**
+	* Gets the start and end time of a given animation
+	* @param FaceFXActor The FaceFX Actor to retrieve the animation from
+	* @param AnimId The animation id to fetch the bounds for
+	* @param OutStart The start time if call succeeded
+	* @param OutEnd The end time if call succeeded
+	* @returns True if succeeded, else false
+	*/
+	static bool GetAnimationBoundsById(const UFaceFXActor* FaceFXActor, const FFaceFXAnimId& AnimId, float& OutStart, float& OutEnd);
+
 	/** 
 	* Gets the start and end time of a given animation
 	* @param AnimId The animation id to fetch the bounds for
@@ -310,7 +321,10 @@ public:
 	* @param OutEnd The end time if call succeeded
 	* @returns True if succeeded, else false
 	*/
-	bool GetAnimationBoundsById(const FFaceFXAnimId& AnimId, float& OutStart, float& OutEnd) const;
+	inline bool GetAnimationBoundsById(const FFaceFXAnimId& AnimId, float& OutStart, float& OutEnd) const
+	{
+		return GetAnimationBoundsById(FaceFXActor, AnimId, OutStart, OutEnd);
+	}
 
 	/** 
 	* Gets the list of animation ids of all animations that are currently linked to this character
@@ -437,9 +451,10 @@ private:
 
 	/** 
 	* Pausing the playback of the currently playing audio
+	* @param fadeOut Indicator if the playback shall fade out quickly instead of stopping
 	* @returns True if succeeded, else false
 	*/
-	bool PauseAudio();
+	bool PauseAudio(bool fadeOut = false);
 
 	/** 
 	* Stops the playback of the currently playing audio

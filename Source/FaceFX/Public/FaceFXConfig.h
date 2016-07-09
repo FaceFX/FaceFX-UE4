@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "Modules/ModuleVersion.h"
 #include "facefx-runtime-1.1.1/facefx/facefx.h"
 
 //The number of total FaceFX channels. One channel per animation we want to be able to play at once per FaceFXCharacter. Default Value: 1
@@ -76,3 +77,8 @@
 #define FACEFX_SUPPORT_PS4 0
 //XBox One
 #define FACEFX_SUPPORT_XBONE 0
+
+//Support for sequencer which was added with UE 4.12.
+#if ENGINE_MAJOR_VERSION < 4 && ENGINE_MINOR_VERSION < 13
+#error "FaceFX Sequencer support requires Unreal Engine 4.12 or higher. Please update your engine or use a previous version of the plugin.";
+#endif
