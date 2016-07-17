@@ -26,6 +26,7 @@
 #include "FaceFXAnim.h"
 #include "FaceFXCharacter.h"
 #include "FaceFXEditorTools.h"
+#include "Sequencer/FaceFXSequencer.h"
 
 #include "Matinee/MatineeActor.h"
 
@@ -48,6 +49,7 @@ class FFaceFXEditorModule : public FDefaultModuleImpl
 		}
 
 		FFaceFXStyle::Initialize();
+		FFaceFXSequencer::Get().Initialize();
 
 		if(GIsEditor && FFaceFXEditorTools::IsShowToasterMessageOnIncompatibleAnim())
 		{
@@ -74,6 +76,7 @@ class FFaceFXEditorModule : public FDefaultModuleImpl
 		}
 
 		FFaceFXStyle::Shutdown();
+		FFaceFXSequencer::Get().Shutdown();
 	}
 
 private:

@@ -393,7 +393,6 @@ void UFaceFXMatineeControl::UpdateTrack( float NewPosition, UInterpTrackInst* Tr
 				else if(UFaceFXAnim* FaceFXAnim = GetAnimation(*TrackKey, this))
 				{
 					//play by animation
-					//StartSucceeded = FaceFXComp->Play(FaceFXAnim, nullptr, TrackKey->bLoop, this);
 					StartSucceeded = FaceFXComp->JumpTo(PlaybackStartPosition, false, FaceFXAnim, TrackKey->bLoop, SkelMeshTarget, this);
 				}
 
@@ -496,7 +495,7 @@ void UFaceFXMatineeControl::DrawTrack( FCanvas* Canvas, UInterpGroup* Group, con
 		//fetch the cached animation id for the key
 		const FFaceFXAnimId& AnimId = AnimIds[i];
 
-		FString AnimName(TEXT("Unknown"));
+		FString AnimName(LOCTEXT("MatineeFaceFXTrackUnkown", "<Unknown>").ToString());
 		if(AnimId.IsValid())
 		{
 			AnimName = AnimId.Group.IsNone() ? TEXT("") : AnimId.Group.ToString() + TEXT(" / ");
@@ -505,7 +504,7 @@ void UFaceFXMatineeControl::DrawTrack( FCanvas* Canvas, UInterpGroup* Group, con
 
 		if(AnimKey.bLoop)
 		{
-			AnimName += TEXT(" [Looping]");
+			AnimName += TEXT(" [") + LOCTEXT("MatineeFaceFXTrackLooping", "Looping").ToString() + TEXT("]");
 		}
 
 		int32 XL, YL;
@@ -534,7 +533,7 @@ float FFaceFXTrackKey::GetAnimationDuration(const AActor* Actor) const
 		//try to resolve the animation duration
 		if(AnimationId.IsValid() && Actor)
 		{
-			//resolve by animtion id
+			//resolve by animation id
 			float AnimStart, AnimEnd;
 			if(UFaceFXCharacter::GetAnimationBoundsById(Actor, AnimationId, AnimStart, AnimEnd))
 			{
