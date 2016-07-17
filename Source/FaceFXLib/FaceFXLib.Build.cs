@@ -32,7 +32,7 @@ public class FaceFXLib : ModuleRules
     public FaceFXLib(TargetInfo Target)
     {
         Type = ModuleType.External;
-
+        
         string FaceFXLib;
         string FaceFXDir;
         string FaceFXDirLib;
@@ -65,7 +65,7 @@ public class FaceFXLib : ModuleRules
         FaceFXDir = Path.Combine(new []{ this.ModuleDirectory, RuntimeFolder });
         FaceFXDirLib = string.Empty;
         FaceFXLib = string.Empty;
-
+        
         if (!Directory.Exists(FaceFXDir))
         {
             System.Console.WriteLine(System.String.Format("FaceFX: Cannot find FaceFX Folder '{0}'", FaceFXDir));

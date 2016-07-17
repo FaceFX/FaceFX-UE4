@@ -20,6 +20,7 @@
 
 #include "FaceFX.h"
 #include "FaceFXContext.h"
+#include "FaceFXActor.h"
 
 #include "GameFramework/Actor.h"
 #include "Animation/FaceFXComponent.h"
@@ -219,16 +220,28 @@ bool UFaceFXCharacter::GetAnimationBoundsById(const AActor* Actor, const FFaceFX
 	{
 		if(const UFaceFXComponent* FaceFXComp = Actor->FindComponentByClass<UFaceFXComponent>())
 		{
-			if(const UFaceFXCharacter* FxCharacter = FaceFXComp->GetCharacter())
+			if (const FFaceFXEntry* FxEntry = FaceFXComp->GetCharacterEntry())
 			{
-				return FxCharacter->GetAnimationBoundsById(AnimId, OutStart, OutEnd);
+				if (FxEntry->Character)
+				{
+					//get via character
+					return FxEntry->Character->GetAnimationBoundsById(AnimId, OutStart, OutEnd);
+				}
+				else if (FxEntry->Asset.IsValid())
+				{
+					//fetch from FaceFX actor
+					if (const UFaceFXActor* FxActor = TAssetPtr<UFaceFXActor>(FxEntry->Asset).LoadSynchronous())
+					{
+						return UFaceFXCharacter::GetAnimationBoundsById(FxActor, AnimId, OutStart, OutEnd);
+					}
+				}
 			}
 		}
 	}
 	return false;
 }
 
-bool UFaceFXCharacter::GetAnimationBoundsById(const FFaceFXAnimId& AnimId, float& OutStart, float& OutEnd) const
+bool UFaceFXCharacter::GetAnimationBoundsById(const UFaceFXActor* FaceFXActor, const FFaceFXAnimId& AnimId, float& OutStart, float& OutEnd)
 {
 	if(!FaceFXActor)
 	{
@@ -441,7 +454,7 @@ bool UFaceFXCharacter::Resume()
 	return true;
 }
 
-bool UFaceFXCharacter::Pause()
+bool UFaceFXCharacter::Pause(bool fadeOut)
 {
 	if(!IsLoaded())
 	{
@@ -456,7 +469,7 @@ bool UFaceFXCharacter::Pause()
 	}
 
 	AnimPlaybackState = EPlaybackState::Paused;
-	PauseAudio();
+	PauseAudio(fadeOut);
 
 	{
 		SCOPE_CYCLE_COUNTER(STAT_FaceFXEvents);
@@ -971,7 +984,7 @@ bool UFaceFXCharacter::PlayAudio(float Position, UAudioComponent** OutAudioComp)
 		{
 			CurrentAudioProgress = FMath::Clamp(Position, 0.F, Sound->GetDuration());
 			AudioComp->SetSound(Sound);
-			AudioComp->Play(CurrentAudioProgress);			
+			AudioComp->Play(CurrentAudioProgress);
 
 			if(OutAudioComp)
 			{
@@ -990,7 +1003,7 @@ bool UFaceFXCharacter::PlayAudio(float Position, UAudioComponent** OutAudioComp)
 	return false;
 }
 
-bool UFaceFXCharacter::PauseAudio()
+bool UFaceFXCharacter::PauseAudio(bool fadeOut)
 {
 	if(!IsPlayingAudio())
 	{
@@ -1003,6 +1016,17 @@ bool UFaceFXCharacter::PauseAudio()
 	if(UAudioComponent* AudioComp = GetAudioComponent())
 	{
 		AudioComp->Stop();
+		AudioComp->bIsUISound = true;
+		AudioComp->Play(CurrentAudioProgress);
+		if (fadeOut)
+		{
+			//fade out instead of direct stopping to support very short playback durations when play/pausing in one tick (i.e. for scrubbing)
+			AudioComp->FadeOut(0.050f, 1.f);
+		}
+		else
+		{
+			AudioComp->Stop();
+		}
 		return true;
 	}
 

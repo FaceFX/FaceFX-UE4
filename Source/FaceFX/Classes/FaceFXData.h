@@ -322,3 +322,29 @@ struct FFaceFXSkelMeshComponentId
 		return Index == Id.Index && Name == Id.Name;
 	}
 };
+
+/** A set of id's which identify a single animation/component combination */
+USTRUCT()
+struct FFaceFXAnimComponentSet
+{
+	GENERATED_BODY()
+
+	/** ID of the linked skel mesh component */
+	UPROPERTY(EditAnywhere, Category = FaceFX)
+	FFaceFXSkelMeshComponentId SkelMeshComponentId;
+
+	/** The animation to play. Only usable when FACEFX_USEANIMATIONLINKAGE is enabled (see FaceFXConfig.h) */
+	UPROPERTY(EditAnywhere, Category = FaceFX)
+	FFaceFXAnimId AnimationId;
+
+	/** The animation to play */
+	UPROPERTY(EditAnywhere, Category = FaceFX)
+	TAssetPtr<class UFaceFXAnim> Animation;
+
+	inline void Reset()
+	{
+		Animation.Reset();
+		SkelMeshComponentId.Reset();
+		AnimationId.Reset();
+	}
+};
