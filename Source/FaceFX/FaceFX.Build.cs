@@ -30,10 +30,11 @@ public class FaceFX : ModuleRules
                 "CoreUObject",
                 "Engine",
                 "AnimGraphRuntime",
-                "FaceFXLib"
+                "MovieScene",
+                "FaceFXLib",
             }
         );
-
+        
         if (UEBuildConfiguration.bBuildEditor)
         {
             PrivateDependencyModuleNames.Add("TargetPlatform");

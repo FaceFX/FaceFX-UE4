@@ -26,6 +26,8 @@
 #include "FaceFXAnim.h"
 #include "FaceFXCharacter.h"
 #include "FaceFXEditorTools.h"
+#include "Sequencer/FaceFXSequencer.h"
+#include "Sequencer/FaceFXAnimationTrackEditor.h"
 
 #include "Matinee/MatineeActor.h"
 
@@ -48,6 +50,7 @@ class FFaceFXEditorModule : public FDefaultModuleImpl
 		}
 
 		FFaceFXStyle::Initialize();
+		FFaceFXSequencer::Get().Initialize();
 
 		if(GIsEditor && FFaceFXEditorTools::IsShowToasterMessageOnIncompatibleAnim())
 		{
@@ -74,6 +77,7 @@ class FFaceFXEditorModule : public FDefaultModuleImpl
 		}
 
 		FFaceFXStyle::Shutdown();
+		FFaceFXSequencer::Get().Shutdown();
 	}
 
 private:
@@ -87,28 +91,58 @@ private:
 	{
 		checkf(GIsEditor, TEXT("Must only be called from within the editor"));
 
-		//Handle errors differently when being inside matinee to prevent error spamming on the UI when scrubbing/playing through invalid animations
-		static AMatineeActor* ShownMatineeErrorsOwner = nullptr;
-		static TArray<TPair<UFaceFXCharacter*, const UFaceFXAnim*>> ShownMatineeErrors;
-		AMatineeActor* MatineeActor = GEditor->ActiveMatinee.Get();
-		if(MatineeActor && ShownMatineeErrorsOwner == MatineeActor)
+		/** Helper struct to prevent spamming of error message coming from either matinee or sequencer */
+		struct FFaceFXErrorMessageShownData
 		{
-			//while being within matinee we only show the error once
-			TPairInitializer<UFaceFXCharacter*, const UFaceFXAnim*> Entry(Character, Asset);
-			if(ShownMatineeErrors.Contains(Entry))
+			/** The editor instance currently assigned */
+			void* Editor;
+
+			/** The error messages displayed for the currently assigned editor instance */
+			TArray<TPair<UFaceFXCharacter*, const UFaceFXAnim*>> ShownErrors;
+
+			FFaceFXErrorMessageShownData() : Editor(nullptr){}
+
+			/** 
+			* Updates the data
+			* @param SourceEditor The editor which updates this data
+			* @param Character The FaceFX character instance who failed to play the animation
+			* @param Asset The asset that was tried to be played and which was incompatible with the actor handle
+			* @returns True if the error message shall be displayed, esle if it was already shown
+			*/
+			inline bool Update(void* SourceEditor, UFaceFXCharacter* Character, const UFaceFXAnim* Asset)
 			{
-				//already shown once
-				return;
+				if (SourceEditor && Editor == SourceEditor)
+				{
+					//while being within editor we only show the error once
+					TPairInitializer<UFaceFXCharacter*, const UFaceFXAnim*> Entry(Character, Asset);
+					if (ShownErrors.Contains(Entry))
+					{
+						//already shown once
+						return false;
+					}
+					ShownErrors.Add(Entry);
+				}
+				else
+				{
+					ShownErrors.Reset();
+				}
+				Editor = SourceEditor;
+				return SourceEditor != nullptr;
 			}
-			ShownMatineeErrors.Add(Entry);
-		}
-		else
-		{
-			ShownMatineeErrors.Reset();
-		}
-		ShownMatineeErrorsOwner = MatineeActor;
+		};
+
+		//prevent error message spamming of matinee and sequencer editors
+		static FFaceFXErrorMessageShownData MatineeErrorData;
+		static FFaceFXErrorMessageShownData SequencerErrorData;
+		const bool ShowMessageMatinee = MatineeErrorData.Update(GEditor->ActiveMatinee.Get(), Character, Asset);
+		const bool ShowMessageSequencer = SequencerErrorData.Update(FFaceFXAnimationTrackEditor::GetCurrentSequencer().Pin().Get(), Character, Asset);
 		
-		//prepare and show error messaghe
+		if (!ShowMessageMatinee && !ShowMessageSequencer)
+		{
+			return;
+		}
+
+		//prepare and show error message
 		const AActor* CharacterOwner = Character ? Character->GetTypedOuter<AActor>() : nullptr;
 
 		const FText Msg = FText::Format(LOCTEXT("OnFaceFXCharacterPlayAssetIncompatible", "FaceFX Animation \"{0}\" incompatible with FaceFX instance of actor {1}"), 

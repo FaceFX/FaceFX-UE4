@@ -42,6 +42,9 @@ public class FaceFXEditor : ModuleRules
                 "AnimGraph",
                 "BlueprintGraph",
                 "Matinee",
+                "Sequencer",
+                "MovieScene",
+                "MovieSceneTools",
                 "FaceFX"
             }
         );
