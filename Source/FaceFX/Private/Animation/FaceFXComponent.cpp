@@ -145,7 +145,7 @@ bool UFaceFXComponent::JumpTo(float Position, bool Pause, UFaceFXAnim* Animation
 			Character->Play(Animation, LoopAnimation);
 		}
 
-		return Character->JumpTo(Position) && (!Pause || Character->Pause());
+		return Character->JumpTo(Position) && (!Pause || Character->Pause(true));
 	}
 
 	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXComponent::JumpTo. FaceFX character does not exist for given SkelMeshComp <%s>. Caller: %s"), *GetNameSafe(SkelMeshComp), *GetNameSafe(Caller));
@@ -166,7 +166,7 @@ bool UFaceFXComponent::JumpToById(float Position, bool Pause, FName Group, FName
 			return false;
 		}
 
-		return Character->JumpTo(Position) && (!Pause || Character->Pause());
+		return Character->JumpTo(Position) && (!Pause || Character->Pause(true));
 	}
 
 	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXComponent::JumpToById. FaceFX character does not exist for given SkelMeshComp <%s>. Caller: %s"), *GetNameSafe(SkelMeshComp), *GetNameSafe(Caller));
@@ -202,7 +202,8 @@ USkeletalMeshComponent* UFaceFXComponent::GetSkelMeshTarget(const FFaceFXSkelMes
 {
 	if(!SkelMeshId.IsValid())
 	{
-		return nullptr;
+		//return skel mesh comp of first character (see fallback on GetCharacter(USkeletalMeshComponent*))
+		return Entries.Num() > 0 ? Entries[0].SkelMeshComp : nullptr;
 	}
 
 	//first check for the index and matching name

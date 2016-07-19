@@ -225,6 +225,25 @@ public:
 	}
 
 	/**
+	* Gets the whole FaceFX character entry set for a given skel mesh component
+	* @param SkelMeshComp The skelmesh component to get the character for. Keep empty to get the FaceFX character for the first skelmesh that was setup
+	* @returns The entry set for the given skelmesh context
+	*/
+	inline const FFaceFXEntry* GetCharacterEntry(const USkeletalMeshComponent* SkelMeshComp = nullptr) const
+	{
+		if (SkelMeshComp)
+		{
+			if (const FFaceFXEntry* Entry = Entries.FindByKey(SkelMeshComp))
+			{
+				return Entry;
+			}
+			return nullptr;
+		}
+
+		return Entries.Num() > 0 ? &Entries[0] : nullptr;
+	}
+
+	/**
 	* Gets the skel mesh component which owns a given FaceFX character instance
 	* @param FaceFXCharacter The FaceFX character instance to look up the skel mesh component for
 	* @returns The skel mesh component for the given FaceFX character or nullptr if not found

@@ -203,7 +203,7 @@ void FAnimNode_BlendFaceFXAnimation::EvaluateComponentSpace(FComponentSpacePoseC
 				{
 					const FTransform& FaceFXBoneTM = FaceFXBoneTransforms[Entry.TransformIdx];
 					const int32 BoneIdx = Entry.BoneIdx;
-          FCompactPoseBoneIndex CompactPoseBoneIndex = Output.Pose.GetPose().GetBoneContainer().MakeCompactPoseIndex(FMeshPoseBoneIndex(BoneIdx));
+					FCompactPoseBoneIndex CompactPoseBoneIndex = Output.Pose.GetPose().GetBoneContainer().MakeCompactPoseIndex(FMeshPoseBoneIndex(BoneIdx));
 
 					//fill target transform
 					TargetBlendTransform[0].Transform = Output.Pose.GetComponentSpaceTransform(CompactPoseBoneIndex);
