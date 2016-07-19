@@ -102,19 +102,20 @@ private:
 
 			FFaceFXErrorMessageShownData() : Editor(nullptr){}
 
+      // Note: jcr -- renamed Character & Asset to Character_ & Asset_ so as not to shadow Character & Asset parameters to OnFaceFXCharacterPlayAssetIncompatible
 			/** 
 			* Updates the data
 			* @param SourceEditor The editor which updates this data
-			* @param Character The FaceFX character instance who failed to play the animation
-			* @param Asset The asset that was tried to be played and which was incompatible with the actor handle
-			* @returns True if the error message shall be displayed, esle if it was already shown
+			* @param Character_ The FaceFX character instance who failed to play the animation
+			* @param Asset_ The asset that was tried to be played and which was incompatible with the actor handle
+			* @returns True if the error message shall be displayed, false if it was already shown
 			*/
-			inline bool Update(void* SourceEditor, UFaceFXCharacter* Character, const UFaceFXAnim* Asset)
+			inline bool Update(void* SourceEditor, UFaceFXCharacter* Character_, const UFaceFXAnim* Asset_)
 			{
 				if (SourceEditor && Editor == SourceEditor)
 				{
 					//while being within editor we only show the error once
-					TPairInitializer<UFaceFXCharacter*, const UFaceFXAnim*> Entry(Character, Asset);
+					TPairInitializer<UFaceFXCharacter*, const UFaceFXAnim*> Entry(Character_, Asset_);
 					if (ShownErrors.Contains(Entry))
 					{
 						//already shown once

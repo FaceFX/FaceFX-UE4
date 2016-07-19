@@ -135,7 +135,8 @@ public:
 	virtual void GetKeyHandles(TSet<FKeyHandle>& OutKeyHandles, TRange<float> TimeRange) const override { }
 	virtual void GetSnapTimes(TArray<float>& OutSnapTimes, bool bGetSectionBorders) const override;
 	virtual TOptional<float> GetKeyTime(FKeyHandle KeyHandle) const override { return TOptional<float>(); }
-	virtual void SetKeyTime(FKeyHandle KeyHandle, float Time) override { }
+  // Note: jcr -- renamed Time to Time_ so as not to shadow private Time member.
+	virtual void SetKeyTime(FKeyHandle KeyHandle, float Time_) override { }
 	//~UMovieSceneSection
 
 private:
