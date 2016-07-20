@@ -129,11 +129,17 @@ void FFaceFXAnimationTrackEditor::OnFaceFXTrackDialogClosed(FGuid ObjectBinding)
 
 void FFaceFXAnimationTrackEditor::BuildObjectBindingTrackMenu(FMenuBuilder& MenuBuilder, const FGuid& ObjectBinding, const UClass* ObjectClass)
 {
+	if (ObjectClass != UFaceFXComponent::StaticClass())
+	{
+		//only show widget on the component menu
+		return;
+	}
+
 	if (UFaceFXComponent* FaceFXComponent = GetFaceFXComponent(ObjectBinding))
 	{
 		MenuBuilder.AddMenuEntry(
-			LOCTEXT("SequencerAddSection", "FaceFX"),
-			LOCTEXT("SequencerAddSectionTooltip", "Adds a FaceFX section"),
+			LOCTEXT("SequencerAddSection", "Facial Animation"),
+			LOCTEXT("SequencerAddSectionTooltip", "Adds a FaceFX facial animation section"),
 			FSlateIcon(),
 			FUIAction(FExecuteAction::CreateRaw(this, &FFaceFXAnimationTrackEditor::OnAddKey, ObjectBinding)));
 	}
@@ -193,9 +199,9 @@ TSharedPtr<SWidget> FFaceFXAnimationTrackEditor::BuildOutlinerEditWidget(const F
 	{
 		//only create widgets for valid bindings
 
-		TSharedRef<SWidget> FaceFXAddTrackButton = FSequencerUtilities::MakeAddButton(LOCTEXT("SequencerAddSection", "FaceFX"),
+		TSharedRef<SWidget> FaceFXAddTrackButton = FSequencerUtilities::MakeAddButton(LOCTEXT("SequencerAddSection", "Facial Animation"),
 			FOnGetContent::CreateSP(this, &FFaceFXAnimationTrackEditor::CreateOutlinerWidget, ObjectBinding), Params.NodeIsHovered);
-		FaceFXAddTrackButton->SetToolTipText(LOCTEXT("SequencerAddSectionTooltip", "Adds a FaceFX section"));
+		FaceFXAddTrackButton->SetToolTipText(LOCTEXT("SequencerAddSectionTooltip", "Adds a FaceFX facial animation section"));
 
 		return SNew(SHorizontalBox)
 			+ SHorizontalBox::Slot()
