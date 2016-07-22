@@ -479,9 +479,9 @@ bool UFaceFXCharacter::Pause(bool fadeOut)
 	return true;
 }
 
-bool UFaceFXCharacter::Stop()
+bool UFaceFXCharacter::Stop(bool enforceStop)
 {
-	if(!IsLoaded())
+	if (!IsLoaded() && !enforceStop)
 	{
 		//not loaded yet
 		return false;
@@ -506,7 +506,7 @@ bool UFaceFXCharacter::Stop()
 	CurrentAnimProgress = .0F;
 	CurrentAnim.Reset();
 	AnimPlaybackState = EPlaybackState::Stopped;
-	StopAudio();
+	StopAudio(enforceStop);
 
 	UnloadCurrentAnim();
 
@@ -572,14 +572,11 @@ bool UFaceFXCharacter::JumpTo(float Position)
 	{
 		const float AudioPosition = Position + CurrentAnimStart;
 		checkf(AudioPosition >= 0.F, TEXT("Invalid audio playback range."));
-		PlayAudio(AudioPosition);
-	}
-	else
-	{
-		StopAudio();
+		return PlayAudio(AudioPosition);
 	}
 
-	return true;
+	StopAudio();
+	return false;
 }
 
 void UFaceFXCharacter::Reset()
@@ -1034,9 +1031,9 @@ bool UFaceFXCharacter::PauseAudio(bool fadeOut)
 	return false;
 }
 
-bool UFaceFXCharacter::StopAudio()
+bool UFaceFXCharacter::StopAudio(bool enforceAudioCompStop)
 {
-	if(!IsPlayingOrPausedAudio())
+	if (!IsPlayingOrPausedAudio() && !enforceAudioCompStop)
 	{
 		//nothing playing right now
 		return true;
