@@ -160,15 +160,18 @@ void FFaceFXAnimationTrackInstance::Update(EMovieSceneUpdateData& UpdateData, co
 			FaceFXComponent->Stop(SkelMeshTarget);
 		}
 
+		const EMovieScenePlayerStatus::Type State = Player.GetPlaybackStatus();
+
 		const bool bLoop = UpdateData.bLooped;
-		const bool bScrub = Player.GetPlaybackStatus() != EMovieScenePlayerStatus::Playing;
+		const bool bScrub = State != EMovieScenePlayerStatus::Playing;
+		const bool bPaused = State == EMovieScenePlayerStatus::Stopped && UpdateData.Position == UpdateData.LastPosition;
 
 		//playing backwards or jumping
 		const FFaceFXAnimId& AnimId = AnimSection->GetAnimationId();
 
 		bool UpdateAnimation = true;
 
-		if (Player.GetPlaybackStatus() == EMovieScenePlayerStatus::Playing)
+		if (State == EMovieScenePlayerStatus::Playing)
 		{
 			//Playback mode
 			if (!IsNewAnimSection && FaceFXComponent->IsPlaying(SkelMeshTarget, RuntimeObject))
@@ -181,21 +184,29 @@ void FFaceFXAnimationTrackInstance::Update(EMovieSceneUpdateData& UpdateData, co
 		if (UpdateAnimation)
 		{
 			bool JumpSucceeded = false;
-			if (AnimId.IsValid())
+			if (bPaused)
 			{
-				//play by animation id
-				JumpSucceeded = FaceFXComponent->JumpToById(PlaybackLocation, bScrub, AnimId.Group, AnimId.Name, bLoop, SkelMeshTarget, RuntimeObject);
+				FaceFXComponent->Pause(SkelMeshTarget);
 			}
-			else if (UFaceFXAnim* FaceFXAnim = AnimSection->GetAnimation(FaceFXComponent))
+			else
 			{
-				//play by animation
-				JumpSucceeded = FaceFXComponent->JumpTo(PlaybackLocation, bScrub, FaceFXAnim, bLoop, SkelMeshTarget, RuntimeObject);
-			}
+				//jump if not stopping
+				if (AnimId.IsValid())
+				{
+					//play by animation id
+					JumpSucceeded = FaceFXComponent->JumpToById(PlaybackLocation, bScrub, AnimId.Group, AnimId.Name, bLoop, SkelMeshTarget, RuntimeObject);
+				}
+				else if (UFaceFXAnim* FaceFXAnim = AnimSection->GetAnimation(FaceFXComponent))
+				{
+					//play by animation
+					JumpSucceeded = FaceFXComponent->JumpTo(PlaybackLocation, bScrub, FaceFXAnim, bLoop, SkelMeshTarget, RuntimeObject);
+				}
 
-			if (!JumpSucceeded)
-			{
-				//jump to failed -> i.e. out of range on non looping animation
-				FaceFXComponent->Stop(SkelMeshTarget);
+				if (!JumpSucceeded)
+				{
+					//jump to failed -> i.e. out of range on non looping animation
+					FaceFXComponent->Stop(SkelMeshTarget);
+				}
 			}
 		}
 

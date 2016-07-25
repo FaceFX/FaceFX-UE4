@@ -100,9 +100,10 @@ public:
 
 	/**
 	* Stops the playback of this facial animation
+	* @param enforceStop Indicator if the stop is enforced no matter of current state
 	* @returns True if succeeded, else false
 	*/
-	bool Stop();
+	bool Stop(bool enforceStop = false);
 
 	/**
 	* Restarts the current animation
@@ -458,9 +459,10 @@ private:
 
 	/** 
 	* Stops the playback of the currently playing audio
+	* @param enforceAudioCompStop Indicator if the stop on the audio component is enforced
 	* @returns True if succeeded, else false
 	*/
-	bool StopAudio();
+	bool StopAudio(bool enforceAudioCompStop = false);
 
 	/** 
 	* Resumes the playback of the currently paused audio
