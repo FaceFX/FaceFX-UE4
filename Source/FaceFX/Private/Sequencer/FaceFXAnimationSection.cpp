@@ -39,6 +39,26 @@ UFaceFXAnimationSection::UFaceFXAnimationSection(const FObjectInitializer& Objec
 	AnimationDuration = 0.F;
 }
 
+void UFaceFXAnimationSection::TrimSection(float TrimTime, bool bTrimLeft)
+{
+	if (IsTimeWithinSection(TrimTime))
+	{
+		SetFlags(RF_Transactional);
+		if (TryModify())
+		{
+			if (bTrimLeft)
+			{
+				StartOffset = TrimTime - GetStartTime();
+				SetStartTime(TrimTime);
+			}
+			else
+			{
+				SetEndTime(TrimTime);
+			}
+		}
+	}
+}
+
 UMovieSceneSection* UFaceFXAnimationSection::SplitSection(float SplitTime)
 {
 	const float AnimPosition = SplitTime - GetStartTime();
