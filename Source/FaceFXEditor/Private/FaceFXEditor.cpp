@@ -56,6 +56,9 @@ class FFaceFXEditorModule : public FDefaultModuleImpl
 		{
 			OnFaceFXCharacterPlayAssetIncompatibleHandle = UFaceFXCharacter::OnFaceFXCharacterPlayAssetIncompatible.AddRaw(this, &FFaceFXEditorModule::OnFaceFXCharacterPlayAssetIncompatible);
 		}
+
+		OnEndPieHandle = FEditorDelegates::EndPIE.AddStatic(&FFaceFXEditorModule::OnEndPie);
+		OnPreSaveWorldHandle = FEditorDelegates::PreSaveWorld.AddStatic(&FFaceFXEditorModule::PreSaveWorld);
 	}
 
 	virtual void ShutdownModule() override
@@ -65,6 +68,9 @@ class FFaceFXEditorModule : public FDefaultModuleImpl
 			UFaceFXCharacter::OnFaceFXCharacterPlayAssetIncompatible.Remove(OnFaceFXCharacterPlayAssetIncompatibleHandle);
 		}
 
+		FEditorDelegates::EndPIE.Remove(OnEndPieHandle);
+		FEditorDelegates::PreSaveWorld.Remove(OnPreSaveWorldHandle);
+		
 		if(FModuleManager::Get().IsModuleLoaded("AssetTools"))
 		{
 			IAssetTools &AssetTools = FModuleManager::GetModuleChecked<FAssetToolsModule>("AssetTools").Get();
@@ -153,6 +159,41 @@ private:
 	}
 
 	FDelegateHandle OnFaceFXCharacterPlayAssetIncompatibleHandle;
+
+	/** The event callback handle for OnEndPie */
+	FDelegateHandle OnEndPieHandle;
+
+	/** The event callback handle for OnPreSaveWorldHandle */
+	FDelegateHandle OnPreSaveWorldHandle;
+
+	/** Callback for when an PIE got ended */
+	static void OnEndPie(bool bIsSimulating)
+	{
+		TArray<UObject*> CharacterInstances;
+		GetObjectsOfClass(UFaceFXCharacter::StaticClass(), CharacterInstances);
+
+		for (UObject* CharacterInstance : CharacterInstances)
+		{
+			CastChecked<UFaceFXCharacter>(CharacterInstance)->Stop(true);
+		}
+	}
+
+	/** Callback for when a world gets saved */
+	static void PreSaveWorld(uint32 SaveFlags, UWorld* World)
+	{
+		check(World);
+		
+		for (TActorIterator<AActor> It(World); It; ++It)
+		{
+			AActor* Actor = (*It);
+			check(Actor);
+			const TArray<UActorComponent*> CharacterInstances = Actor->GetComponentsByClass(UFaceFXCharacter::StaticClass());
+			for (UActorComponent* CharacterInstance : CharacterInstances)
+			{
+				CastChecked<UFaceFXCharacter>(CharacterInstance)->Stop(true);
+			}
+		}
+	}
 
 	/** List of currently registered asset type actions */
 	TArray<TSharedPtr<FAssetTypeActions_Base>> AssetTypeActions;

@@ -49,7 +49,7 @@ UMovieSceneSection* UFaceFXAnimationTrack::GetSectionAtTime(float Time) const
 {
 	for (UMovieSceneSection* Section : AnimationSections)
 	{
-		if (Section->IsTimeWithinSection(Time))
+		if (Section->IsActive() && Section->IsTimeWithinSection(Time))
 		{
 			return Section;
 		}
