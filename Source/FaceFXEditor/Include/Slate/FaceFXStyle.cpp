@@ -68,7 +68,6 @@ void FFaceFXStyle::Initialize()
     StyleSet->Set(s_BrushIdError, new FACEFX_IMAGE_PLUGIN_BRUSH(TEXT("Icons/facefxerror"), Icon16));
 
 	FSlateStyleRegistry::RegisterSlateStyle(*StyleSet.Get());
-	FClassIconFinder::RegisterIconSource(StyleSet.Get());
 };
 
 #undef FACEFX_IMAGE_PLUGIN_BRUSH
@@ -79,7 +78,6 @@ void FFaceFXStyle::Shutdown()
 	if (StyleSet.IsValid())
 	{
 		FSlateStyleRegistry::UnRegisterSlateStyle(*StyleSet.Get());
-		FClassIconFinder::UnregisterIconSource(StyleSet.Get());
 		ensure(StyleSet.IsUnique());
 		StyleSet.Reset();
 	}
