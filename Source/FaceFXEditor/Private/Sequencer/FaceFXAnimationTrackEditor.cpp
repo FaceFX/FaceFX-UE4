@@ -118,11 +118,11 @@ void FFaceFXAnimationTrackEditor::AddKey(const FGuid& ObjectGuid)
 
 void FFaceFXAnimationTrackEditor::OnFaceFXTrackDialogClosed(FGuid ObjectBinding)
 {
-	TSharedPtr<ISequencer> Sequencer = GetSequencer();
+	TSharedPtr<ISequencer> LocalSequencer = GetSequencer();
 
-	if (Sequencer.IsValid())
+	if (LocalSequencer.IsValid())
 	{
-		UObject* Object = Sequencer->FindSpawnedObjectOrTemplate(ObjectBinding);
+		UObject* Object = LocalSequencer->FindSpawnedObjectOrTemplate(ObjectBinding);
 		AnimatablePropertyChanged(FOnKeyProperty::CreateRaw(this, &FFaceFXAnimationTrackEditor::AddFaceFXSection, Object, KeyDialog.GetSelectedAnimSet()));
 	}
 }
@@ -182,8 +182,8 @@ bool FFaceFXAnimationTrackEditor::AddFaceFXSection(float KeyTime, UObject* Objec
 
 UFaceFXComponent* FFaceFXAnimationTrackEditor::GetFaceFXComponent(const FGuid& Guid)
 {
-	TSharedPtr<ISequencer> Sequencer = GetSequencer();
-	UObject* BoundObject = Sequencer.IsValid() ? Sequencer->FindSpawnedObjectOrTemplate(Guid) : nullptr;
+	TSharedPtr<ISequencer> LocalSequencer = GetSequencer();
+	UObject* BoundObject = LocalSequencer.IsValid() ? LocalSequencer->FindSpawnedObjectOrTemplate(Guid) : nullptr;
 
 	if (AActor* Actor = Cast<AActor>(BoundObject))
 	{

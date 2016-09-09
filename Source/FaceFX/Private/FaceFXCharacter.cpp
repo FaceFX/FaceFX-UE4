@@ -125,7 +125,7 @@ bool UFaceFXCharacter::TickUntil(float Duration, bool& OutAudioStarted)
 
 void UFaceFXCharacter::Tick(float DeltaTime)
 {
-	QUICK_SCOPE_CYCLE_COUNTER(STAT_FaceFXTick);
+	SCOPE_CYCLE_COUNTER(STAT_FaceFXTick);
 
 	const bool IsNonZeroTick = DeltaTime > 0.F;
 	checkf(!IsNonZeroTick || bCanPlay, TEXT("Internal Error: FaceFX character is not allowed to tick."));
