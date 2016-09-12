@@ -250,23 +250,22 @@ bool FFaceFXAnimationKeyDetailsDialog::ShowDialog(UFaceFXComponent* FaceFXCompon
 	Reset();
 	CloseDialog(true, true);
 	
-	TSharedPtr< SWindow > Parent = FSlateApplication::Get().GetActiveTopLevelWindow();
-
-	if (!Parent.IsValid())
-	{
-		//As a fallback fetch first top level window in case none is active
-		TArray< TSharedRef<SWindow> > Windows = FSlateApplication::Get().GetInteractiveTopLevelWindows();
-		if (Windows.Num() > 0)
-		{
-			Parent = Windows[0];
-		}
-	}
+	TSharedPtr< SWindow > Parent;
+    
+    TArray<TSharedRef<SWindow> > AllWindows;
+    FSlateApplication::Get().GetAllVisibleWindowsOrdered(AllWindows);
+    
+    if (AllWindows.Num() != 0)
+    {
+        Parent = AllWindows[0];
+    }
 
 	if (Parent.IsValid())
 	{
 		EntryPopupMenu = FSlateApplication::Get().PushMenu(Parent.ToSharedRef(), FWidgetPath(), CreateWidget(FaceFXComponent, OnCloseDelegeate), FSlateApplication::Get().GetCursorPos(), FPopupTransitionEffect(FPopupTransitionEffect::TypeInPopup));
 	}
-	return EntryPopupMenu.IsValid();
+    
+  	return EntryPopupMenu.IsValid();
 }
 
 TSharedRef<SWidget> FFaceFXAnimationKeyDetailsDialog::MakeWidgetFromAnimId(TSharedPtr<FFaceFXAnimId> InItem)
