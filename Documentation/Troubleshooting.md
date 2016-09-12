@@ -19,6 +19,10 @@ If the animations are played correctly when you use PIE, but not when you click 
 
 + **Morph bug** Due to a [potential issue with UE4](https://answers.unrealengine.com/questions/290685/morph-targets-not-updating-from-matinee-tab.html), morphs may not update correctly when played from the Matinee tab.
 
+#### FaceFX Animations do not play from the Sequencer tab in OSX
+
+On the Mac platform, there are known issues playing FaceFX animations from the Sequencer window.  Bone animations will work when scrubbing the time from the Sequencer tab, but morphs may not update during scrubbing.  Hitting play from the Sequencer tab will not update audio, bones or morph animations during playback.  Use the **Play in Editor** feature to see updates to both morph and bones animations.
+
 #### All other issues
 
 Make sure there are no FaceFX warnings or errors in the log (launch the Unreal Editor with the **-Log** option). Otherwise, let us know, so we can add the issue here!
