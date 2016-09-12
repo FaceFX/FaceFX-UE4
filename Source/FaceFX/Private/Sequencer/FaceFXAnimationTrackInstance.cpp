@@ -162,7 +162,6 @@ void FFaceFXAnimationTrackInstance::Update(EMovieSceneUpdateData& UpdateData, co
 
 		const EMovieScenePlayerStatus::Type State = Player.GetPlaybackStatus();
 
-		const bool bLoop = UpdateData.bLooped;
 		const bool bScrub = State != EMovieScenePlayerStatus::Playing;
 		const bool bPaused = State == EMovieScenePlayerStatus::Stopped && UpdateData.Position == UpdateData.LastPosition;
 
@@ -194,12 +193,12 @@ void FFaceFXAnimationTrackInstance::Update(EMovieSceneUpdateData& UpdateData, co
 				if (AnimId.IsValid())
 				{
 					//play by animation id
-					JumpSucceeded = FaceFXComponent->JumpToById(PlaybackLocation, bScrub, AnimId.Group, AnimId.Name, bLoop, SkelMeshTarget, RuntimeObject);
+					JumpSucceeded = FaceFXComponent->JumpToById(PlaybackLocation, bScrub, AnimId.Group, AnimId.Name, false, SkelMeshTarget, RuntimeObject);
 				}
 				else if (UFaceFXAnim* FaceFXAnim = AnimSection->GetAnimation(FaceFXComponent))
 				{
 					//play by animation
-					JumpSucceeded = FaceFXComponent->JumpTo(PlaybackLocation, bScrub, FaceFXAnim, bLoop, SkelMeshTarget, RuntimeObject);
+					JumpSucceeded = FaceFXComponent->JumpTo(PlaybackLocation, bScrub, FaceFXAnim, false, SkelMeshTarget, RuntimeObject);
 				}
 
 				if (!JumpSucceeded)

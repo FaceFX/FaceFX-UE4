@@ -61,7 +61,7 @@ void FAnimNode_BlendFaceFXAnimation::CacheBones(const FAnimationCacheBonesContex
 
 void FAnimNode_BlendFaceFXAnimation::LoadFaceFXData(FAnimInstanceProxy* AnimInstanceProxy)
 {
-	QUICK_SCOPE_CYCLE_COUNTER(STAT_FaceFXBlendLoad);
+	SCOPE_CYCLE_COUNTER(STAT_FaceFXBlendLoad);
 
 	BoneIndices.Empty();
 
@@ -161,7 +161,7 @@ void FAnimNode_BlendFaceFXAnimation::Evaluate(FPoseContext& Output)
 
 void FAnimNode_BlendFaceFXAnimation::EvaluateComponentSpace(FComponentSpacePoseContext& Output)
 {
-	QUICK_SCOPE_CYCLE_COUNTER(STAT_FaceFXBlend);
+	SCOPE_CYCLE_COUNTER(STAT_FaceFXBlend);
 
 	ComponentPose.EvaluateComponentSpace(Output);
 
