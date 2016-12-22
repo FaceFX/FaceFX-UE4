@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -31,13 +31,13 @@ class UFaceFXMatineeControlInst : public UInterpTrackInst
 	/** The position at which the last time the update was performed */
 	UPROPERTY(Transient)
 	float LastUpdatePosition;
-	
+
 	// Begin UInterpTrackInst Instance
 	virtual void InitTrackInst(UInterpTrack* Track) override;
 	virtual void RestoreActorState(UInterpTrack* Track) override;
 	// End UInterpTrackInst Instance
 
-	/** 
+	/**
 	* Gets the current track index for the given skel mesh component
 	* @param SkelMeshComp The skel mesh component to fetch the track index for
 	* @returns The track index or INDEX_NONE if unset
@@ -51,7 +51,7 @@ class UFaceFXMatineeControlInst : public UInterpTrackInst
 		return INDEX_NONE;
 	}
 
-	/** 
+	/**
 	* Sets the current track index for the given skel mesh component
 	* @param SkelMeshComp The skel mesh component to set the track index for
 	* @param Index The new index to set

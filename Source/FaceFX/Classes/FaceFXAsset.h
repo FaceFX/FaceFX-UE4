@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -79,7 +79,7 @@ public:
 		return !AssetFolder.IsEmpty() && !AssetName.IsEmpty();
 	}
 
-	/** 
+	/**
 	* Gets the relative path to the source asset
 	* @returns The path to the asset
 	*/
@@ -88,7 +88,7 @@ public:
 		return AssetFolder / (AssetName + TEXT(".facefx"));
 	}
 
-	/** 
+	/**
 	* Gets the absolute path to the source asset
 	* @returns The path to the asset
 	*/
@@ -134,7 +134,7 @@ protected:
 	UPROPERTY(EditInstanceOnly, Category=FaceFX)
 	FString AssetName;
 
-	/** 
+	/**
 	* Clear platform specific data based on the target Archive platform
 	* @param Ar The archive to use
 	* @param platformData The data to clear

@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -33,9 +33,9 @@
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 
-uint32 FAssetTypeActions_FaceFXBase::GetCategories() 
-{ 
-	return FFaceFXEditorTools::AssetCategory; 
+uint32 FAssetTypeActions_FaceFXBase::GetCategories()
+{
+	return FFaceFXEditorTools::AssetCategory;
 }
 
 /** Determine if we can recompile assets */
@@ -107,11 +107,11 @@ void FAssetTypeActions_FaceFXBase::ExecuteSetSource(TArray<TWeakObjectPtr<UObjec
 		{
 			//remove previous animation id in case of an UFaceFXAnim so the init phase will ask the user for an animation of the new source
 			FaceFXAnim->GetId().Reset();
-		}		
+		}
 
 		//assign new file and reimport
 		FFaceFXImportResultSet ResultSet;
-        
+
         FCompilationBeforeDeletionDelegate DeletionDelegate;
         if(FaceFXAsset->IsA(UFaceFXActor::StaticClass()) && FFaceFXEditorTools::IsImportAnimationOnActorImport())
         {
@@ -146,7 +146,7 @@ void FAssetTypeActions_FaceFXBase::ExecuteReimport(TArray<TWeakObjectPtr<UObject
 		if(UFaceFXAsset* FaceFXAsset = Cast<UFaceFXAsset>(Object.Get()))
 		{
 			FFaceFXImportResult& Result = ResultSet.GetOrAdd(FaceFXAsset);
-			
+
 			FCompilationBeforeDeletionDelegate DeletionDelegate;
 			if(FaceFXAsset->IsA(UFaceFXActor::StaticClass()) && FFaceFXEditorTools::IsImportAnimationOnActorImport())
 			{

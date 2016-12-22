@@ -1,6 +1,6 @@
 /*******************************************************************************
 The MIT License (MIT)
-Copyright (c) 2015 OC3 Entertainment, Inc.
+Copyright (c) 2015-2016 OC3 Entertainment, Inc.
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -64,7 +64,7 @@ UMovieSceneSection* UFaceFXAnimationSection::SplitSection(float SplitTime)
 	const float AnimPosition = SplitTime - GetStartTime();
 	const float AnimLength = GetAnimationDuration() - GetStartOffset() + GetEndOffset();
 	const float NewOffset = FMath::Fmod(AnimPosition, AnimLength) + GetStartOffset();
-	
+
 	UMovieSceneSection* NewSection = Super::SplitSection(SplitTime);
 	if (UFaceFXAnimationSection* NewAnimSection = Cast<UFaceFXAnimationSection>(NewSection))
 	{
@@ -146,7 +146,7 @@ float UFaceFXAnimationSection::GetAnimationDuration(const AActor* Actor) const
 }
 
 UFaceFXAnimationTrack* UFaceFXAnimationSection::GetTrack() const
-{ 
+{
 	return Cast<UFaceFXAnimationTrack>(GetOuter());
 }
 
@@ -201,7 +201,7 @@ FText UFaceFXAnimationSection::GetTitle() const
 		//fetch from asset ref
 		AnimName = Animation.ToStringReference().ToString();
 	}
-	
+
 	return FText::FromString(AnimName);
 }
 

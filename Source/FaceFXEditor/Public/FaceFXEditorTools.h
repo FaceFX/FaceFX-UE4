@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -42,15 +42,15 @@ struct FFaceFXImportActionResult
 	{
 		Success,
 		Warning,
-		Error,		
+		Error,
 	};
 
 	FFaceFXImportActionResult() : Type(ActionType::None), Result(ResultType::Error) {}
-	FFaceFXImportActionResult(ActionType InType, ResultType InResult, const TAssetPtr<class UFaceFXAsset>& InImportAsset = nullptr, const FText& InMessage = FText::GetEmpty()) : 
+	FFaceFXImportActionResult(ActionType InType, ResultType InResult, const TAssetPtr<class UFaceFXAsset>& InImportAsset = nullptr, const FText& InMessage = FText::GetEmpty()) :
 		Type(InType), Result(InResult), Message(InMessage), ImportAsset(InImportAsset) {}
 
-	/** 
-	* Rolls this action back 
+	/**
+	* Rolls this action back
 	* @returns True if successfully rolled back, else false
 	*/
 	bool Rollback();
@@ -239,7 +239,7 @@ struct FFaceFXImportResult
 	{
 		return Add(Message, FFaceFXImportActionResult::ActionType::Create, FFaceFXImportActionResult::ResultType::Success, ImportAsset, InAsset);
 	}
-	
+
 	/**
 	* Gets the entries
 	* @returns The entries
@@ -316,7 +316,7 @@ struct FFaceFXImportResultSet
 		return Entries.FindByKey(Asset);
 	}
 
-	/** 
+	/**
 	* Gets all entries
 	* @returns The entries
 	*/
@@ -325,7 +325,7 @@ struct FFaceFXImportResultSet
 		return Entries;
 	}
 
-	/** 
+	/**
 	* Gets the indicator if this result set contains at least one error
 	* @returns True if one or more error are inside this result set. Else false
 	*/
@@ -399,13 +399,13 @@ struct FACEFXEDITOR_API FFaceFXEditorTools
 	static const FString& GetFaceFXStudioPath();
 
 	/**
-	* Gets the indicator if the import shall search through all existing USoundWave assets and look for an asset that was generated with the linked sound source file per FaceFX Animation. 
+	* Gets the indicator if the import shall search through all existing USoundWave assets and look for an asset that was generated with the linked sound source file per FaceFX Animation.
 	* @returns True if enabled, else false
 	*/
 	static bool IsImportLookupAudio();
 
 	/**
-	* Gets the indicator if the import shall search through all existing UFaceFXAnimation assets and look for an asset that was generated with the linked .ffxanim source file. 
+	* Gets the indicator if the import shall search through all existing UFaceFXAnimation assets and look for an asset that was generated with the linked .ffxanim source file.
 	* @returns True if enabled, else false
 	*/
 	static bool IsImportLookupAnimation();
@@ -423,7 +423,7 @@ struct FACEFXEDITOR_API FFaceFXEditorTools
 	static bool IsImportAnimationOnActorImport();
 
 	/**
-	* Gets the indicator if the editor shall show a warning toaster message when an UFaceFXAnimation is tried to get played on an 
+	* Gets the indicator if the editor shall show a warning toaster message when an UFaceFXAnimation is tried to get played on an
 	* UFaceFXCharacter which FaceFX actor handle is incompatible with that animation
 	* @returns True if enabled, else false
 	*/
@@ -555,7 +555,7 @@ struct FACEFXEDITOR_API FFaceFXEditorTools
 	*/
 	static void SavePackage(UPackage* Package, bool addToSc = true);
 
-	/** 
+	/**
 	* Reloads the data from from a facefx compilation folder. Doesn't change asset name and folder
 	* @param Asset The target asset
 	* @param Folder The path to the platform folder to load the compiled assets from
@@ -564,7 +564,7 @@ struct FACEFXEDITOR_API FFaceFXEditorTools
 	*/
 	static bool LoadFromCompilationFolder(class UFaceFXAsset* Asset, const FString& Folder, FFaceFXImportResult& OutResultMessages);
 
-	/** 
+	/**
 	* Reloads the data from from a facefx compilation folder. Doesn't change asset name and folder
 	* @param Asset The target asset
 	* @param Folder The path to the platform folder to load the compiled assets from
@@ -573,7 +573,7 @@ struct FACEFXEDITOR_API FFaceFXEditorTools
 	*/
 	static bool LoadFromCompilationFolder(class UFaceFXActor* Asset, const FString& Folder, FFaceFXImportResult& OutResultMessages);
 
-	/** 
+	/**
 	* Reloads the data from from a facefx compilation folder. Doesn't change asset name and folder
 	* @param Asset The target asset
 	* @param Folder The path to the folder to load the compiled assets from
@@ -582,7 +582,7 @@ struct FACEFXEDITOR_API FFaceFXEditorTools
 	*/
 	static bool LoadFromCompilationFolder(class UFaceFXAnim* Asset, const FString& Folder, FFaceFXImportResult& OutResultMessages);
 
-	/** 
+	/**
 	* Initializes the asset from a .facefx asset file
 	* @param Asset The target asset
 	* @param File The path to the .facefx asset file
@@ -596,22 +596,22 @@ struct FACEFXEDITOR_API FFaceFXEditorTools
 	/**
 	* Sets the focus on a given asset within the content browser
 	* @param Asset The asset to focus
-	*/	
+	*/
 	static void ContentBrowserFocusAsset(const FStringAssetReference& Asset);
 
-	/** 
+	/**
 	* Deletes the gives asset
 	* @param Asset The asset to delete
 	*/
 	static void DeleteAsset(UObject* Asset);
 
-	/** 
+	/**
 	* Shows a slate error message
 	* @param msg The error message to show
 	*/
 	static void ShowError(const FText& Msg);
 
-	/** 
+	/**
 	* Shows a slate info message
 	* @param msg The info message to show
 	*/
@@ -621,7 +621,7 @@ private:
 
 	FFaceFXEditorTools(){}
 
-	/** 
+	/**
 	* Reloads the data from from a facefx compilation folder. Doesn't change asset name and folder. Assigns a new group before doing so
 	* @param Asset The target asset
 	* @param Group The group to use when loading the animation

@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -30,13 +30,13 @@
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 
-FText FAssetTypeActions_FaceFXAnim::GetName() const 
-{ 
-	return LOCTEXT("AssetTypeActions_FaceFXAnim", "FaceFX Anim"); 
+FText FAssetTypeActions_FaceFXAnim::GetName() const
+{
+	return LOCTEXT("AssetTypeActions_FaceFXAnim", "FaceFX Anim");
 }
 
-UClass* FAssetTypeActions_FaceFXAnim::GetSupportedClass() const 
-{ 
+UClass* FAssetTypeActions_FaceFXAnim::GetSupportedClass() const
+{
 	return UFaceFXAnim::StaticClass();
 }
 

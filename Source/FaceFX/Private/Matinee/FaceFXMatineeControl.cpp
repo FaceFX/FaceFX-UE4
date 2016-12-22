@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -41,17 +41,17 @@ UFaceFXMatineeControl::UFaceFXMatineeControl(const FObjectInitializer& ObjectIni
 #endif // WITH_EDITORONLY_DATA
 }
 
-int32 UFaceFXMatineeControl::GetNumKeyframes() const 
+int32 UFaceFXMatineeControl::GetNumKeyframes() const
 {
 	return Keys.Num();
 }
 
-float UFaceFXMatineeControl::GetTrackEndTime() const 
+float UFaceFXMatineeControl::GetTrackEndTime() const
 {
 	return Keys.Num() ? Keys[Keys.Num() - 1].Time : 0.0f;
 }
 
-float UFaceFXMatineeControl::GetKeyframeTime( int32 KeyIndex ) const 
+float UFaceFXMatineeControl::GetKeyframeTime( int32 KeyIndex ) const
 {
 	if( KeyIndex < 0 || KeyIndex >= Keys.Num() )
 	{
@@ -60,7 +60,7 @@ float UFaceFXMatineeControl::GetKeyframeTime( int32 KeyIndex ) const
 	return Keys[KeyIndex].Time;
 }
 
-int32 UFaceFXMatineeControl::GetKeyframeIndex( float KeyTime ) const 
+int32 UFaceFXMatineeControl::GetKeyframeIndex( float KeyTime ) const
 {
 	int32 RetIndex = INDEX_NONE;
 	if( Keys.Num() > 0 )
@@ -76,12 +76,12 @@ int32 UFaceFXMatineeControl::GetKeyframeIndex( float KeyTime ) const
 				break;
 			}
 			CurTime = Keys[KeyIndex].Time;
-		} 
+		}
 	}
 	return RetIndex;
 }
 
-void UFaceFXMatineeControl::GetTimeRange( float& Time, float& EndTime ) const 
+void UFaceFXMatineeControl::GetTimeRange( float& Time, float& EndTime ) const
 {
 	if(Keys.Num() == 0)
 	{
@@ -95,7 +95,7 @@ void UFaceFXMatineeControl::GetTimeRange( float& Time, float& EndTime ) const
 	}
 }
 
-int32 UFaceFXMatineeControl::SetKeyframeTime( int32 KeyIndex, float NewKeyTime, bool bUpdateOrder) 
+int32 UFaceFXMatineeControl::SetKeyframeTime( int32 KeyIndex, float NewKeyTime, bool bUpdateOrder)
 {
 	if( KeyIndex < 0 || KeyIndex >= Keys.Num() )
 	{
@@ -122,7 +122,7 @@ int32 UFaceFXMatineeControl::SetKeyframeTime( int32 KeyIndex, float NewKeyTime, 
 	}
 }
 
-void UFaceFXMatineeControl::RemoveKeyframe( int32 KeyIndex ) 
+void UFaceFXMatineeControl::RemoveKeyframe( int32 KeyIndex )
 {
 	if( KeyIndex < 0 || KeyIndex >= Keys.Num() )
 	{
@@ -131,13 +131,13 @@ void UFaceFXMatineeControl::RemoveKeyframe( int32 KeyIndex )
 	Keys.RemoveAt(KeyIndex);
 }
 
-int32 UFaceFXMatineeControl::DuplicateKeyframe( int32 KeyIndex, float NewKeyTime, UInterpTrack* ToTrack) 
+int32 UFaceFXMatineeControl::DuplicateKeyframe( int32 KeyIndex, float NewKeyTime, UInterpTrack* ToTrack)
 {
 	if( KeyIndex < 0 || KeyIndex >= Keys.Num() )
 	{
 		return INDEX_NONE;
 	}
-	
+
 	/* Make sure the destination track is specified. */
 	UFaceFXMatineeControl* DestTrack = this;
 	if ( ToTrack )
@@ -153,7 +153,7 @@ int32 UFaceFXMatineeControl::DuplicateKeyframe( int32 KeyIndex, float NewKeyTime
 	return i;
 }
 
-bool UFaceFXMatineeControl::GetClosestSnapPosition( float InPosition, TArray<int32>& IgnoreKeys, float& OutPosition ) 
+bool UFaceFXMatineeControl::GetClosestSnapPosition( float InPosition, TArray<int32>& IgnoreKeys, float& OutPosition )
 {
 	if(Keys.Num() == 0)
 	{
@@ -179,7 +179,7 @@ bool UFaceFXMatineeControl::GetClosestSnapPosition( float InPosition, TArray<int
 	return bFoundSnap;
 }
 
-int32 UFaceFXMatineeControl::AddKeyframe( float Time, UInterpTrackInst* TrackInst, EInterpCurveMode InitInterpMode ) 
+int32 UFaceFXMatineeControl::AddKeyframe( float Time, UInterpTrackInst* TrackInst, EInterpCurveMode InitInterpMode )
 {
 	UFaceFXMatineeControlInst* TrackInstFaceFX = CastChecked<UFaceFXMatineeControlInst>(TrackInst);
 
@@ -187,7 +187,7 @@ int32 UFaceFXMatineeControl::AddKeyframe( float Time, UInterpTrackInst* TrackIns
 	NewKey.Time = Time;
 
 	//insert and order by time
-	int32 i = 0; 
+	int32 i = 0;
 	for(i = 0; i < Keys.Num() && Keys[i].Time < Time; ++i);
 	Keys.Insert(NewKey, i);
 
@@ -196,7 +196,7 @@ int32 UFaceFXMatineeControl::AddKeyframe( float Time, UInterpTrackInst* TrackIns
 }
 
 
-void UFaceFXMatineeControl::PreviewUpdateTrack( float NewPosition, UInterpTrackInst* TrackInst ) 
+void UFaceFXMatineeControl::PreviewUpdateTrack( float NewPosition, UInterpTrackInst* TrackInst )
 {
 	UInterpGroupInst* GrInst = CastChecked<UInterpGroupInst>( TrackInst->GetOuter() );
 	AMatineeActor* MatineeActor = CastChecked<AMatineeActor>( GrInst->GetOuter() );
@@ -289,7 +289,7 @@ UFaceFXAnim* GetAnimation(const FFaceFXTrackKey& Track, UObject* Owner)
 	return NewAnim;
 }
 
-void UFaceFXMatineeControl::UpdateTrack( float NewPosition, UInterpTrackInst* TrackInst, bool bJump ) 
+void UFaceFXMatineeControl::UpdateTrack( float NewPosition, UInterpTrackInst* TrackInst, bool bJump )
 {
 	check(TrackInst);
 
@@ -378,7 +378,7 @@ void UFaceFXMatineeControl::UpdateTrack( float NewPosition, UInterpTrackInst* Tr
 			if(!IsPlayingOrPaused || TrackKeyPair.Key != TrackInstFaceFX->GetCurrentTrackIndex(SkelMeshTarget))
 			{
 				//start playback of a new animation
-				
+
 				const float PlaybackStartPosition = NewPosition - TrackKey->Time;
 				checkf(PlaybackStartPosition >= 0.F, TEXT("Invalid animation start location"));
 
@@ -411,8 +411,8 @@ void UFaceFXMatineeControl::UpdateTrack( float NewPosition, UInterpTrackInst* Tr
 			}
 		}
 	}
-	
-	TrackInstFaceFX->LastUpdatePosition = NewPosition;	
+
+	TrackInstFaceFX->LastUpdatePosition = NewPosition;
 }
 
 void UFaceFXMatineeControl::DrawTrack( FCanvas* Canvas, UInterpGroup* Group, const FInterpTrackDrawParams& Params )
@@ -434,7 +434,7 @@ void UFaceFXMatineeControl::DrawTrack( FCanvas* Canvas, UInterpGroup* Group, con
 	//cached animation ids
 	TArray<FFaceFXAnimId> AnimIds;
 	AnimIds.AddUninitialized(Keys.Num());
-	
+
 	//Draw the tiles for each animation
 	for (int32 i = 0; i < Keys.Num(); i++)
 	{
@@ -472,7 +472,7 @@ void UFaceFXMatineeControl::DrawTrack( FCanvas* Canvas, UInterpGroup* Group, con
 
 		const FColor& BorderColor = bKeySelected ? KeySelectedColor : KeyColorBlack;
 
-		if(bAllowBarSelection) 
+		if(bAllowBarSelection)
 		{
 			Canvas->SetHitProxy(new HInterpTrackKeypointProxy(Group, this, i));
 		}
@@ -483,7 +483,7 @@ void UFaceFXMatineeControl::DrawTrack( FCanvas* Canvas, UInterpGroup* Group, con
 			Canvas->SetHitProxy(nullptr);
 		}
 	}
-	
+
 	// Use base-class to draw key triangles
 	Super::DrawTrack( Canvas, Group, Params );
 
@@ -491,7 +491,7 @@ void UFaceFXMatineeControl::DrawTrack( FCanvas* Canvas, UInterpGroup* Group, con
 	for (int32 i = 0; i < Keys.Num(); i++)
 	{
 		const FFaceFXTrackKey& AnimKey = Keys[i];
-		
+
 		//fetch the cached animation id for the key
 		const FFaceFXAnimId& AnimId = AnimIds[i];
 
@@ -540,7 +540,7 @@ float FFaceFXTrackKey::GetAnimationDuration(const AActor* Actor) const
 				AnimationDuration = AnimEnd - AnimStart;
 			}
 		}
-		else 
+		else
 #endif //FACEFX_USEANIMATIONLINKAGE
 		if(UFaceFXAnim* TargetAnimation = GetAnimation(*this, nullptr))
 		{

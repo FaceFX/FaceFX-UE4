@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -79,7 +79,7 @@ bool IsFolderEmpty(const FString& RelativeFolder)
 	return DirIterator.bIsEmpty;
 }
 
-/** 
+/**
 * Gets the filename for an animation asset
 * @param Folder The compilation folder
 * @param Group The animation group id
@@ -91,7 +91,7 @@ FString GetAnimAssetFileName(const FString& Folder, const FString& Group, const 
 	return FFaceFXEditorTools::GetPlatformFolder(Folder, Target) / Group / (AnimationId + FACEFX_FILEEXT_ANIM);
 }
 
-/** 
+/**
 * Finds a UFaceFXAnim asset that is linked to the same source file
 * @param FaceFxFilepath The path to the source .facefx asset file
 * @returns The asset that links to the same source file or nullptr if not found
@@ -105,9 +105,9 @@ UFaceFXAnim* FindAnimationAsset(const FString& SourceAssetFolder, const FString&
 	}
 
 	IFileManager& FileManager = IFileManager::Get();
-	
+
 	FString SourceAssetFolderAbs;
-	
+
 	TArray<FAssetData> Assets;
 
 	IAssetRegistry& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(AssetRegistryConstants::ModuleName).Get();
@@ -120,7 +120,7 @@ UFaceFXAnim* FindAnimationAsset(const FString& SourceAssetFolder, const FString&
 			if(!Asset)
 			{
 				//synchronously load sound asset
-				Asset = Cast<UFaceFXAnim>(StaticLoadObject(UFaceFXAnim::StaticClass(), nullptr, *AssetData.ToStringReference().ToString()));	
+				Asset = Cast<UFaceFXAnim>(StaticLoadObject(UFaceFXAnim::StaticClass(), nullptr, *AssetData.ToStringReference().ToString()));
 			}
 
 			checkf(Asset, TEXT("Internal Error. UFaceFXAnim asset not loaded. %s"), *AssetData.ToStringReference().ToString());
@@ -152,10 +152,10 @@ struct FFaceFXAudioMapEntry
 {
 	/** The animation group*/
 	FString Group;
-	
+
 	/** The animation id */
 	FString AnimationId;
-	
+
 	/** The relative audio path */
 	FString AudioPath;
 };
@@ -291,7 +291,7 @@ bool FFaceFXImportActionResult::Rollback()
 
 		return true;
 	}
-	
+
 	return false;
 }
 
@@ -457,9 +457,9 @@ bool FFaceFXEditorTools::ImportFaceFXAsset(UFaceFXAsset* Asset, const FString& A
 		return false;
 	}
 
-	const FString CompilationFolder = GetCompilationFolder(AssetPath);	
+	const FString CompilationFolder = GetCompilationFolder(AssetPath);
 	const bool ImportResult = LoadFromCompilationFolder(Asset, CompilationFolder, OutResultMessages);
-	
+
 	BeforeDeletionCallback.ExecuteIfBound(Asset, CompilationFolder, ImportResult, OutResultMessages);
 
 	if(ImportResult)
@@ -522,7 +522,7 @@ bool FFaceFXEditorTools::LoadCompiledPlatformActorData(UFaceFXActor* Asset, cons
             }
         }
     }
-    
+
     if(!allPresent)
     {
         return false;
@@ -552,10 +552,10 @@ bool FFaceFXEditorTools::LoadCompiledPlatformActorData(UFaceFXActor* Asset, cons
         FFaceFXActorData& TargetData = Asset->GetOrCreatePlatformData(Target);
 
         TargetData.Reset();
-        
+
         const FString AssetPathActor = FPaths::Combine(*PlatformFolder, *(AssetName + FACEFX_FILEEXT_ACTOR));
         FFileHelper::LoadFileToArray(TargetData.ActorRawData, *AssetPathActor);
-       
+
         //bones are optional
         const FString AssetPathBones = FPaths::Combine(*PlatformFolder, *(AssetName + FACEFX_FILEEXT_BONES));
         if(FPaths::FileExists(AssetPathBones))
@@ -678,7 +678,7 @@ UFaceFXAnim* FFaceFXEditorTools::ReimportOrCreateAnimAsset(const FString& Compil
 
 	//First try to find an existing Animation Asset that links to the same animation file
 	const FString Filename = GetAnimAssetFileName(CompilationFolder, AnimGroup, AnimFile);
-	
+
 	if(IsImportLookupAnimation())
 	{
 		//Try to find an existing UFaceFXAnim asset that is using the same source .ffxanim file which we could reuse
@@ -693,7 +693,7 @@ UFaceFXAnim* FFaceFXEditorTools::ReimportOrCreateAnimAsset(const FString& Compil
 #else
 				OutResultMessages.AddModifySuccess(LOCTEXT("CreateAssetAnimExistSuccess", "Reimported already existing animation Asset."), ExistingAnim);
 #endif //FACEFX_USEANIMATIONLINKAGE
-	
+
 				SavePackage(ExistingAnim->GetOutermost());
 
 				//inform FaceFX characters about updated asset
@@ -749,7 +749,7 @@ UFaceFXAnim* FFaceFXEditorTools::ReimportOrCreateAnimAsset(const FString& Compil
 	else
 	{
 		OutResultMessages.AddCreateError(LOCTEXT("CreateAssetAnimCreationFailed", "AssetTool Asset creation failed."), NewAsset);
-	}	
+	}
 
 	return nullptr;
 }
@@ -786,7 +786,7 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAsset* Asset, const FS
 	{
 		return LoadFromCompilationFolder(ActorAsset, Folder, OutResultMessages);
 	}
-	
+
 	if(auto AnimAsset = Cast<UFaceFXAnim>(Asset))
 	{
 		return LoadFromCompilationFolder(AnimAsset, Folder, OutResultMessages);
@@ -824,7 +824,7 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXActor* Asset, const FS
 					//not listed in audio map file -> animation not part of .facefx asset anymore
 					OutResultMessages.AddModifyWarning(LOCTEXT("LoadingCompiledActorAnimRemoved", "Linked animation asset does not contain an audio map entry. It may have been moved or deleted. Consider to delete that animation asset."), Animation);
 				}
-			}			
+			}
 		}
 		else
 		{
@@ -930,7 +930,7 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAnim* Asset, const FSt
 		if(!LoadAudioMapData(Asset, Folder, Target, AudioMapData, OutResultMessages))
 		{
 			//audio map file does not exist
-			OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetAmapMissing", "Audio map file is missing for platform {0}."), 
+			OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetAmapMissing", "Audio map file is missing for platform {0}."),
 				FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target))), Asset);
 			allSuccess = false;
 			continue;
@@ -939,7 +939,7 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAnim* Asset, const FSt
 		if(!IsAnimationExistInAudioMap(Asset, AudioMapData))
 		{
 			//not listed in audio map file -> animation not part of .facefx asset anymore
-			OutResultMessages.AddModifyWarning(FText::Format(LOCTEXT("LoadingCompiledAssetAnimRemoved", "Skipped .ffxanim file with no audio map entry. It may have been moved or deleted. Platform: {0}"), 
+			OutResultMessages.AddModifyWarning(FText::Format(LOCTEXT("LoadingCompiledAssetAnimRemoved", "Skipped .ffxanim file with no audio map entry. It may have been moved or deleted. Platform: {0}"),
 				FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target))), Asset);
 
 			//reset asset again
@@ -956,7 +956,7 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAnim* Asset, const FSt
 #endif //FACEFX_DELETE_IMPORTED_ANIM
 			{
 				//Platform data does not exist or is invalid so we actually miss the import data -> reset whole asset again
-				OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetFailedMissing", "Loading initial animation data failed. Source file for platform {0} does not exist: {0}"), 
+				OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetFailedMissing", "Loading initial animation data failed. Source file for platform {0} does not exist: {0}"),
 					FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target)), FText::FromString(File)), Asset);
 				allSuccess = false;
 			}
@@ -976,7 +976,7 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAnim* Asset, const FSt
 		if(!FFileHelper::LoadFileToArray(TargetData.RawData, *File))
 		{
 			//failed
-			OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetFailed", "Loading compiled data for platform {0} failed. File: {1}"), 
+			OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetFailed", "Loading compiled data for platform {0} failed. File: {1}"),
 				FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target)), FText::FromString(File)), Asset);
 
 			//reset asset again
@@ -1004,7 +1004,7 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAnim* Asset, const FSt
 }
 
 bool FFaceFXEditorTools::LoadAudio(UFaceFXAnim* Asset, const FString& Folder, FFaceFXImportResult& OutResultMessages)
-{	
+{
 	TArray<FFaceFXAudioMapEntry> AudioMapData;
 	if(LoadAudioMapData(Asset, Folder, EFaceFXTargetPlatform::PC, AudioMapData, OutResultMessages))
 	{
@@ -1078,7 +1078,7 @@ bool FFaceFXEditorTools::LoadAudio(UFaceFXAnim* Asset, const FString& Folder, FF
 							{
 								IFileManager::Get().DeleteDirectory(*FolderPath);
 							}
-									
+
 							//sync back to the original asset
 							IContentBrowserSingleton& ContentBrowser = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser").Get();
 							ContentBrowser.SyncBrowserToAssets(ImportedAssets);
@@ -1109,7 +1109,7 @@ bool FFaceFXEditorTools::LoadAudio(UFaceFXAnim* Asset, const FString& Folder, FF
 					return false;
 				}
 			}
-			
+
 			//mapping entry found and either the audio file was found or not. If not ignore this audio entry completely
 			return true;
 		}
@@ -1135,7 +1135,7 @@ TAssetPtr<USoundWave> FFaceFXEditorTools::LocateAudio(const FString& AudioSource
 			if(!Asset)
 			{
 				//synchronously load sound asset
-				Asset = Cast<USoundWave>(StaticLoadObject(USoundWave::StaticClass(), nullptr, *AssetData.ToStringReference().ToString()));	
+				Asset = Cast<USoundWave>(StaticLoadObject(USoundWave::StaticClass(), nullptr, *AssetData.ToStringReference().ToString()));
 			}
 
 			checkf(Asset, TEXT("Internal Error. USoundWave asset not loaded. %s"), *AssetData.ToStringReference().ToString());
@@ -1147,7 +1147,7 @@ TAssetPtr<USoundWave> FFaceFXEditorTools::LocateAudio(const FString& AudioSource
 			}
 		}
 	}
-	
+
 	UE_LOG(LogFaceFX, Warning, TEXT("FFaceFXEditorTools::LocateAudio. Unable to find USoundWave assets for: %s. Creating a new one..."), *AudioSourceFile);
 
 	return nullptr;
@@ -1216,7 +1216,7 @@ void FFaceFXEditorTools::ContentBrowserFocusAsset(const FStringAssetReference& A
 	//UObject* AssetObj = Asset.ResolveObject();
 	UObject* AssetObj = nullptr;
 	FAssetData AssetData(AssetObj);
-	
+
 	if(!AssetObj)
 	{
 		const FString AssetStr = Asset.ToString();

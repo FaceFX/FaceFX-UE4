@@ -1,6 +1,6 @@
 /*******************************************************************************
 The MIT License (MIT)
-Copyright (c) 2015 OC3 Entertainment, Inc.
+Copyright (c) 2015-2016 OC3 Entertainment, Inc.
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -34,7 +34,7 @@ class UFaceFXAnimationSection : public UMovieSceneSection
 	GENERATED_UCLASS_BODY()
 
 public:
-	
+
 	inline void SetData(const FFaceFXAnimComponentSet& AnimCompSet)
 	{
 		Animation = AnimCompSet.Animation;
@@ -44,7 +44,7 @@ public:
 
 	/** Sets the skel mesh component id */
 	inline void SetComponent(const FFaceFXSkelMeshComponentId& Component)
-	{ 
+	{
 		SkelMeshComponentId = Component;
 	}
 
@@ -77,7 +77,7 @@ public:
 	{
 		return Animation;
 	}
-	
+
 	/**
 	* Loads the animation represented by this section
 	* @param Owner The owner of the potentially loaded animation data
@@ -107,27 +107,27 @@ public:
 #endif
 
 	/** Gets the start offset into the animation clip */
-	inline float GetStartOffset() const 
-	{ 
-		return StartOffset; 
+	inline float GetStartOffset() const
+	{
+		return StartOffset;
 	}
 
 	/** Sets the start offset into the animation clip */
-	inline void SetStartOffset(float InStartOffset) 
-	{ 
-		StartOffset = InStartOffset; 
+	inline void SetStartOffset(float InStartOffset)
+	{
+		StartOffset = InStartOffset;
 	}
 
 	/** Gets the end offset into the animation clip */
-	inline float GetEndOffset() const 
-	{ 
-		return EndOffset; 
+	inline float GetEndOffset() const
+	{
+		return EndOffset;
 	}
 
 	/** Sets the end offset into the animation clip */
-	inline void SetEndOffset(float InEndOffset) 
-	{ 
-		EndOffset = InEndOffset; 
+	inline void SetEndOffset(float InEndOffset)
+	{
+		EndOffset = InEndOffset;
 	}
 
 	//UMovieSceneSection

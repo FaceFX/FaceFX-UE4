@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -114,7 +114,7 @@ public:
 		return JumpTo(0.F);
 	}
 
-	/** 
+	/**
 	* Jumps to a given position within the facial animation playback
 	* @param Position The target position to jump to (in seconds). Ranges from 0 to animation duration
 	* @returns True if succeeded, else false
@@ -177,7 +177,7 @@ public:
 	*/
 	bool IsPlayingOrPaused(const class UFaceFXAnim* Animation) const;
 
-	/** 
+	/**
 	* Gets the indicator if this character is currently pausing a facial animation
 	* @returns True If the character is having a paused facial animation, else false
 	*/
@@ -195,7 +195,7 @@ public:
 		return AudioPlaybackState == EPlaybackState::Playing;
 	}
 
-	/** 
+	/**
 	* Gets the indicator if the audio is currently playing or paused
 	* @returns True if paused or playing, else false
 	*/
@@ -213,14 +213,14 @@ public:
 		return bIsLooping;
 	}
 
-	/** 
+	/**
 	* Checks if the character FaceFX actor handle can play the given animation
 	* @param Animation The animation to check
 	* @returns True if it can play the animation, else false
 	*/
 	bool IsCanPlay(const UFaceFXAnim* Animation) const;
 
-	/** 
+	/**
 	* Gets the indicator if the audio shall be played automatically if available
 	* @returns True if auto play is enabled, else false
 	*/
@@ -229,7 +229,7 @@ public:
 		return bIsAutoPlaySound;
 	}
 
-	/** 
+	/**
 	* Sets the indicator if the audio shall be played automatically if available
 	* @param isAutoPlaySound The new indicator value
 	*/
@@ -278,7 +278,7 @@ public:
 		return FaceFXActor;
 	}
 
-	/** 
+	/**
 	* Sets the audio component for this character
 	* @param Component The new audio component
 	*/
@@ -295,7 +295,7 @@ public:
 
 #if FACEFX_USEANIMATIONLINKAGE
 
-	/** 
+	/**
 	* Gets the start and end time of a given animation
 	* @param Actor Contextual actor to fetch the FaceFX character from
 	* @param AnimId The animation id to fetch the bounds for
@@ -315,7 +315,7 @@ public:
 	*/
 	static bool GetAnimationBoundsById(const UFaceFXActor* FaceFXActor, const FFaceFXAnimId& AnimId, float& OutStart, float& OutEnd);
 
-	/** 
+	/**
 	* Gets the start and end time of a given animation
 	* @param AnimId The animation id to fetch the bounds for
 	* @param OutStart The start time if call succeeded
@@ -327,7 +327,7 @@ public:
 		return GetAnimationBoundsById(FaceFXActor, AnimId, OutStart, OutEnd);
 	}
 
-	/** 
+	/**
 	* Gets the list of animation ids of all animations that are currently linked to this character
 	* @param OutAnimIds The resulting list of animation ids
 	* @returns True if call succeeded, else false
@@ -335,7 +335,7 @@ public:
 	bool GetAllLinkedAnimationIds(TArray<FFaceFXAnimId>& OutAnimIds) const;
 #endif //FACEFX_USEANIMATIONLINKAGE
 
-	/** 
+	/**
 	* Gets the start and end time of a given animation
 	* @param Animation The animation to fetch the bounds for
 	* @param OutStart The start time if call succeeded
@@ -343,7 +343,7 @@ public:
 	* @returns True if succeeded, else false
 	*/
 	static bool GetAnimationBounds(const class UFaceFXAnim* Animation, float& OutStart, float& OutEnd);
-	
+
 	/** Event that triggers whenever an asset was tried to get played which is incompatible to the FaceFX actor handle */
 	static FOnFaceFXCharacterPlayAssetIncompatibleSignature OnFaceFXCharacterPlayAssetIncompatible;
 
@@ -366,44 +366,44 @@ private:
 		return CurrentAnim;
 	}
 
-	/** 
+	/**
 	* Gets the skel mesh component that owns this FaceFX character
 	* @returns The owning skel mesh component or nullptr if not found
 	*/
 	class USkeletalMeshComponent* GetOwningSkelMeshComponent() const;
 
-	/** 
+	/**
 	* Gets the FaceFX component that owns this FaceFX character instance
 	* @returns The FaceFX component or nullptr if there is no or another owner of this FaceFX character instance
 	*/
 	class UFaceFXComponent* GetOwningFaceFXComponent() const;
 
-	/** 
+	/**
 	* Gets the owning actor
 	* @returns The actor or nullptr if not belonging to one
 	*/
 	class AActor* GetOwningActor() const;
 
-	/** 
+	/**
 	* Gets the audio component assigned to this character. If not set the audio component will be looked up from the owning actors component list
 	* @returns The audio component or nullptr if not found
 	*/
 	class UAudioComponent* GetAudioComponent() const;
 
-	/** 
+	/**
 	* Checks if the character FaceFX actor handle can play the given animation handle
 	* @param AnimationHandle The animation handle to check
 	* @returns True if it can play the animation, else false
 	*/
 	bool IsCanPlay(struct ffx_anim_handle_t* AnimationHandle) const;
 
-	/** 
+	/**
 	* Gets the indicator if the audio start event was triggered within the current frame state
 	* @returns True if audio was started, else false
 	*/
 	bool IsAudioStarted();
 
-	/** 
+	/**
 	* Gets the start and end time of the current animation
 	* @param OutStart The start time if call succeeded
 	* @param OutEnd The end time if call succeeded
@@ -426,14 +426,14 @@ private:
 	*/
 	void UnloadCurrentAnim();
 
-	/** 
-	* Prepares the audio data if needed for the current animation 
+	/**
+	* Prepares the audio data if needed for the current animation
 	* @param Animation The animation to prepare the audio for
 	*/
 	void PrepareAudio(const UFaceFXAnim* Animation);
 
-	/** 
-	* Plays the audio if available 
+	/**
+	* Plays the audio if available
 	* @param OutAudioComp The audio component on which audio was started to play. Unchanged if function returns false
 	* @returns True if audio playback successfully started on the owning actors Audio component, else false
 	*/
@@ -442,29 +442,29 @@ private:
 		return PlayAudio(0.F, OutAudioComp);
 	}
 
-	/** 
-	* Plays the audio if available 
+	/**
+	* Plays the audio if available
 	* @param Position The position to start the audio at. Ranging from 0 to audio playback duration. Keep at 0 to start from the beginning. Will be clamped at 0
 	* @param OutAudioComp The audio component on which audio was started to play. Unchanged if function returns false
 	* @returns True if audio playback successfully started on the owning actors Audio component, else false
 	*/
 	bool PlayAudio(float Position = 0.F, class UAudioComponent** OutAudioComp = nullptr);
 
-	/** 
+	/**
 	* Pausing the playback of the currently playing audio
 	* @param fadeOut Indicator if the playback shall fade out quickly instead of stopping
 	* @returns True if succeeded, else false
 	*/
 	bool PauseAudio(bool fadeOut = false);
 
-	/** 
+	/**
 	* Stops the playback of the currently playing audio
 	* @param enforceAudioCompStop Indicator if the stop on the audio component is enforced
 	* @returns True if succeeded, else false
 	*/
 	bool StopAudio(bool enforceAudioCompStop = false);
 
-	/** 
+	/**
 	* Resumes the playback of the currently paused audio
 	* @returns True if succeeded, else false
 	*/
@@ -479,7 +479,7 @@ private:
 		Tick(0.F);
 	}
 
-	/** 
+	/**
 	* Performs ticks from 0 to Duration in small enough timesteps to find out the location where the audio was triggered
 	* @param Duration The duration until to tick to
 	* @param OutAudioStarted True if the audio was started until the duration was reached, else false
@@ -487,8 +487,8 @@ private:
 	*/
 	bool TickUntil(float Duration, bool& OutAudioStarted);
 
-	/** 
-	* Retrieves the morph targets for a skel mesh and creates FaceFX indices for the names 
+	/**
+	* Retrieves the morph targets for a skel mesh and creates FaceFX indices for the names
 	* @returns True if setup succeeded, else false
 	*/
 	bool SetupMorphTargets();
@@ -595,7 +595,7 @@ private:
 	/** The event callback handle for OnFaceFXAnimChanged */
 	FDelegateHandle OnFaceFXAnimChangedHandle;
 
-	/** 
+	/**
 	* Callback for when an asset changed
 	* @param Asset The asset which changed
 	*/

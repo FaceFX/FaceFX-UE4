@@ -1,6 +1,6 @@
 /*******************************************************************************
 The MIT License (MIT)
-Copyright (c) 2015 OC3 Entertainment, Inc.
+Copyright (c) 2015-2016 OC3 Entertainment, Inc.
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -56,7 +56,7 @@ void FFaceFXAnimationKeyDetailsDialog::CloseDialog(bool bCanceled, bool bTrigger
 	}
 
 	if (triggerEvent)
-	{ 
+	{
 		OnDialogCloseDelegate.ExecuteIfBound();
 	}
 }
@@ -249,12 +249,12 @@ bool FFaceFXAnimationKeyDetailsDialog::ShowDialog(UFaceFXComponent* FaceFXCompon
 {
 	Reset();
 	CloseDialog(true, true);
-	
+
 	TSharedPtr< SWindow > Parent;
-    
+
     TArray<TSharedRef<SWindow> > AllWindows;
     FSlateApplication::Get().GetAllVisibleWindowsOrdered(AllWindows);
-    
+
     if (AllWindows.Num() != 0)
     {
         Parent = AllWindows[0];
@@ -264,7 +264,7 @@ bool FFaceFXAnimationKeyDetailsDialog::ShowDialog(UFaceFXComponent* FaceFXCompon
 	{
 		EntryPopupMenu = FSlateApplication::Get().PushMenu(Parent.ToSharedRef(), FWidgetPath(), CreateWidget(FaceFXComponent, OnCloseDelegeate), FSlateApplication::Get().GetCursorPos(), FPopupTransitionEffect(FPopupTransitionEffect::TypeInPopup));
 	}
-    
+
   	return EntryPopupMenu.IsValid();
 }
 
@@ -365,4 +365,4 @@ void FFaceFXAnimationKeyDetailsDialog::OnAnimIdComboBoxSelected(TSharedPtr<FFace
 
 #endif //FACEFX_USEANIMATIONLINKAGE
 
-#undef LOCTEXT_NAMESPACE 
+#undef LOCTEXT_NAMESPACE

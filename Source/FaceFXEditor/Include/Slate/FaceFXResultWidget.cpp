@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -41,10 +41,10 @@ TArray<FFaceFXResultWidget::FResultWidgetInstance> FFaceFXResultWidget::s_OpenIn
 void FFaceFXAssetRefWidget::Construct(const FArguments& Args)
 {
 	const FString AssetRefStr = Args._AssetRef.ToString();
-	
+
 	FString AssetRefStrShort = FPackageName::GetShortName(*AssetRefStr);
 	AssetRefStrShort.Split(TEXT("."), &AssetRefStrShort, nullptr);
-	
+
 	const float HalfMarginBetweenButtonAndText = 2.5F;
 
 	ChildSlot
@@ -233,9 +233,9 @@ void FFaceFXResultWidget::UpdateTitle()
 			}
 		}
 
-		Window->SetTitle(FText::Format(LOCTEXT("ResultTitleFormat", "{0}  ({1} Successes, {2} Warnings, {3} Errors)"), WindowTitle, 
+		Window->SetTitle(FText::Format(LOCTEXT("ResultTitleFormat", "{0}  ({1} Successes, {2} Warnings, {3} Errors)"), WindowTitle,
 			FText::FromString(FString::FromInt(NumSuccesses)),
-			FText::FromString(FString::FromInt(NumWarnings)), 
+			FText::FromString(FString::FromInt(NumWarnings)),
 			FText::FromString(FString::FromInt(NumErrors))));
 	}
 }
@@ -249,7 +249,7 @@ EAppReturnType::Type FFaceFXResultWidget::OpenDialog(const FText& InTitle, bool 
 		.ClientSize(FVector2D(1024.F, 800.F));
 
 	Window->SetContent(AsShared());
-	
+
 	//add instance to the open list
 	s_OpenInstances.Add(FResultWidgetInstance(Window, AsShared(), InTitle));
 
@@ -261,7 +261,7 @@ EAppReturnType::Type FFaceFXResultWidget::OpenDialog(const FText& InTitle, bool 
 	{
 		FSlateApplication::Get().AddWindow(Window);
 	}
-	
+
 	UpdateTitle();
 
 	return EAppReturnType::Ok;
@@ -297,7 +297,7 @@ FReply FFaceFXResultWidget::OnRollbackChanges()
 	//filter out create entries
 	TArray<TSharedPtr<ListRowEntry>> SelectedEntries = ListView->GetSelectedItems();
 	TArray<TSharedPtr<ListRowEntry>> SelectedCreateEntries;
-	
+
 	for(TSharedPtr<ListRowEntry>& Entry : SelectedEntries)
 	{
 		if(Entry->Result.CanRollback())
@@ -330,7 +330,7 @@ FReply FFaceFXResultWidget::OnRollbackChanges()
 		}
 
 		FMessageDialog::Open(EAppMsgType::Ok,
-			FText::Format(LOCTEXT("ImportRollbackImportResult", "{0} out of {1} actions successfully rolled back"), 
+			FText::Format(LOCTEXT("ImportRollbackImportResult", "{0} out of {1} actions successfully rolled back"),
 			FText::FromString(FString::FromInt(RollbackSuccessCount)),
 			FText::FromString(FString::FromInt(SelectedCreateEntries.Num()))),
 			&DialogTitle);
@@ -367,32 +367,32 @@ TSharedRef<SWidget> FFaceFXResultWidget::ListRowWidget::GenerateWidgetForColumn(
 		static const FText s_textSuccess = LOCTEXT("ResultTypeSuccess","Success");
 		static const FText s_textWarning = LOCTEXT("ResultTypeWarning","Warning");
 		static const FText s_textError = LOCTEXT("ResultTypeError","Error");
-		
+
 		const FSlateBrush* Brush = nullptr;
 		const FText* Tooltip = nullptr;
 		switch(Entry->Result.GetResultType())
 		{
-		case FFaceFXImportActionResult::ResultType::Success: 
+		case FFaceFXImportActionResult::ResultType::Success:
 			{
-				Brush = s_BrushSuccess; 
-				Tooltip = &s_textSuccess; 
+				Brush = s_BrushSuccess;
+				Tooltip = &s_textSuccess;
 				break;
 			}
-		case FFaceFXImportActionResult::ResultType::Warning: 
+		case FFaceFXImportActionResult::ResultType::Warning:
 			{
-				Brush = s_BrushWarning; 
-				Tooltip = &s_textWarning; 
+				Brush = s_BrushWarning;
+				Tooltip = &s_textWarning;
 				break;
 			}
-		case FFaceFXImportActionResult::ResultType::Error: 
+		case FFaceFXImportActionResult::ResultType::Error:
 			{
-				Brush = s_BrushError; 
-				Tooltip = &s_textError; 
+				Brush = s_BrushError;
+				Tooltip = &s_textError;
 				break;
 			}
 		}
 
-		return 
+		return
 			SNew(SBox)
 			.Padding(s_ContentHeaderPadding)
 			.HAlign(HAlign_Center)
@@ -411,11 +411,11 @@ TSharedRef<SWidget> FFaceFXResultWidget::ListRowWidget::GenerateWidgetForColumn(
 		case FFaceFXImportActionResult::ActionType::Modify: Action = LOCTEXT("ResultActionTypeModify","Modify"); break;
 		}
 
-		return 
+		return
 			SNew(SBox)
 			.Padding(s_ContentHeaderPadding)
-			[ 
-				SNew(STextBlock).Text(Action) 
+			[
+				SNew(STextBlock).Text(Action)
 			];
 	}
 	else if(ColumnName == s_ColIdMessage)
@@ -423,7 +423,7 @@ TSharedRef<SWidget> FFaceFXResultWidget::ListRowWidget::GenerateWidgetForColumn(
 		const FText& Message = Entry->Result.GetMessage();
 		return SNew(SBox)
 			.Padding(s_ContentHeaderPadding)
-			[ 
+			[
 				SNew(STextBlock).Text(Message).ToolTip(SNew(SToolTip).Text(Message))
 			];
 	}

@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -32,7 +32,7 @@ UFaceFXAsset::UFaceFXAsset(const class FObjectInitializer& PCIP) : Super(PCIP)
 
 #if WITH_EDITORONLY_DATA
 
-/** 
+/**
 * Clear platform specific data based on the target Archive platform
 * @param Ar The archive to use
 * @param platformData The data to clear
@@ -53,7 +53,7 @@ template <typename T> bool UFaceFXAsset::ClearPlatformData(const FArchive& Ar, T
 	{
 		TargetPlatform = EFaceFXTargetPlatform::PS4;
 	}
-	else 
+	else
 #endif //FACEFX_SUPPORT_PS4
 #if FACEFX_SUPPORT_XBONE
 	if(Platform.Equals("XBoxOne", ESearchCase::IgnoreCase))
@@ -68,7 +68,7 @@ template <typename T> bool UFaceFXAsset::ClearPlatformData(const FArchive& Ar, T
 		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXAsset::ClearPlatformData. The cooking platform %s is not supported by FaceFX. Asset: %s"), *Platform, *GetNameSafe(this));
 		return false;
 	}
-		
+
 	//fetch entry for the target platform and move it to the first entry
 	const int32 TargetIdx = PlatformData.IndexOfByKey(TargetPlatform);
 	if(TargetIdx == INDEX_NONE)
@@ -88,6 +88,6 @@ template <typename T> bool UFaceFXAsset::ClearPlatformData(const FArchive& Ar, T
 
 // Explicitly instantiate the implementations we need since the definition is in a .cpp file here.
 template bool UFaceFXAsset::ClearPlatformData<TArray<FFaceFXActorData>>(const class FArchive& Ar, TArray<FFaceFXActorData>&);
-template bool UFaceFXAsset::ClearPlatformData<TArray<FFaceFXAnimData>>(const class FArchive& Ar, TArray<FFaceFXAnimData>&); 
+template bool UFaceFXAsset::ClearPlatformData<TArray<FFaceFXAnimData>>(const class FArchive& Ar, TArray<FFaceFXAnimData>&);
 
 #endif //WITH_EDITORONLY_DATA

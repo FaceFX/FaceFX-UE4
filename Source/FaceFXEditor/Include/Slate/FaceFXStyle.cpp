@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -61,7 +61,7 @@ void FFaceFXStyle::Initialize()
 
     StyleSet->Set(s_BrushIdActor, new FACEFX_IMAGE_PLUGIN_BRUSH(TEXT("Icons/facefxactor"), Icon40));
     StyleSet->Set(s_BrushIdAnim, new FACEFX_IMAGE_PLUGIN_BRUSH(TEXT("Icons/facefxanim"), Icon40));
-	
+
 	const FVector2D Icon16(16.F, 16.F);
     StyleSet->Set(s_BrushIdSuccess, new FACEFX_IMAGE_PLUGIN_BRUSH(TEXT("Icons/facefxsuccess"), Icon16));
     StyleSet->Set(s_BrushIdWarn, new FACEFX_IMAGE_PLUGIN_BRUSH(TEXT("Icons/facefxwarning"), Icon16));

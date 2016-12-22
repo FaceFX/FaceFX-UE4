@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -38,9 +38,9 @@ class FFaceFXEditorModule : public FDefaultModuleImpl
 	virtual void StartupModule() override
 	{
 		IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
-		
+
 		FFaceFXEditorTools::AssetCategory = AssetTools.RegisterAdvancedAssetCategory(FName(TEXT("FaceFX")), LOCTEXT("AssetCategory", "FaceFX"));
-		
+
 		AssetTypeActions.Add(MakeShareable(new FAssetTypeActions_FaceFXActor));
 		AssetTypeActions.Add(MakeShareable(new FAssetTypeActions_FaceFXAnim));
 
@@ -70,7 +70,7 @@ class FFaceFXEditorModule : public FDefaultModuleImpl
 
 		FEditorDelegates::EndPIE.Remove(OnEndPieHandle);
 		FEditorDelegates::PreSaveWorld.Remove(OnPreSaveWorldHandle);
-		
+
 		if(FModuleManager::Get().IsModuleLoaded("AssetTools"))
 		{
 			IAssetTools &AssetTools = FModuleManager::GetModuleChecked<FAssetToolsModule>("AssetTools").Get();
@@ -109,7 +109,7 @@ private:
 			FFaceFXErrorMessageShownData() : Editor(nullptr){}
 
       // Note: jcr -- renamed Character & Asset to Character_ & Asset_ so as not to shadow Character & Asset parameters to OnFaceFXCharacterPlayAssetIncompatible
-			/** 
+			/**
 			* Updates the data
 			* @param SourceEditor The editor which updates this data
 			* @param Character_ The FaceFX character instance who failed to play the animation
@@ -143,7 +143,7 @@ private:
 		static FFaceFXErrorMessageShownData SequencerErrorData;
 		const bool ShowMessageMatinee = MatineeErrorData.Update(GEditor->ActiveMatinee.Get(), Character, Asset);
 		const bool ShowMessageSequencer = SequencerErrorData.Update(FFaceFXAnimationTrackEditor::GetCurrentSequencer().Pin().Get(), Character, Asset);
-		
+
 		if (!ShowMessageMatinee && !ShowMessageSequencer)
 		{
 			return;
@@ -152,7 +152,7 @@ private:
 		//prepare and show error message
 		const AActor* CharacterOwner = Character ? Character->GetTypedOuter<AActor>() : nullptr;
 
-		const FText Msg = FText::Format(LOCTEXT("OnFaceFXCharacterPlayAssetIncompatible", "FaceFX Animation \"{0}\" incompatible with FaceFX instance of actor {1}"), 
+		const FText Msg = FText::Format(LOCTEXT("OnFaceFXCharacterPlayAssetIncompatible", "FaceFX Animation \"{0}\" incompatible with FaceFX instance of actor {1}"),
 			Asset ? FText::FromString(Asset->GetName().ToString()) : FText::GetEmpty(), FText::FromString(CharacterOwner ? CharacterOwner->GetName() : GetNameSafe(Character)));
 
 		FFaceFXEditorTools::ShowError(Msg);
@@ -182,7 +182,7 @@ private:
 	static void PreSaveWorld(uint32 SaveFlags, UWorld* World)
 	{
 		check(World);
-		
+
 		for (TActorIterator<AActor> It(World); It; ++It)
 		{
 			AActor* Actor = (*It);

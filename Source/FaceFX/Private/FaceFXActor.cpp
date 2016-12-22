@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -26,20 +26,20 @@ UFaceFXActor::UFaceFXActor(const class FObjectInitializer& PCIP) : Super(PCIP)
 {
 }
 
-SIZE_T UFaceFXActor::GetResourceSize(EResourceSizeMode::Type Mode)
+void UFaceFXActor::GetResourceSizeEx(FResourceSizeEx& CumulativeResourceSize)
 {
-	SIZE_T ResSize = Super::GetResourceSize(Mode);
+	Super::GetResourceSizeEx(CumulativeResourceSize);
 
 	//only count cooked data without any references
-	if(Mode == EResourceSizeMode::Exclusive)
+	if(CumulativeResourceSize.GetResourceSizeMode() == EResourceSizeMode::Exclusive)
 	{
 		if(PlatformData.Num() > 0)
 		{
 			//take the first entry as an approximation
 			const FFaceFXActorData& Data = PlatformData[0];
-			ResSize += Data.ActorRawData.Num() * Data.ActorRawData.GetTypeSize();
-			ResSize += Data.BonesRawData.Num() * Data.BonesRawData.GetTypeSize();
-			ResSize += Data.Ids.Num() * Data.Ids.GetTypeSize();
+			CumulativeResourceSize.AddDedicatedSystemMemoryBytes(Data.ActorRawData.Num() * Data.ActorRawData.GetTypeSize());
+			CumulativeResourceSize.AddDedicatedSystemMemoryBytes(Data.BonesRawData.Num() * Data.BonesRawData.GetTypeSize());
+			CumulativeResourceSize.AddDedicatedSystemMemoryBytes(Data.Ids.Num() * Data.Ids.GetTypeSize());
 		}
 	}
 	else
@@ -49,13 +49,11 @@ SIZE_T UFaceFXActor::GetResourceSize(EResourceSizeMode::Type Mode)
 		{
 			if(Anim)
 			{
-				ResSize += Anim->GetResourceSize(Mode);
+				Anim->GetResourceSizeEx(CumulativeResourceSize);
 			}
 		}
 #endif
 	}
-
-	return ResSize;
 }
 
 #if WITH_EDITORONLY_DATA
@@ -87,7 +85,7 @@ void UFaceFXActor::Serialize(FArchive& Ar)
 	Super::Serialize(Ar);
 }
 
-/** 
+/**
 * Gets the details in a human readable string representation
 * @param outDetails The resulting details string
 */
@@ -97,7 +95,7 @@ void UFaceFXActor::GetDetails(FString& OutDetails) const
 
 	OutDetails = LOCTEXT("DetailsActorHeader", "FaceFX Actor").ToString() + TEXT("\n\n");
 	OutDetails += LOCTEXT("DetailsSource", "Source: ").ToString() + AssetName + TEXT("\n");
-	
+
 	if(bIsValid)
 	{
 		const int32 EstSize = GetData().ActorRawData.Max() + GetData().BonesRawData.Max() + GetData().Ids.GetTypeSize() * GetData().Ids.Max();

@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -24,7 +24,7 @@
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 
-UAnimGraphNode_BlendFaceFXAnimation::UAnimGraphNode_BlendFaceFXAnimation(const FObjectInitializer& PCIP) : Super(PCIP) 
+UAnimGraphNode_BlendFaceFXAnimation::UAnimGraphNode_BlendFaceFXAnimation(const FObjectInitializer& PCIP) : Super(PCIP)
 {
 }
 
@@ -38,7 +38,7 @@ FText UAnimGraphNode_BlendFaceFXAnimation::GetTooltipText() const
 	return LOCTEXT("BlendAnimationNodeTooltip", "Blends in the bone transforms coming from the FaceFX runtime.");
 }
 
-FText UAnimGraphNode_BlendFaceFXAnimation::GetNodeTitle( ENodeTitleType::Type TitleType ) const 
+FText UAnimGraphNode_BlendFaceFXAnimation::GetNodeTitle( ENodeTitleType::Type TitleType ) const
 {
 	return LOCTEXT("BlendAnimationNodeTitle", "Blend FaceFX Animation");
 }

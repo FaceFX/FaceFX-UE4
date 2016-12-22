@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -56,8 +56,8 @@ class UFaceFXActorFactory : public UFactory
 	* @returns The new object or nullptr if not instantiated
 	*/
 	static UObject* CreateNew(UClass* Class, UObject* InParent, const FName& Name, EObjectFlags Flags, const FCompilationBeforeDeletionDelegate& BeforeDeletionCallback = FCompilationBeforeDeletionDelegate(), FString FaceFXAsset = "");
-	
-	/** 
+
+	/**
 	* Handles the case when a UFaceFXActor asset was created and we want to ask the user to import additional animations
 	* @param Asset the asset that got created
 	* @param CompilationFolder The compilation folder

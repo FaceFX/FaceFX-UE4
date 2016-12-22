@@ -1,6 +1,6 @@
 /*******************************************************************************
 The MIT License (MIT)
-Copyright (c) 2015 OC3 Entertainment, Inc.
+Copyright (c) 2015-2016 OC3 Entertainment, Inc.
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -39,8 +39,8 @@ struct FFaceFXAnimationKeyDetailsDialog
 
 	TSharedRef<SWidget> CreateWidget(UFaceFXComponent* FaceFXComponent, const FSimpleDelegate& OnCloseDelegeate = FSimpleDelegate());
 
-	/** 
-	* Closes the dialog and fires the closed event 
+	/**
+	* Closes the dialog and fires the closed event
 	* @param bCanceled The cancellation indicator to set
 	* @param bTriggerOnlyOnWindowExist Trigger closed event only when window actually existed
 	*/
@@ -67,7 +67,7 @@ struct FFaceFXAnimationKeyDetailsDialog
 		return bIsLooping;
 	}
 
-	/** 
+	/**
 	* Gets the indicator if the window was closed by canceling
 	* @returns True if canceled, else false
 	*/
