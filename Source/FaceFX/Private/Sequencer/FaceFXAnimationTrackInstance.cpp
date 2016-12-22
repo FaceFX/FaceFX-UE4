@@ -1,6 +1,6 @@
 /*******************************************************************************
 The MIT License (MIT)
-Copyright (c) 2015 OC3 Entertainment, Inc.
+Copyright (c) 2015-2016 OC3 Entertainment, Inc.
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -29,8 +29,8 @@ SOFTWARE.
 #include "MovieSceneCommonHelpers.h"
 #include "Animation/AnimInstance.h"
 
-/** 
-* Gets the FaceFX component based on a given object 
+/**
+* Gets the FaceFX component based on a given object
 * @param Object The object to get the FaceFX component from
 * @returns The component if found, else nullptr
 */
@@ -47,8 +47,8 @@ UFaceFXComponent* GetFaceFXComponent(UObject* Object)
 	return FaceFXComponent;
 }
 
-/** 
-* Gets the section playback location for a giving sequencer playback location 
+/**
+* Gets the section playback location for a giving sequencer playback location
 * @param Position The position on the sequencer timeline
 * @param AnimSection The animation section to fetch the position for
 * @returns The playback location for the given section
@@ -139,7 +139,7 @@ void FFaceFXAnimationTrackInstance::Update(EMovieSceneUpdateData& UpdateData, co
 	//update the current anim section within this track
 	const bool IsNewAnimSection = CurrentActiveSection != AnimSection;
 	CurrentActiveSection = AnimSection;
-	
+
 	//update the assigned runtime objects for this track
 	for (int32 i = 0; i < RuntimeObjects.Num(); ++i)
 	{

@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -33,7 +33,7 @@ class FACEFX_API UFaceFXAnim : public UFaceFXAsset
 public:
 
 	//UObject
-	virtual SIZE_T GetResourceSize(EResourceSizeMode::Type Mode) override;
+	virtual void GetResourceSizeEx(FResourceSizeEx& CumulativeResourceSize) override;
 	//~UObject
 
 	/**
@@ -64,11 +64,11 @@ public:
 	* @return The animation count
 	*/
 	virtual int32 GetAnimationCount() const override
-	{ 
+	{
 		return PlatformData.Num() > 0 ? 1 : 0;
 	}
 
-	/** 
+	/**
 	* Gets the absolute path to the source audio file
 	* @param OutResult The absolute path when the function returns true. Unchanged if it returns false
 	* @returns True if the path is set and OutResult was updated, else false
@@ -110,7 +110,7 @@ public:
 		return Audio.GetUniqueID().IsValid();
 	}
 
-	/** 
+	/**
 	* Gets the platform data for the given target platform
 	* @returns The data entry or nullptr if not found
 	*/
@@ -119,7 +119,7 @@ public:
 		return PlatformData.FindByKey(EFaceFXTargetPlatform::PC);
 	}
 
-	/** 
+	/**
 	* Gets the platform data for the given target platform or creates a new entry if missing
 	* @returns The data entry or nullptr if not found
 	*/
@@ -132,8 +132,8 @@ public:
 		return PlatformData[PlatformData.Add(FFaceFXAnimData(Platform))];
 	}
 
-	/** 
-	* Resets the asset 
+	/**
+	* Resets the asset
 	* @param ResetAudio Indicator if the audio shall be resetted as well
 	*/
 	inline void Reset(bool ResetAudio = false)
@@ -160,7 +160,7 @@ public:
 		FFaceFXAnimData* DataForPC = PlatformData.FindByKey(EFaceFXTargetPlatform::PC);
 		checkf(DataForPC, TEXT("Asset not initialized for PC."));
 		return *DataForPC;
-#else		
+#else
 		//cooked build - this will always be the data from the target platform during cooking
 		checkf(PlatformData.Num(), TEXT("Asset not initialized yet."));
 		return PlatformData[0];
@@ -178,7 +178,7 @@ public:
 		const FFaceFXAnimData* DataForPC = PlatformData.FindByKey(EFaceFXTargetPlatform::PC);
 		checkf(DataForPC, TEXT("Asset not initialized for PC."));
 		return *DataForPC;
-#else		
+#else
 		//cooked build - this will always be the data from the target platform during cooking
 		checkf(PlatformData.Num(), TEXT("Asset not initialized yet."));
 		return PlatformData[0];
@@ -259,7 +259,7 @@ private:
 	TAssetPtr<class USoundWave> Audio;
 
 #if WITH_EDITORONLY_DATA
-	
+
 	/** The relative file path to the audio source file */
 	UPROPERTY(EditInstanceOnly, Category=FaceFX)
 	FString AudioPath;

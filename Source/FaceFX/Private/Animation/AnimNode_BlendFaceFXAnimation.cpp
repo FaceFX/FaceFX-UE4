@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -43,8 +43,8 @@ void FAnimNode_BlendFaceFXAnimation::Initialize(const FAnimationInitializeContex
 {
 	ComponentPose.Initialize(Context);
 
-	//fix to size of 1 as we reuse this container when apply a single bone transforms. 
-	//We use this one single container to prevent creation/add/empty of temp containers during runtime per tick and bone. 
+	//fix to size of 1 as we reuse this container when apply a single bone transforms.
+	//We use this one single container to prevent creation/add/empty of temp containers during runtime per tick and bone.
 	//We always directly access [0] assuming an entry was added in here
 	if(TargetBlendTransform.Num() == 0)
 	{
@@ -52,7 +52,7 @@ void FAnimNode_BlendFaceFXAnimation::Initialize(const FAnimationInitializeContex
 	}
 }
 
-void FAnimNode_BlendFaceFXAnimation::CacheBones(const FAnimationCacheBonesContext & Context) 
+void FAnimNode_BlendFaceFXAnimation::CacheBones(const FAnimationCacheBonesContext & Context)
 {
 	ComponentPose.CacheBones(Context);
 
@@ -93,7 +93,7 @@ void FAnimNode_BlendFaceFXAnimation::LoadFaceFXData(FAnimInstanceProxy* AnimInst
 
 				for(const FName& BoneName : BoneNames)
 				{
-					//find index where the transforms of this 
+					//find index where the transforms of this
 					const int32 BoneTransformIdx = FaceFXChar->GetBoneNameTransformIndex(BoneName);
 					if(BoneTransformIdx != INDEX_NONE)
 					{
@@ -105,13 +105,13 @@ void FAnimNode_BlendFaceFXAnimation::LoadFaceFXData(FAnimInstanceProxy* AnimInst
 						}
 						else
 						{
-							UE_LOG(LogFaceFX, Warning, TEXT("BlendFacialAnimation: Unable to find FaceFX bone within skeletal mesh. Bone: %s. SkelMesh: %s. Actor: %s"), 
+							UE_LOG(LogFaceFX, Warning, TEXT("BlendFacialAnimation: Unable to find FaceFX bone within skeletal mesh. Bone: %s. SkelMesh: %s. Actor: %s"),
 								*BoneName.GetPlainNameString(), *GetNameSafe(Component->SkeletalMesh), *GetNameSafe(Component->GetOwner()));
 						}
 					}
 					else
 					{
-						UE_LOG(LogFaceFX, Warning, TEXT("BlendFacialAnimation: Unable to find FaceFX bone transformation index. Bone: %i. Actor: %s"), 
+						UE_LOG(LogFaceFX, Warning, TEXT("BlendFacialAnimation: Unable to find FaceFX bone transformation index. Bone: %i. Actor: %s"),
 							*BoneName.GetPlainNameString(), *GetNameSafe(Component->GetOwner()));
 					}
 				}
@@ -143,7 +143,7 @@ void FAnimNode_BlendFaceFXAnimation::Update(const FAnimationUpdateContext& Conte
 
 void FAnimNode_BlendFaceFXAnimation::Evaluate(FPoseContext& Output)
 {
-	//convert on the fly to component space and back - This should not happen as the node uses CS. 
+	//convert on the fly to component space and back - This should not happen as the node uses CS.
 	//Yet it happened on invalid VIMs. When this happens the blend node needs to be relinked and the VIM needs to be recompiled and saved
 	FComponentSpacePoseContext InputCSPose(Output.AnimInstanceProxy);
 	EvaluateComponentSpace(InputCSPose);

@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -28,7 +28,7 @@ FString FaceFX::GetVersion()
 {
 	char ffx_version_string[32];
 	ffx_strversion(ffx_version_string, 32);
-	
+
 	return FString(ANSI_TO_TCHAR(ffx_version_string));
 }
 

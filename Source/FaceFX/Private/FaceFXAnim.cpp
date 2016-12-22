@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -28,31 +28,29 @@ UFaceFXAnim::UFaceFXAnim(const class FObjectInitializer& PCIP) : Super(PCIP)
 {
 }
 
-SIZE_T UFaceFXAnim::GetResourceSize(EResourceSizeMode::Type Mode)
+void UFaceFXAnim::GetResourceSizeEx(FResourceSizeEx& CumulativeResourceSize)
 {
-	SIZE_T ResSize = Super::GetResourceSize(Mode);
+	Super::GetResourceSizeEx(CumulativeResourceSize);
 
-	if(Mode == EResourceSizeMode::Exclusive)
+	if(CumulativeResourceSize.GetResourceSizeMode() == EResourceSizeMode::Exclusive)
 	{
 		//only count cooked data without any references
-		ResSize += sizeof(FFaceFXAnimId);
+		CumulativeResourceSize.AddDedicatedSystemMemoryBytes(sizeof(FFaceFXAnimId));
 
 		if(PlatformData.Num() > 0)
 		{
 			//take the first entry as an approximation
 			const FFaceFXAnimData& Data = PlatformData[0];
-			ResSize += Data.RawData.Num() * Data.RawData.GetTypeSize();
+			CumulativeResourceSize.AddDedicatedSystemMemoryBytes(Data.RawData.Num() * Data.RawData.GetTypeSize());
 		}
 	}
 	else
 	{
 		if(USoundWave* AudioPtr = Audio.Get())
 		{
-			ResSize += AudioPtr->GetResourceSize(Mode);
+			AudioPtr->GetResourceSizeEx(CumulativeResourceSize);
 		}
 	}
-
-	return ResSize;
 }
 
 #if WITH_EDITORONLY_DATA
@@ -73,7 +71,7 @@ void UFaceFXAnim::GetDetails(FString& OutDetails) const
 	OutDetails += LOCTEXT("DetailsSource", "Source: ").ToString() + AssetName + TEXT("\n");
 	OutDetails += LOCTEXT("DetailsAnimGroup", "Group: ").ToString() + Id.Group.GetPlainNameString() + TEXT("\n");
 	OutDetails += LOCTEXT("DetailsAnimId", "Animation: ").ToString() + Id.Name.GetPlainNameString() + TEXT("\n");
-	
+
 	if(!IsValid())
 	{
 		OutDetails += TEXT("\n") + LOCTEXT("DetailsNotLoaded", "No FaceFX data").ToString();

@@ -1,6 +1,6 @@
 /*******************************************************************************
 The MIT License (MIT)
-Copyright (c) 2015 OC3 Entertainment, Inc.
+Copyright (c) 2015-2016 OC3 Entertainment, Inc.
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -29,7 +29,7 @@ class UFaceFXAnim;
 class FFaceFXAnimationTrackEditor : public FMovieSceneTrackEditor
 {
 public:
-	
+
 	/**
 	* Constructor
 	* @param InSequencer The sequencer instance to be used by track this editor instance
@@ -44,7 +44,7 @@ public:
 	*/
 	static TSharedRef<ISequencerTrackEditor> CreateTrackEditor(TSharedRef<ISequencer> OwningSequencer);
 
-	/** 
+	/**
 	* Gets the currently opened sequencer instance
 	* @returns The sequencer instance or null weak ptr
 	*/
@@ -56,7 +56,7 @@ public:
 	//ISequencerTrackEditor
 	virtual void AddKey(const FGuid& ObjectGuid) override;
 	virtual void BuildObjectBindingTrackMenu(FMenuBuilder& MenuBuilder, const FGuid& ObjectBinding, const UClass* ObjectClass) override;
-	virtual TSharedRef<ISequencerSection> MakeSectionInterface(UMovieSceneSection& SectionObject, UMovieSceneTrack& Track) override;
+	virtual TSharedRef<ISequencerSection> MakeSectionInterface(UMovieSceneSection& SectionObject, UMovieSceneTrack& Track, FGuid ObjectBinding) override;
 	virtual bool SupportsType(TSubclassOf<UMovieSceneTrack> Type) const override;
 	virtual TSharedPtr<SWidget> BuildOutlinerEditWidget(const FGuid& ObjectBinding, UMovieSceneTrack* Track, const FBuildEditWidgetParams& Params) override;
 	//~ISequencerTrackEditor

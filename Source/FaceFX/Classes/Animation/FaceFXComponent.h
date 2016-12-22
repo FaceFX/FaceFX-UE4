@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -35,7 +35,7 @@ struct FACEFX_API FFaceFXEntry
 	GENERATED_USTRUCT_BODY()
 
 	FFaceFXEntry() : SkelMeshComp(nullptr), AudioComp(nullptr), Character(nullptr), bIsAutoPlaySound(true) {}
-	FFaceFXEntry(class USkeletalMeshComponent* InSkelMeshComp, class UAudioComponent* InAudioComp, const TAssetPtr<class UFaceFXActor>& InAsset, bool InIsAutoPlaySound = true, bool InIsDisableMorphTargets = false) : 
+	FFaceFXEntry(class USkeletalMeshComponent* InSkelMeshComp, class UAudioComponent* InAudioComp, const TAssetPtr<class UFaceFXActor>& InAsset, bool InIsAutoPlaySound = true, bool InIsDisableMorphTargets = false) :
 		SkelMeshComp(InSkelMeshComp), AudioComp(InAudioComp), Asset(InAsset), Character(nullptr), bIsAutoPlaySound(InIsAutoPlaySound), bIsDisableMorphTargets(InIsDisableMorphTargets) {}
 
 	/** The linked skelmesh component */
@@ -85,7 +85,7 @@ public:
 	static void AddReferencedObjects(UObject* InThis, FReferenceCollector& Collector);
 	//~UObject
 
-	/** 
+	/**
 	* Setups a FaceFX character to a given skelmesh component
 	* @param SkelMeshComp The skelmesh component to setup the FaceFX character for
 	* @param AudioComponent The audio component to assign to the FaceFX character. Keep empty to use the first audio component found on the owning actor.
@@ -148,7 +148,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category=FaceFX, Meta=(HidePin="Caller", DefaultToSelf="Caller"))
 	bool Resume(USkeletalMeshComponent* SkelMeshComp = nullptr, const UObject* Caller = nullptr);
 
-	/** 
+	/**
 	* Jumps to a given position within the current facial animation playback or at a given animation
 	* @param Position The target position to jump to (in seconds)
 	* @param Pause Indicator if the playback shall be paused right afterwards
@@ -160,7 +160,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category=FaceFX, Meta=(HidePin="Caller", DefaultToSelf="Caller"))
 	bool JumpTo(float Position, bool Pause = false, class UFaceFXAnim* Animation = nullptr, bool LoopAnimation = false, USkeletalMeshComponent* SkelMeshComp = nullptr, const UObject* Caller = nullptr);
 
-	/** 
+	/**
 	* Jumps to a given position within the current facial animation playback or at a given animation
 	* @param Position The target position to jump to (in seconds)
 	* @param Pause Indicator if the playback shall be paused right afterwards
@@ -198,7 +198,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category=FaceFX)
 	FOnFaceFXEventSignature OnPlaybackStopped;
 
-	/** 
+	/**
 	* Gets the skeletal mesh component that is targeted by the given SkelMesh identifier
 	* @param SkelMeshId The skelmesh identifier
 	* @returns The skelmesh component if found, else nullptr
@@ -260,7 +260,7 @@ public:
 		return nullptr;
 	}
 
-	/** 
+	/**
 	* Gets the list of skelmesh component that are setup. Maintains the right order of setup
 	* @param OutSkelMeshComponent The list of skelmesh components
 	*/
@@ -310,7 +310,7 @@ private:
 	/** Processes the current list of registered skelmesh components and creates FaceFX characters for the ones that were not processed yet */
 	void CreateAllCharacters();
 
-	/** 
+	/**
 	* Creates the FaceFX character for a given entry
 	* @param entry The entry to create the character for
 	*/

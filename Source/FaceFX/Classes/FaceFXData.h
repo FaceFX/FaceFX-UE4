@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -43,7 +43,7 @@ namespace EFaceFXTargetPlatform
 /** Helper stuff for the enum EFaceFXTargetPlatform */
 namespace EFaceFXTargetPlatformHelper
 {
-	/** 
+	/**
 	* Converts the given platform type to a string representation
 	* @param Platform The platform type
 	* @returns The string representation
@@ -52,7 +52,7 @@ namespace EFaceFXTargetPlatformHelper
 	{
 		switch(Platform)
 		{
-		case EFaceFXTargetPlatform::PC: 
+		case EFaceFXTargetPlatform::PC:
 			{
 				static FString s_PC = TEXT("PC");
 				return s_PC;
@@ -301,7 +301,7 @@ struct FFaceFXSkelMeshComponentId
 	UPROPERTY()
 	FName Name;
 
-	/** 
+	/**
 	* Gets the indicator if this is a valid id
 	* @returns True if valid, else false
 	*/

@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -52,7 +52,7 @@ struct FFaceFXTrackKey
 	UPROPERTY(EditAnywhere, Category=FaceFX)
 	uint8 bLoop : 1;
 
-	/** 
+	/**
 	* Gets the duration of the assigned animation
 	* @param Actor The contextual actor to fetch the animation id from if needed
 	* @returns The animation duration
@@ -130,7 +130,7 @@ class UFaceFXMatineeControl : public UInterpTrack
 
 private:
 
-	/** 
+	/**
 	* Gets the keyframe data for a given time on the track
 	* @param InTime The time we're currently at on the track
 	* @param OutResult The resulting track keys as a pair of track index and key

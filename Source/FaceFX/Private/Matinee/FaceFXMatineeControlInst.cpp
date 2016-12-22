@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -25,7 +25,7 @@
 #include "Matinee/InterpGroupInst.h"
 #include "Matinee/MatineeActor.h"
 
-UFaceFXMatineeControlInst::UFaceFXMatineeControlInst(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), 
+UFaceFXMatineeControlInst::UFaceFXMatineeControlInst(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer),
 	LastUpdatePosition(0.F)
 {
 }
@@ -41,7 +41,7 @@ void UFaceFXMatineeControlInst::InitTrackInst(UInterpTrack* Track)
 void UFaceFXMatineeControlInst::RestoreActorState(UInterpTrack* Track)
 {
 	UInterpGroupInst* GrInst = CastChecked<UInterpGroupInst>( GetOuter() );
-	
+
 	//called when matinee closes. In that case we stop any running animation/sounds
 	if(const AActor* GroupActor = GrInst->GetGroupActor())
 	{

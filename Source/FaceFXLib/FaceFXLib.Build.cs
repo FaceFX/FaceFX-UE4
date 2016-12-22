@@ -1,6 +1,6 @@
 ﻿/*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -25,14 +25,14 @@ public class FaceFXLib : ModuleRules
 {
     //used to show warning only once.
     static bool DebugLibsWarningDisplayed = false;
-    
+
     //The folder in the FaceFX runtime is located in. You need to update this whenever you update your FaceFX runtime
     public static string RuntimeFolder { get { return "facefx-runtime-1.1.1/facefx"; } }
 
     public FaceFXLib(TargetInfo Target)
     {
         Type = ModuleType.External;
-        
+
         string FaceFXLib;
         string FaceFXDir;
         string FaceFXDirLib;
@@ -65,7 +65,7 @@ public class FaceFXLib : ModuleRules
         FaceFXDir = Path.Combine(new []{ this.ModuleDirectory, RuntimeFolder });
         FaceFXDirLib = string.Empty;
         FaceFXLib = string.Empty;
-        
+
         if (!Directory.Exists(FaceFXDir))
         {
             System.Console.WriteLine(System.String.Format("FaceFX: Cannot find FaceFX Folder '{0}'", FaceFXDir));
