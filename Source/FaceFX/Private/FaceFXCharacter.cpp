@@ -174,7 +174,7 @@ void UFaceFXCharacter::Tick(float DeltaTime)
 		UAudioComponent* AudioCompStartedOn = nullptr;
 		const bool AudioStarted = PlayAudio(&AudioCompStartedOn);
 
-		OnPlaybackStartAudio.Broadcast(this, CurrentAnim, AudioStarted, AudioCompStartedOn);
+		OnPlaybackStartAudio.Broadcast(this, GetCurrentAnimationId(), AudioStarted, AudioCompStartedOn);
 	}
 
 	ProcessMorphTargets();
@@ -353,7 +353,7 @@ bool UFaceFXCharacter::Play(const UFaceFXAnim* Animation, bool Loop)
 
 	if(IsPlayingOrPaused())
 	{
-		if(CurrentAnim != Animation->GetId())
+		if(GetCurrentAnimationId() != Animation->GetId())
 		{
 			//warn only about any animation that is not getting restarted
 			UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::Play. Animation already playing/paused. Stopping now. Actor: %s. Animation: %s"), *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
@@ -361,7 +361,7 @@ bool UFaceFXCharacter::Play(const UFaceFXAnim* Animation, bool Loop)
 		Stop();
 	}
 
-	if(CurrentAnim != Animation->GetId())
+	if(GetCurrentAnimationId() != Animation->GetId())
 	{
 		//animation changed -> create new handle
 
@@ -407,7 +407,7 @@ bool UFaceFXCharacter::Play(const UFaceFXAnim* Animation, bool Loop)
 
 	//reset timers and states
 	CurrentAnimProgress = 0.F;
-	CurrentAnim = Animation->GetId();
+	CurrentAnim = Animation;
 	CurrentAnimStart = AnimStart;
 	AnimPlaybackState = EPlaybackState::Playing;
 	bIsLooping = Loop;
@@ -417,7 +417,7 @@ bool UFaceFXCharacter::Play(const UFaceFXAnim* Animation, bool Loop)
 
 	{
 		SCOPE_CYCLE_COUNTER(STAT_FaceFXEvents);
-		OnPlaybackStarted.Broadcast(this, CurrentAnim);
+		OnPlaybackStarted.Broadcast(this, GetCurrentAnimationId());
 	}
 
 	return true;
@@ -473,7 +473,7 @@ bool UFaceFXCharacter::Pause(bool fadeOut)
 
 	{
 		SCOPE_CYCLE_COUNTER(STAT_FaceFXEvents);
-		OnPlaybackPaused.Broadcast(this, CurrentAnim);
+		OnPlaybackPaused.Broadcast(this, GetCurrentAnimationId());
 	}
 
 	return true;
@@ -500,11 +500,11 @@ bool UFaceFXCharacter::Stop(bool enforceStop)
 		EnforceZeroTick();
 	}
 
-	const FFaceFXAnimId StoppedAnimId = CurrentAnim;
+	const FFaceFXAnimId StoppedAnimId = GetCurrentAnimationId();
 
 	//reset timer and audio query indicator
 	CurrentAnimProgress = .0F;
-	CurrentAnim.Reset();
+	CurrentAnim = nullptr;
 	AnimPlaybackState = EPlaybackState::Stopped;
 	StopAudio(enforceStop);
 
@@ -915,6 +915,11 @@ ffx_anim_handle_t* UFaceFXCharacter::LoadAnimation(const FFaceFXAnimData& AnimDa
 	return NewHandle;
 }
 
+FFaceFXAnimId UFaceFXCharacter::GetCurrentAnimationId() const
+{
+	return CurrentAnim ? CurrentAnim->GetId() : FFaceFXAnimId();
+}
+
 USkeletalMeshComponent* UFaceFXCharacter::GetOwningSkelMeshComponent() const
 {
 	const UFaceFXComponent* FaceFXComp = GetOwningFaceFXComponent();
@@ -1128,7 +1133,7 @@ UFaceFXCharacter::FOnAssetChangedSignature UFaceFXCharacter::OnAssetChanged;
 void UFaceFXCharacter::OnFaceFXAssetChanged(UFaceFXAsset* Asset)
 {
 	UFaceFXAnim* AnimAsset = Cast<UFaceFXAnim>(Asset);
-	if(Asset && (Asset == FaceFXActor || (AnimAsset && CurrentAnim == AnimAsset->GetId())))
+	if(Asset && (Asset == FaceFXActor || (AnimAsset && GetCurrentAnimationId() == AnimAsset->GetId())))
 	{
 		if(UFaceFXActor* ActorAsset = Cast<UFaceFXActor>(Asset))
 		{
