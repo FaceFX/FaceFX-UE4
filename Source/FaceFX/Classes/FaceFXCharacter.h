@@ -158,7 +158,7 @@ public:
 	{
 		return AnimPlaybackState != EPlaybackState::Stopped;
 	}
-
+	
 	/**
 	* Gets the indicator if the character is currently playing an animation with the given animation id
 	* @param AnimId The id to look for
@@ -167,7 +167,8 @@ public:
 	inline bool IsPlayingOrPaused(const FFaceFXAnimId& AnimId) const
 	{
 		//look for the animation by id. If no group is set for the given AnimId, ignore group during comparison
-		return IsPlayingOrPaused() && ((!AnimId.Group.IsNone() && CurrentAnim == AnimId) || AnimId.Name == CurrentAnim.Name);
+		const FFaceFXAnimId CurrentAnimId = GetCurrentAnimationId();
+		return IsPlayingOrPaused() && ((!AnimId.Group.IsNone() && CurrentAnimId == AnimId) || AnimId.Name == CurrentAnimId.Name);
 	}
 
 	/**
@@ -361,10 +362,7 @@ private:
 	* Gets the currently playing animation
 	* @returns The animation name
 	*/
-	inline const FFaceFXAnimId& GetCurrentAnimation() const
-	{
-		return CurrentAnim;
-	}
+	FFaceFXAnimId GetCurrentAnimationId() const;
 
 	/**
 	* Gets the skel mesh component that owns this FaceFX character
@@ -510,11 +508,11 @@ private:
 	static struct ffx_anim_handle_t* LoadAnimation(const struct FFaceFXAnimData& AnimData);
 
 	/** The data set from where this character was loaded from */
-	UPROPERTY()
+	UPROPERTY(Transient)
 	const UFaceFXActor* FaceFXActor;
 
 	/** The audio component assigned to this character */
-	UPROPERTY()
+	UPROPERTY(Transient)
 	class UAudioComponent* AudioComponent;
 
 	/** The associated actor handle */
@@ -562,8 +560,9 @@ private:
 	/** The location at which we are right now on the audio playback (in seconds) */
 	float CurrentAudioProgress;
 
-	/** The id of the currently played animation */
-	FFaceFXAnimId CurrentAnim;
+	/** The animation asset of the currently playing animation */
+	UPROPERTY(Transient)
+	const class UFaceFXAnim* CurrentAnim;
 
 	/** The current audio asset that was assigned to the current animation*/
 	TAssetPtr<class USoundWave> CurrentAnimSound;
