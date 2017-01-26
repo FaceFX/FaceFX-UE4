@@ -136,6 +136,13 @@ void FFaceFXAnimationTrackInstance::Update(EMovieSceneUpdateData& UpdateData, co
 
 	const float PlaybackLocation = CalcPlaybackLocation(UpdateData.Position, AnimSection);
 
+	const EMovieScenePlayerStatus::Type State = Player.GetPlaybackStatus();
+
+	//during reverse playback we use scrubbing instead, as reverse playback on audio component/FaceFX is not supported
+	const bool bIsReversePlayback = UpdateData.Position < UpdateData.LastPosition;
+	const bool bScrub = State != EMovieScenePlayerStatus::Playing || bIsReversePlayback;
+	const bool bPaused = State == EMovieScenePlayerStatus::Stopped && UpdateData.Position == UpdateData.LastPosition;
+	
 	//update the current anim section within this track
 	const bool IsNewAnimSection = CurrentActiveSection != AnimSection;
 	CurrentActiveSection = AnimSection;
@@ -160,17 +167,12 @@ void FFaceFXAnimationTrackInstance::Update(EMovieSceneUpdateData& UpdateData, co
 			FaceFXComponent->Stop(SkelMeshTarget);
 		}
 
-		const EMovieScenePlayerStatus::Type State = Player.GetPlaybackStatus();
-
-		const bool bScrub = State != EMovieScenePlayerStatus::Playing;
-		const bool bPaused = State == EMovieScenePlayerStatus::Stopped && UpdateData.Position == UpdateData.LastPosition;
-
 		//playing backwards or jumping
 		const FFaceFXAnimId& AnimId = AnimSection->GetAnimationId();
 
 		bool UpdateAnimation = true;
 
-		if (State == EMovieScenePlayerStatus::Playing)
+		if (State == EMovieScenePlayerStatus::Playing && !bIsReversePlayback)
 		{
 			//Playback mode
 			if (!IsNewAnimSection && FaceFXComponent->IsPlaying(SkelMeshTarget, RuntimeObject))
