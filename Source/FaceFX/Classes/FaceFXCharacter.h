@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015-2016 OC3 Entertainment, Inc.
+  Copyright (c) 2015-2017 OC3 Entertainment, Inc.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -158,7 +158,7 @@ public:
 	{
 		return AnimPlaybackState != EPlaybackState::Stopped;
 	}
-	
+
 	/**
 	* Gets the indicator if the character is currently playing an animation with the given animation id
 	* @param AnimId The id to look for
