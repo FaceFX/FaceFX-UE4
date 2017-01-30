@@ -30,10 +30,11 @@
 # Windows junk
 Thumbs.db
 
+# macOS junk
+.DS_Store
+
 # FaceFX Runtime & Build binaries
 Binaries
 Intermediate
 Build
-Source/FaceFXLib/facefx-runtime-1.0.0
-Source/FaceFXLib/facefx-runtime-1.1.0
-Source/FaceFXLib/facefx-runtime-1.1.1
+Source/FaceFXLib/facefx-runtime-*
