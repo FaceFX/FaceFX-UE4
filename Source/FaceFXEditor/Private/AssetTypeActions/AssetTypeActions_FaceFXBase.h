@@ -60,5 +60,5 @@ protected:
 private:
 
 	/** Callback function for before the compilation folder gets deleted */
-	void OnReimportBeforeDelete(class UObject* Asset, const FString& CompilationFolder, bool LoadResult, FFaceFXImportResult& OutResultMessages);
+	void OnReimportBeforeDelete(class UObject* Asset, const FString& CompilationFolder, bool LoadResult, struct FFaceFXImportResult& OutResultMessages);
 };

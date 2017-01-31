@@ -18,12 +18,12 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFX.h"
 #include "FaceFXAsset.h"
+#include "FaceFX.h"
 #include "FaceFXData.h"
 
 #if WITH_EDITORONLY_DATA
-#include "TargetPlatform.h"
+#include "ITargetPlatform.h"
 #endif
 
 UFaceFXAsset::UFaceFXAsset(const class FObjectInitializer& PCIP) : Super(PCIP)

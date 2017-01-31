@@ -18,6 +18,7 @@
   SOFTWARE.
 *******************************************************************************/
 
+#include "FaceFXAnim.h"
 #include "FaceFX.h"
 
 #include "Sound/SoundWave.h"

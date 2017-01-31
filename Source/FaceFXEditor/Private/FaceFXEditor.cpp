@@ -30,6 +30,7 @@
 #include "Sequencer/FaceFXAnimationTrackEditor.h"
 
 #include "Matinee/MatineeActor.h"
+#include "EngineUtils.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 

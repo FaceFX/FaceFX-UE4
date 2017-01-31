@@ -18,8 +18,10 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFX.h"
 #include "Animation/FaceFXComponent.h"
+#include "FaceFX.h"
+
+#include "Engine/StreamableManager.h"
 
 UFaceFXComponent::UFaceFXComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), NumAsyncLoadRequestsPending(0)
 {
@@ -185,6 +187,29 @@ bool UFaceFXComponent::IsPlaying(USkeletalMeshComponent* SkelMeshComp, const UOb
 
 	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXComponent::IsPlaying. FaceFX character does not exist for given SkelMeshComp <%s>. Caller: %s"), *GetNameSafe(SkelMeshComp), *GetNameSafe(Caller));
 	return false;
+}
+
+bool UFaceFXComponent::IsPlayingAnimation(const FFaceFXAnimId& AnimId, USkeletalMeshComponent* SkelMeshComp, const UObject* Caller) const
+{
+	if (UFaceFXCharacter* Character = GetCharacter(SkelMeshComp))
+	{
+		return Character->IsPlaying(AnimId);
+	}
+
+	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXComponent::IsPlayingAnimation. FaceFX character does not exist for given SkelMeshComp <%s>. Caller: %s"), *GetNameSafe(SkelMeshComp), *GetNameSafe(Caller));
+	return false;
+}
+
+bool UFaceFXComponent::IsAnimationActive(const FFaceFXAnimId& AnimId, USkeletalMeshComponent* SkelMeshComp, const UObject* Caller) const
+{
+	if (UFaceFXCharacter* Character = GetCharacter(SkelMeshComp))
+	{
+		return Character->IsAnimationActive(AnimId);
+	}
+
+	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXComponent::IsAnimationActive. FaceFX character does not exist for given SkelMeshComp <%s>. Caller: %s"), *GetNameSafe(SkelMeshComp), *GetNameSafe(Caller));
+	return false;
+
 }
 
 bool UFaceFXComponent::IsPaused(USkeletalMeshComponent* SkelMeshComp, const UObject* Caller) const

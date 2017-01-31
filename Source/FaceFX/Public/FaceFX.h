@@ -20,7 +20,6 @@
 
 #pragma once
 
-#include "Engine.h"
 #include "FaceFXCharacter.h"
 #include "FaceFXActor.h"
 #include "FaceFXAnim.h"

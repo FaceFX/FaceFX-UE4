@@ -18,8 +18,9 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFXEditor.h"
 #include "Animation/AnimGraphNode_BlendFaceFXAnimation.h"
+#include "FaceFXEditor.h"
+
 #include "AnimationGraphSchema.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"

@@ -21,6 +21,7 @@
 #pragma once
 
 #include "FaceFXData.h"
+#include "FaceFXEditor.h"
 
 #include "FaceFXEditorTools.generated.h"
 

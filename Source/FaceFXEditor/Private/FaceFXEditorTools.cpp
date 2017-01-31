@@ -18,16 +18,13 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFXEditor.h"
 #include "FaceFXEditorTools.h"
-
 #include "FaceFX.h"
 #include "Include/Slate/FaceFXComboChoiceWidget.h"
 #include "FaceFXCharacter.h"
 #include "FaceFXActor.h"
 
 #include "AssetToolsModule.h"
-#include "SlateBasics.h"
 #include "ObjectTools.h"
 #include "Factories/Factory.h"
 #include "IAssetTools.h"
@@ -39,6 +36,9 @@
 #include "Editor.h"
 #include "SNotificationList.h"
 #include "NotificationManager.h"
+#include "EditorFramework/AssetImportData.h"
+#include "FileHelper.h"
+#include "FeedbackContext.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 

@@ -18,8 +18,8 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFX.h"
 #include "Matinee/FaceFXMatineeControl.h"
+#include "FaceFX.h"
 #include "Matinee/FaceFXMatineeControlInst.h"
 #include "Animation/FaceFXComponent.h"
 
@@ -28,6 +28,7 @@
 #include "Matinee/InterpData.h"
 #include "Matinee/MatineeActor.h"
 #include "InterpolationHitProxy.h"
+#include "CanvasTypes.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 

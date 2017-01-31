@@ -18,9 +18,9 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFXEditor.h"
 #include "FaceFXComboChoiceWidget.h"
-#include "EditorStyle.h"
+#include "FaceFXEditor.h"
+#include "SScrollBox.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 

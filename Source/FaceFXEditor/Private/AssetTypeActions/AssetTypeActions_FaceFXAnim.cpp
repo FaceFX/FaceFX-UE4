@@ -18,11 +18,10 @@
   SOFTWARE.
 *******************************************************************************/
 
+#include "AssetTypeActions_FaceFXAnim.h"
 #include "FaceFXEditor.h"
 #include "FaceFX.h"
-#include "AssetTypeActions_FaceFXAnim.h"
 
-#include "UnrealEd.h"
 #include "IMainFrameModule.h"
 #include "ModuleManager.h"
 #include "IContentBrowserSingleton.h"

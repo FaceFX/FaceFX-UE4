@@ -130,6 +130,27 @@ public:
 		EndOffset = InEndOffset;
 	}
 
+	/**
+	* Gets the section playback location for a giving sequencer playback location
+	* @param Position The position on the sequencer timeline
+	* @returns The playback location for the given section
+	*/
+	inline float GetPlaybackLocation(float Position) const
+	{
+		const float AnimLength = GetAnimationDuration() - (GetStartOffset() + GetEndOffset());
+
+		const float RelPosition = FMath::Clamp(Position, GetStartTime(), GetEndTime()) - GetStartTime();
+		Position = AnimLength > 0.F ? FMath::Fmod(RelPosition, AnimLength) : 0.F;
+		Position += GetStartOffset();
+		return Position;
+	}
+
+	/** Gets the actor associated with the owning track */
+	AActor* GetActor() const;
+
+	/** Gets the owning track */
+	class UFaceFXAnimationTrack* GetTrack() const;
+
 	//UMovieSceneSection
 	virtual void TrimSection(float TrimTime, bool bTrimLeft) override;
 	virtual UMovieSceneSection* SplitSection(float SplitTime) override;
@@ -140,12 +161,6 @@ public:
 	//~UMovieSceneSection
 
 private:
-
-	/** Gets the owning track */
-	class UFaceFXAnimationTrack* GetTrack() const;
-
-	/** Gets the actor associated with the owning track */
-	AActor* GetActor() const;
 
 	/** The if of the skel mesh component where this key is working on */
 	UPROPERTY(EditAnywhere, Category = FaceFX)

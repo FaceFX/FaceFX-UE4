@@ -142,6 +142,18 @@ public:
 	}
 
 	/**
+	* Gets the indicator if the character has the given facial animation active right now (playing or not)
+	* @param AnimId The animation ID we check for
+	* @returns True if the given animation is active, else false
+	*/
+	inline bool IsAnimationActive(const FFaceFXAnimId& AnimId) const
+	{
+		//look for the animation by id. If no group is set for the given AnimId, ignore group during comparison
+		const FFaceFXAnimId CurrentAnimId = GetCurrentAnimationId();
+		return ((!AnimId.Group.IsNone() && CurrentAnimId == AnimId) || AnimId.Name == CurrentAnimId.Name);
+	}
+
+	/**
 	* Gets the indicator if the character is playing a facial animation right now
 	* @returns True if playing, else false
 	*/
@@ -149,6 +161,23 @@ public:
 	{
 		return AnimPlaybackState == EPlaybackState::Playing;
 	}
+
+	/**
+	* Gets the indicator if the character is playing the given facial animation right now
+	* @param AnimId The animation ID we check for playback
+	* @returns True if playing the given animation, else false
+	*/
+	inline bool IsPlaying(const FFaceFXAnimId& AnimId) const
+	{
+		return IsPlaying() && IsAnimationActive(AnimId);
+	}
+
+	/**
+	* Gets the indicator if the character is playing the given facial animation right now
+	* @param Animation The animation we check for playback
+	* @returns True if playing the given animation, else false
+	*/
+	bool IsPlaying(const class UFaceFXAnim* Animation) const;
 
 	/**
 	* Gets the indicator if the character is playing a facial animation right now or if one is paused
@@ -166,9 +195,7 @@ public:
 	*/
 	inline bool IsPlayingOrPaused(const FFaceFXAnimId& AnimId) const
 	{
-		//look for the animation by id. If no group is set for the given AnimId, ignore group during comparison
-		const FFaceFXAnimId CurrentAnimId = GetCurrentAnimationId();
-		return IsPlayingOrPaused() && ((!AnimId.Group.IsNone() && CurrentAnimId == AnimId) || AnimId.Name == CurrentAnimId.Name);
+		return IsPlayingOrPaused() && IsAnimationActive(AnimId);
 	}
 
 	/**

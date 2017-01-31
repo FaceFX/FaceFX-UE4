@@ -183,12 +183,29 @@ public:
 	bool IsPlaying(USkeletalMeshComponent* SkelMeshComp = nullptr, const UObject* Caller = nullptr) const;
 
 	/**
+	* Gets the indicator if the facial animation playback for a given skel mesh components character is playing a specific animation at the moment
+	* @param AnimId The id of the animation which we check playback against
+	* @param SkelMeshComp The skelmesh component to check the playback for. Keep nullptr to use the first setup skelmesh component character instead
+	* @returns True if playing the given animation right now, else false
+	*/
+	UFUNCTION(BlueprintCallable, Category = FaceFX, Meta = (HidePin = "Caller", DefaultToSelf = "Caller"))
+	bool IsPlayingAnimation(const FFaceFXAnimId& AnimId, USkeletalMeshComponent* SkelMeshComp = nullptr, const UObject* Caller = nullptr) const;
+
+	/**
 	* Gets the indicator if the facial animation playback for a given skel mesh components character is paused
 	* @param SkelMeshComp The skelmesh component to check the playback for. Keep nullptr to use the first setup skelmesh component character instead
 	* @returns True if paused, else false
 	*/
 	UFUNCTION(BlueprintCallable, Category=FaceFX, Meta=(HidePin="Caller", DefaultToSelf="Caller"))
 	bool IsPaused(USkeletalMeshComponent* SkelMeshComp = nullptr, const UObject* Caller = nullptr) const;
+
+	/**
+	* Gets the indicator if the facial animation playback for a given skel mesh components character has a specific animation activated at the moment (playing or not)
+	* @param AnimId The id of the animation which we check activation against
+	* @param SkelMeshComp The skelmesh component to check the playback for. Keep nullptr to use the first setup skelmesh component character instead
+	* @returns True if the given animation is active right now, else false
+	*/
+	bool IsAnimationActive(const FFaceFXAnimId& AnimId, USkeletalMeshComponent* SkelMeshComp = nullptr, const UObject* Caller = nullptr) const;
 
 	/** Event that triggers whenever any of the FaceFX character instances plays a facial animation that requested the startup of audio playback */
 	UPROPERTY(BlueprintAssignable, Category=FaceFX)

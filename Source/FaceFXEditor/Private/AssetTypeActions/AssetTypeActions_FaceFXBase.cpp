@@ -18,18 +18,19 @@
   SOFTWARE.
 *******************************************************************************/
 
+#include "AssetTypeActions_FaceFXBase.h"
 #include "FaceFXEditor.h"
 #include "FaceFXEditorTools.h"
 #include "FaceFX.h"
-#include "AssetTypeActions_FaceFXBase.h"
 #include "Factories/FaceFxActorFactory.h"
 #include "Include/Slate/FaceFXResultWidget.h"
 
-#include "UnrealEd.h"
-#include "MainFrame.h"
+#include "IMainFrameModule.h"
 #include "ModuleManager.h"
 #include "DesktopPlatformModule.h"
 #include "ContentBrowserModule.h"
+#include "Dialogs.h"
+#include "FeedbackContext.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 

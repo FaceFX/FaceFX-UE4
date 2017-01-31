@@ -18,12 +18,15 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFXEditor.h"
 #include "FaceFXResultWidget.h"
+#include "FaceFXEditor.h"
 #include "FaceFxStyle.h"
 
-#include "EditorStyle.h"
 #include "EditorStyleSet.h"
+#include "SScrollBox.h"
+#include "SBorder.h"
+#include "SBoxPanel.h"
+#include "SHeaderRow.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 

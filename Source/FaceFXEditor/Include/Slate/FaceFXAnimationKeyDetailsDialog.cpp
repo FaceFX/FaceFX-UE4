@@ -18,18 +18,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFXEditor.h"
 #include "FaceFXAnimationKeyDetailsDialog.h"
-
+#include "FaceFXEditor.h"
 #include "FaceFXCharacter.h"
+#include "FaceFXAnim.h"
 #include "Animation/FaceFXComponent.h"
 
 #include "Editor.h"
-#include "SlateCore.h"
-#include "SlateBasics.h"
 #include "STextEntryPopup.h"
 #include "EditorModeInterpolation.h"
 #include "ContentBrowserModule.h"
+#include "IContentBrowserSingleton.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 
