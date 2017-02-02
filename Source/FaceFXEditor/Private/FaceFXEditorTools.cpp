@@ -22,8 +22,6 @@
 #include "FaceFXEditorTools.h"
 #include "FaceFX.h"
 #include "Include/Slate/FaceFXComboChoiceWidget.h"
-#include "FaceFXCharacter.h"
-#include "FaceFXActor.h"
 
 #include "AssetToolsModule.h"
 #include "ObjectTools.h"
@@ -31,6 +29,9 @@
 #include "IAssetTools.h"
 #include "IContentBrowserSingleton.h"
 #include "ISourceControlModule.h"
+#include "ISourceControlProvider.h"
+#include "SourceControlOperations.h"
+#include "ISourceControlOperation.h"
 #include "AssetRegistryModule.h"
 #include "ContentBrowserModule.h"
 #include "Sound/SoundWave.h"
@@ -40,6 +41,8 @@
 #include "EditorFramework/AssetImportData.h"
 #include "FileHelper.h"
 #include "FeedbackContext.h"
+#include "Misc/ConfigCacheIni.h"
+#include "Paths.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 

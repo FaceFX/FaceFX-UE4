@@ -317,8 +317,8 @@ void UFaceFXComponent::CreateCharacter(FFaceFXEntry& Entry)
 			else
 			{
 				//success -> register events
-				Entry.Character->OnPlaybackStartAudio.AddDynamic(this, &UFaceFXComponent::OnCharacterAudioStart);
-				Entry.Character->OnPlaybackStopped.AddDynamic(this, &UFaceFXComponent::OnCharacterPlaybackStopped);
+				Entry.Character->OnPlaybackStartAudio.AddUObject(this, &UFaceFXComponent::OnCharacterAudioStart);
+				Entry.Character->OnPlaybackStopped.AddUObject(this, &UFaceFXComponent::OnCharacterPlaybackStopped);
 
 				Entry.Character->SetAudioComponent(Entry.AudioComp);
 				Entry.Character->SetAutoPlaySound(Entry.bIsAutoPlaySound);

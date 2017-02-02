@@ -22,6 +22,7 @@
 
 #include "FaceFXData.h"
 #include "Matinee/InterpTrackFloatBase.h"
+#include "FaceFXAnim.h"
 #include "FaceFXMatineeControl.generated.h"
 
 /** Information for one FaceFX key in the track. */

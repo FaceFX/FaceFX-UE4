@@ -20,6 +20,9 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
+#include "UObject/Object.h"
+#include "UObject/ObjectMacros.h"
 #include "FaceFXAsset.generated.h"
 
 /** Base of all FaceFX assets */
@@ -92,10 +95,7 @@ public:
 	* Gets the absolute path to the source asset
 	* @returns The path to the asset
 	*/
-	inline FString GetAssetPathAbsolute() const
-	{
-		return FPaths::ConvertRelativePathToFull(GetAssetPath());
-	}
+	FString GetAssetPathAbsolute() const;
 
 	/**
 	* Gets the relative source asset folder
@@ -110,10 +110,7 @@ public:
 	* Gets the absolute source asset folder
 	* @returns The absolute folder
 	*/
-	inline FString GetAssetFolderAbsolute() const
-	{
-		return FPaths::ConvertRelativePathToFull(AssetFolder);
-	}
+	FString GetAssetFolderAbsolute() const;
 
 	/**
 	* Gets the source asset name

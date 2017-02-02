@@ -20,9 +20,10 @@
 
 #include "FaceFX.h"
 #include "FaceFXAsset.h"
-#include "FaceFXData.h"
 
 #if WITH_EDITORONLY_DATA
+#include "FaceFXData.h"
+#include "Paths.h"
 #include "ITargetPlatform.h"
 #endif
 
@@ -32,12 +33,16 @@ UFaceFXAsset::UFaceFXAsset(const class FObjectInitializer& PCIP) : Super(PCIP)
 
 #if WITH_EDITORONLY_DATA
 
-/**
-* Clear platform specific data based on the target Archive platform
-* @param Ar The archive to use
-* @param platformData The data to clear
-* @returns True if succeeded, else false
-*/
+FString UFaceFXAsset::GetAssetPathAbsolute() const
+{
+	return FPaths::ConvertRelativePathToFull(GetAssetPath());
+}
+
+FString UFaceFXAsset::GetAssetFolderAbsolute() const
+{
+	return FPaths::ConvertRelativePathToFull(AssetFolder);
+}
+
 template <typename T> bool UFaceFXAsset::ClearPlatformData(const FArchive& Ar, T& PlatformData)
 {
 	//check if we actually have platform specific data to store

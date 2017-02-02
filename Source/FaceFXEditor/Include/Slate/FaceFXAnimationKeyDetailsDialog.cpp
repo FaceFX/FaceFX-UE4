@@ -26,9 +26,14 @@ SOFTWARE.
 
 #include "Editor.h"
 #include "STextEntryPopup.h"
+#include "SCheckBox.h"
+#include "STextBlock.h"
+#include "SBoxPanel.h"
 #include "EditorModeInterpolation.h"
 #include "ContentBrowserModule.h"
 #include "IContentBrowserSingleton.h"
+#include "MultiBoxBuilder.h"
+#include "Components/SkeletalMeshComponent.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 

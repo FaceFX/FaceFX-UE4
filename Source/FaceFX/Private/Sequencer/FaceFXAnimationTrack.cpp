@@ -23,6 +23,7 @@ SOFTWARE.
 
 #include "Sequencer/FaceFXAnimationSection.h"
 #include "Sequencer/FaceFXAnimationSectionTemplate.h"
+#include "FaceFXAnim.h"
 
 #include "IMovieScenePlayer.h"
 

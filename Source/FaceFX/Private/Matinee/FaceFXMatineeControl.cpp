@@ -23,6 +23,8 @@
 #include "Matinee/FaceFXMatineeControlInst.h"
 #include "Animation/FaceFXComponent.h"
 
+#include "EngineGlobals.h"
+#include "Engine/Engine.h"
 #include "Matinee/InterpGroup.h"
 #include "Matinee/InterpGroupInst.h"
 #include "Matinee/InterpData.h"

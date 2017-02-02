@@ -24,6 +24,7 @@ SOFTWARE.
 #include "Sequencer/FaceFXAnimationSection.h"
 #include "Animation/FaceFXComponent.h"
 #include "Include/Slate/FaceFXAnimationKeyDetailsDialog.h"
+#include "FaceFXAnim.h"
 
 #include "MovieScene.h"
 #include "MovieSceneSection.h"

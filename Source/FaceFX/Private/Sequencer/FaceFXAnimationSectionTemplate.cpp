@@ -183,7 +183,7 @@ void FFaceFXAnimationExecutionToken::Execute(const FMovieSceneContext& Context, 
 			}
 
 			//FaceFX animation set for the section. Only used if the FaceFXAnimId is not set
-			const UFaceFXAnim* FaceFXAnim = FaceFXAnimId.IsValid() ? nullptr : AnimationSection->GetAnimation(FaceFXComponent);
+			UFaceFXAnim* FaceFXAnim = FaceFXAnimId.IsValid() ? nullptr : AnimationSection->GetAnimation(FaceFXComponent);
 
 			//may be null if the skel mesh component id is unset and there is no character setup on the component
 			USkeletalMeshComponent* SkelMeshTarget = FaceFXComponent->GetSkelMeshTarget(AnimationSection->GetComponent());
@@ -225,7 +225,7 @@ void FFaceFXAnimationExecutionToken::Execute(const FMovieSceneContext& Context, 
 						//play by animation id
 						JumpSucceeded = FaceFXComponent->JumpToById(PlaybackLocation, bScrub, FaceFXAnimId.Group, FaceFXAnimId.Name, false, SkelMeshTarget, RuntimeObject);
 					}
-					else if (UFaceFXAnim* FaceFXAnim = AnimationSection->GetAnimation(FaceFXComponent))
+					else if (FaceFXAnim)
 					{
 						//play by animation
 						JumpSucceeded = FaceFXComponent->JumpTo(PlaybackLocation, bScrub, FaceFXAnim, false, SkelMeshTarget, RuntimeObject);

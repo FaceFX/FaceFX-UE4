@@ -21,11 +21,9 @@ SOFTWARE.
 #pragma once
 
 #include "FaceFXData.h"
+#include "FaceFXAnim.h"
 #include "MovieSceneSection.h"
-
 #include "FaceFXAnimationSection.generated.h"
-
-class UFaceFXAnim;
 
 /** FaceFX animation section for the movie tracks */
 UCLASS(MinimalAPI)

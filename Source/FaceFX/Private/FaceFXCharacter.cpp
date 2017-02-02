@@ -45,7 +45,7 @@ bool Check(int32 Value)
 	return Value != 0 && (ffx_errno() == EOK);
 }
 
-FOnFaceFXCharacterPlayAssetIncompatibleSignature UFaceFXCharacter::OnFaceFXCharacterPlayAssetIncompatible;
+UFaceFXCharacter::FOnFaceFXCharacterPlayAssetIncompatibleSignature UFaceFXCharacter::OnFaceFXCharacterPlayAssetIncompatible;
 
 UFaceFXCharacter::UFaceFXCharacter(const class FObjectInitializer& PCIP) : Super(PCIP),
 	ActorHandle(nullptr),
