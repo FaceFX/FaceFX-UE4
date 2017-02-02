@@ -18,8 +18,8 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFXResultWidget.h"
 #include "FaceFXEditor.h"
+#include "FaceFXResultWidget.h"
 #include "FaceFxStyle.h"
 
 #include "EditorStyleSet.h"

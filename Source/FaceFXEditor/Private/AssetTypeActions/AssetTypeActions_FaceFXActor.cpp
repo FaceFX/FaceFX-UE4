@@ -18,8 +18,8 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "AssetTypeActions_FaceFXActor.h"
 #include "FaceFXEditor.h"
+#include "AssetTypeActions_FaceFXActor.h"
 #include "FaceFXEditorTools.h"
 #include "FaceFX.h"
 

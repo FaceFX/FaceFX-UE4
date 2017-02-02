@@ -18,8 +18,8 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "Matinee/FaceFXMatineeControlHelper.h"
 #include "FaceFXEditor.h"
+#include "Matinee/FaceFXMatineeControlHelper.h"
 #include "FaceFX.h"
 #include "Matinee/FaceFXMatineeControl.h"
 #include "Animation/FaceFXComponent.h"

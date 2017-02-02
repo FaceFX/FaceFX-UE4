@@ -18,8 +18,8 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFXCharacter.h"
 #include "FaceFX.h"
+#include "FaceFXCharacter.h"
 #include "FaceFXContext.h"
 #include "FaceFXActor.h"
 

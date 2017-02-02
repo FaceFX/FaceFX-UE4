@@ -18,8 +18,8 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "Animation/FaceFXComponent.h"
 #include "FaceFX.h"
+#include "Animation/FaceFXComponent.h"
 
 #include "Engine/StreamableManager.h"
 

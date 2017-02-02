@@ -18,8 +18,8 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "Animation/AnimGraphNode_BlendFaceFXAnimation.h"
 #include "FaceFXEditor.h"
+#include "Animation/AnimGraphNode_BlendFaceFXAnimation.h"
 
 #include "AnimationGraphSchema.h"
 

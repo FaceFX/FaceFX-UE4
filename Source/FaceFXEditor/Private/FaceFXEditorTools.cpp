@@ -18,6 +18,7 @@
   SOFTWARE.
 *******************************************************************************/
 
+#include "FaceFXEditor.h"
 #include "FaceFXEditorTools.h"
 #include "FaceFX.h"
 #include "Include/Slate/FaceFXComboChoiceWidget.h"

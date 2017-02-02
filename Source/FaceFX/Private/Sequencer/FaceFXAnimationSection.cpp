@@ -18,8 +18,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 *******************************************************************************/
 
-#include "Sequencer/FaceFXAnimationSection.h"
 #include "FaceFX.h"
+#include "Sequencer/FaceFXAnimationSection.h"
 
 #include "Sequencer/FaceFXAnimationTrack.h"
 #include "FaceFXCharacter.h"

@@ -18,8 +18,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 *******************************************************************************/
 
-#include "Sequencer/FaceFXAnimationSectionTemplate.h"
 #include "FaceFX.h"
+#include "Sequencer/FaceFXAnimationSectionTemplate.h"
 
 #include "Sequencer/FaceFXAnimationTrack.h"
 #include "Sequencer/FaceFXAnimationSection.h"
@@ -61,7 +61,6 @@ void FFaceFXAnimationSectionTemplate::Evaluate(const FMovieSceneEvaluationOperan
 	const UFaceFXAnimationTrack* SectionTrack = AnimationSection->GetTrack();
 	const FGuid SectionTrackId = SectionTrack ? SectionTrack->GetSignature() : FGuid();
 
-	bool AddNewToken = true;
 	for(int32 Idx = ExecutionTokens.Tokens.Num() - 1; Idx >= 0; --Idx)
 	{
 		const FFaceFXAnimationExecutionToken Token = (const FFaceFXAnimationExecutionToken&)ExecutionTokens.Tokens[Idx].Token.Get(FFaceFXAnimationExecutionToken());
@@ -76,15 +75,12 @@ void FFaceFXAnimationSectionTemplate::Evaluate(const FMovieSceneEvaluationOperan
 			else
 			{
 				//keep existing token
-				AddNewToken = false;
+				return;
 			}
 		}
 	}
 
-	if (AddNewToken)
-	{
-		ExecutionTokens.Add(FFaceFXAnimationExecutionToken(AnimationSection));
-	}
+	ExecutionTokens.Add(FFaceFXAnimationExecutionToken(AnimationSection));
 }
 
 void FFaceFXAnimationSectionTemplate::TearDown(FPersistentEvaluationData& PersistentData, IMovieScenePlayer& Player) const

@@ -18,8 +18,8 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFXContext.h"
 #include "FaceFX.h"
+#include "FaceFXContext.h"
 
 ffx_context_t FFaceFXContext::CreateContext()
 {

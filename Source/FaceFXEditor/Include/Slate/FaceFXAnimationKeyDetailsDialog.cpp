@@ -18,8 +18,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFXAnimationKeyDetailsDialog.h"
 #include "FaceFXEditor.h"
+#include "FaceFXAnimationKeyDetailsDialog.h"
 #include "FaceFXCharacter.h"
 #include "FaceFXAnim.h"
 #include "Animation/FaceFXComponent.h"

@@ -18,8 +18,8 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFXAsset.h"
 #include "FaceFX.h"
+#include "FaceFXAsset.h"
 #include "FaceFXData.h"
 
 #if WITH_EDITORONLY_DATA

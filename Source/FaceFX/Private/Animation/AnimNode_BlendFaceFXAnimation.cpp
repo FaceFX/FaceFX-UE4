@@ -18,8 +18,8 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "Animation/AnimNode_BlendFaceFXAnimation.h"
 #include "FaceFX.h"
+#include "Animation/AnimNode_BlendFaceFXAnimation.h"
 #include "Animation/FaceFXComponent.h"
 
 #include "Animation/AnimInstanceProxy.h"
