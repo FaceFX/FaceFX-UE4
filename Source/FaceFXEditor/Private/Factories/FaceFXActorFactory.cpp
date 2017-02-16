@@ -19,9 +19,11 @@
 *******************************************************************************/
 
 #include "FaceFXEditor.h"
-#include "FaceFX.h"
 #include "Factories/FaceFXActorFactory.h"
+#include "FaceFX.h"
 #include "Factories/FaceFXAnimFactory.h"
+#include "Include/Slate/FaceFXResultWidget.h"
+#include "FaceFXEditorTools.h"
 
 #include "AssetToolsModule.h"
 #include "EditorStyleSet.h"
@@ -31,7 +33,8 @@
 #include "ObjectTools.h"
 #include "ISourceControlModule.h"
 #include "Editor.h"
-#include "Include/Slate/FaceFXResultWidget.h"
+#include "FeedbackContext.h"
+
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 

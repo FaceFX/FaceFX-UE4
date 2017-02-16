@@ -22,6 +22,7 @@
 
 #include "FaceFXAsset.h"
 #include "FaceFXData.h"
+#include "Sound/SoundWave.h"
 #include "FaceFXAnim.generated.h"
 
 /** Asset that contains a set of animations */
@@ -207,7 +208,7 @@ public:
 	* Gets the assigned audio asset
 	* @returns The audio asset
 	*/
-	inline const TAssetPtr<class USoundWave>& GetAudio() const
+	inline const TAssetPtr<USoundWave>& GetAudio() const
 	{
 		return Audio;
 	}
@@ -256,7 +257,7 @@ private:
 
 	/** The linked audio asset */
 	UPROPERTY(EditInstanceOnly, Category=FaceFX)
-	TAssetPtr<class USoundWave> Audio;
+	TAssetPtr<USoundWave> Audio;
 
 #if WITH_EDITORONLY_DATA
 
@@ -265,4 +266,30 @@ private:
 	FString AudioPath;
 
 #endif //WITH_EDITORONLY_DATA
+};
+
+/** A set of id's which identify a single animation/component combination */
+USTRUCT()
+struct FFaceFXAnimComponentSet
+{
+	GENERATED_BODY()
+
+	/** ID of the linked skel mesh component */
+	UPROPERTY(EditAnywhere, Category = FaceFX)
+	FFaceFXSkelMeshComponentId SkelMeshComponentId;
+
+	/** The animation to play. Only usable when FACEFX_USEANIMATIONLINKAGE is enabled (see FaceFXConfig.h) */
+	UPROPERTY(EditAnywhere, Category = FaceFX)
+	FFaceFXAnimId AnimationId;
+
+	/** The animation to play */
+	UPROPERTY(EditAnywhere, Category = FaceFX)
+	TAssetPtr<UFaceFXAnim> Animation;
+
+	inline void Reset()
+	{
+		Animation.Reset();
+		SkelMeshComponentId.Reset();
+		AnimationId.Reset();
+	}
 };

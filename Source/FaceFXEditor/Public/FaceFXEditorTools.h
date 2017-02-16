@@ -21,6 +21,7 @@
 #pragma once
 
 #include "FaceFXData.h"
+#include "FaceFXEditor.h"
 
 #include "FaceFXEditorTools.generated.h"
 
@@ -385,6 +386,9 @@ private:
 
 	UObject* Obj;
 };
+
+/** The callback for when assets get imported and we want to do something before the compiled data gets deleted */
+DECLARE_DELEGATE_FourParams(FCompilationBeforeDeletionDelegate, UObject* /** Asset */, const FString& /* CompilationFolder */, bool /** ImportResult */, FFaceFXImportResult& /** ResultMessages */);
 
 /** Editor specific FaceFX functions */
 struct FACEFXEDITOR_API FFaceFXEditorTools

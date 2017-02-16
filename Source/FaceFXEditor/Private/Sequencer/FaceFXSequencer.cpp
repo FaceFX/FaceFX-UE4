@@ -19,9 +19,8 @@ SOFTWARE.
 *******************************************************************************/
 
 #include "FaceFXEditor.h"
-#include "FaceFXConfig.h"
-
 #include "Sequencer/FaceFXSequencer.h"
+#include "FaceFXConfig.h"
 #include "Sequencer/FaceFXAnimationTrackEditor.h"
 
 #include "ISequencerModule.h"

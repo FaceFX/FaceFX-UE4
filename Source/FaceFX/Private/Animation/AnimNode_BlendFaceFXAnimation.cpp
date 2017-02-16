@@ -19,10 +19,11 @@
 *******************************************************************************/
 
 #include "FaceFX.h"
-
-#include "Animation/AnimInstanceProxy.h"
 #include "Animation/AnimNode_BlendFaceFXAnimation.h"
 #include "Animation/FaceFXComponent.h"
+
+#include "Animation/AnimInstanceProxy.h"
+#include "AnimationRuntime.h"
 
 DECLARE_CYCLE_STAT(TEXT("Blend FaceFX Animation"), STAT_FaceFXBlend, STATGROUP_FACEFX);
 DECLARE_CYCLE_STAT(TEXT("Blend FaceFX Animation - Load"), STAT_FaceFXBlendLoad, STATGROUP_FACEFX);

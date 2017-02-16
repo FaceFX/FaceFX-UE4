@@ -19,10 +19,9 @@
 *******************************************************************************/
 
 #include "FaceFXEditor.h"
-#include "FaceFX.h"
 #include "AssetTypeActions_FaceFXAnim.h"
+#include "FaceFX.h"
 
-#include "UnrealEd.h"
 #include "IMainFrameModule.h"
 #include "ModuleManager.h"
 #include "IContentBrowserSingleton.h"

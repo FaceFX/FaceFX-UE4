@@ -22,8 +22,17 @@
 #include "FaceFXResultWidget.h"
 #include "FaceFxStyle.h"
 
-#include "EditorStyle.h"
 #include "EditorStyleSet.h"
+#include "SScrollBox.h"
+#include "SBorder.h"
+#include "SBoxPanel.h"
+#include "SHeaderRow.h"
+#include "SToolTip.h"
+#include "STextBlock.h"
+#include "SImage.h"
+#include "SButton.h"
+#include "Margin.h"
+#include "MessageDialog.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 

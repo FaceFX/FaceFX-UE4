@@ -20,16 +20,20 @@ SOFTWARE.
 
 #include "FaceFXEditor.h"
 #include "FaceFXAnimationKeyDetailsDialog.h"
-
 #include "FaceFXCharacter.h"
+#include "FaceFXAnim.h"
 #include "Animation/FaceFXComponent.h"
 
 #include "Editor.h"
-#include "SlateCore.h"
-#include "SlateBasics.h"
 #include "STextEntryPopup.h"
+#include "SCheckBox.h"
+#include "STextBlock.h"
+#include "SBoxPanel.h"
 #include "EditorModeInterpolation.h"
 #include "ContentBrowserModule.h"
+#include "IContentBrowserSingleton.h"
+#include "MultiBoxBuilder.h"
+#include "Components/SkeletalMeshComponent.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 

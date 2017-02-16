@@ -19,6 +19,7 @@
 *******************************************************************************/
 
 #include "FaceFX.h"
+#include "FaceFXCharacter.h"
 #include "FaceFXContext.h"
 #include "FaceFXActor.h"
 
@@ -26,6 +27,7 @@
 #include "Animation/FaceFXComponent.h"
 #include "Components/AudioComponent.h"
 #include "Sound/SoundWave.h"
+#include "Engine/StreamableManager.h"
 
 DECLARE_CYCLE_STAT(TEXT("Tick FaceFX Character"), STAT_FaceFXTick, STATGROUP_FACEFX);
 DECLARE_CYCLE_STAT(TEXT("Update FaceFX Transforms"), STAT_FaceFXUpdateTransforms, STATGROUP_FACEFX);
@@ -43,7 +45,7 @@ bool Check(int32 Value)
 	return Value != 0 && (ffx_errno() == EOK);
 }
 
-FOnFaceFXCharacterPlayAssetIncompatibleSignature UFaceFXCharacter::OnFaceFXCharacterPlayAssetIncompatible;
+UFaceFXCharacter::FOnFaceFXCharacterPlayAssetIncompatibleSignature UFaceFXCharacter::OnFaceFXCharacterPlayAssetIncompatible;
 
 UFaceFXCharacter::UFaceFXCharacter(const class FObjectInitializer& PCIP) : Super(PCIP),
 	ActorHandle(nullptr),
@@ -618,7 +620,12 @@ void UFaceFXCharacter::Reset()
 	bIsDirty = true;
 }
 
-bool UFaceFXCharacter::IsPlayingOrPaused(const class UFaceFXAnim* Animation) const
+bool UFaceFXCharacter::IsPlaying(const UFaceFXAnim* Animation) const
+{
+	return Animation && IsPlaying(Animation->GetId());
+}
+
+bool UFaceFXCharacter::IsPlayingOrPaused(const UFaceFXAnim* Animation) const
 {
 	return Animation && IsPlayingOrPaused(Animation->GetId());
 }
@@ -1003,7 +1010,8 @@ bool UFaceFXCharacter::PlayAudio(float Position, UAudioComponent** OutAudioComp)
 		}
 	}
 
-	return false;
+	//no audio set or not to start
+	return true;
 }
 
 bool UFaceFXCharacter::PauseAudio(bool fadeOut)

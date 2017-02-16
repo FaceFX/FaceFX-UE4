@@ -19,13 +19,12 @@
 *******************************************************************************/
 
 #include "FaceFXEditor.h"
+#include "AssetTypeActions_FaceFXActor.h"
 #include "FaceFXEditorTools.h"
 #include "FaceFX.h"
-#include "AssetTypeActions_FaceFXActor.h"
 
-#include "UnrealEd.h"
-#include "MainFrame.h"
 #include "ModuleManager.h"
+#include "IContentBrowserSingleton.h"
 #include "ContentBrowserModule.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"

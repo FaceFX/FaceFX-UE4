@@ -21,8 +21,9 @@ SOFTWARE.
 #include "FaceFX.h"
 #include "Sequencer/FaceFXAnimationTrack.h"
 
-#include "Sequencer/FaceFXAnimationTrackInstance.h"
 #include "Sequencer/FaceFXAnimationSection.h"
+#include "Sequencer/FaceFXAnimationSectionTemplate.h"
+#include "FaceFXAnim.h"
 
 #include "IMovieScenePlayer.h"
 
@@ -57,9 +58,9 @@ UMovieSceneSection* UFaceFXAnimationTrack::GetSectionAtTime(float Time) const
 	return nullptr;
 }
 
-TSharedPtr<IMovieSceneTrackInstance> UFaceFXAnimationTrack::CreateInstance()
+FMovieSceneEvalTemplatePtr UFaceFXAnimationTrack::CreateTemplateForSection(const UMovieSceneSection& InSection) const
 {
-	return MakeShareable(new FFaceFXAnimationTrackInstance(this));
+	return FFaceFXAnimationSectionTemplate(CastChecked<const UFaceFXAnimationSection>(&InSection), this);
 }
 
 const TArray<UMovieSceneSection*>& UFaceFXAnimationTrack::GetAllSections() const

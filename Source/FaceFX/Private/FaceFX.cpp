@@ -21,8 +21,15 @@
 #include "FaceFX.h"
 #include "ModuleManager.h"
 #include "Engine/StreamableManager.h"
+#include "Paths.h"
 
 DEFINE_LOG_CATEGORY(LogFaceFX);
+
+const FString& FaceFX::GetFaceFXIni()
+{
+	static FString IniPath = FPaths::EnginePluginsDir() / TEXT("Runtime/FaceFX/Config/FaceFX.ini");
+	return IniPath;
+}
 
 FString FaceFX::GetVersion()
 {

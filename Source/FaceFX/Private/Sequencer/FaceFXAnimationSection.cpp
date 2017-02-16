@@ -25,6 +25,7 @@ SOFTWARE.
 #include "FaceFXCharacter.h"
 
 #include "MovieSceneSequence.h"
+#include "MovieScenePossessable.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 
@@ -163,7 +164,9 @@ AActor* UFaceFXAnimationSection::GetActor() const
 			{
 				if (FMovieScenePossessable* Possessable = MovieScene->FindPossessable(TrackGuid))
 				{
-					return Cast<AActor>(Sequence->FindPossessableObject(TrackGuid, Track));
+					//fetch from possessable parent
+					auto BoundObjects = Sequence->LocateBoundObjects(Possessable->GetParent(), Track);
+					return BoundObjects.Num() > 0 ? Cast<AActor>(BoundObjects[0]) : nullptr;
 				}
 				else if (FMovieSceneSpawnable* Spawnable = MovieScene->FindSpawnable(TrackGuid))
 				{
