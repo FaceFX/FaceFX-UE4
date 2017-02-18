@@ -58,15 +58,17 @@ void FFaceFXAnimationSectionTemplate::Evaluate(const FMovieSceneEvaluationOperan
 	}
 
 	//search for any token in a higher row. Lower rows take precedence. We only allow ONE section at a time per track
-	const UFaceFXAnimationTrack* SectionTrack = AnimationSection->GetTrack();
-	const FGuid SectionTrackId = SectionTrack ? SectionTrack->GetSignature() : FGuid();
+	const FMovieSceneTrackIdentifier TrackId = PersistentData.GetTrackKey().TrackIdentifier;
 
 	for(int32 Idx = ExecutionTokens.Tokens.Num() - 1; Idx >= 0; --Idx)
 	{
-		const FFaceFXAnimationExecutionToken Token = (const FFaceFXAnimationExecutionToken&)ExecutionTokens.Tokens[Idx].Token.Get(FFaceFXAnimationExecutionToken());
+		FMovieSceneExecutionTokens::FEntry& TokenEntry = ExecutionTokens.Tokens[Idx];
 
-		if (Token.GetSectionTrackId() == SectionTrackId)
+		//only sort within same track
+		if (TokenEntry.TrackKey.TrackIdentifier == TrackId)
 		{
+			const FFaceFXAnimationExecutionToken Token = (const FFaceFXAnimationExecutionToken&)TokenEntry.Token.Get(FFaceFXAnimationExecutionToken());
+
 			//same track. Check for ordering precedence
 			if (Token.GetSectionRowIndex() > AnimationSection->GetRowIndex())
 			{
