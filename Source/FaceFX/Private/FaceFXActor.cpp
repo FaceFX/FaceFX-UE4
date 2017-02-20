@@ -18,8 +18,8 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFX.h"
 #include "FaceFXActor.h"
+#include "FaceFX.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 

@@ -18,9 +18,8 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFX.h"
 #include "Animation/FaceFXComponent.h"
-
+#include "FaceFX.h"
 #include "Engine/StreamableManager.h"
 
 UFaceFXComponent::UFaceFXComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), NumAsyncLoadRequestsPending(0)

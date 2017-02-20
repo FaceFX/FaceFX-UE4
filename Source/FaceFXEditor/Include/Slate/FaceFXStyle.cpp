@@ -18,9 +18,8 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFXEditor.h"
 #include "FaceFXStyle.h"
-
+#include "FaceFXEditor.h"
 #include "SlateStyle.h"
 #include "ClassIconFinder.h"
 #include "SlateStyleRegistry.h"

@@ -18,10 +18,9 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFXEditor.h"
 #include "FaceFXResultWidget.h"
+#include "FaceFXEditor.h"
 #include "FaceFxStyle.h"
-
 #include "EditorStyleSet.h"
 #include "SScrollBox.h"
 #include "SBorder.h"

@@ -18,12 +18,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFXEditor.h"
 #include "FaceFXAnimationKeyDetailsDialog.h"
+#include "FaceFXEditor.h"
 #include "FaceFXCharacter.h"
 #include "FaceFXAnim.h"
 #include "Animation/FaceFXComponent.h"
-
 #include "Editor.h"
 #include "STextEntryPopup.h"
 #include "SCheckBox.h"
