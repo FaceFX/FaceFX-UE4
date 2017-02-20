@@ -24,6 +24,9 @@ public class FaceFXEditor : ModuleRules
 {
     public FaceFXEditor(TargetInfo Target)
     {
+        PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+        bEnforceIWYU = false;
+
         PrivateDependencyModuleNames.AddRange(
             new string[] {
                 "Core",

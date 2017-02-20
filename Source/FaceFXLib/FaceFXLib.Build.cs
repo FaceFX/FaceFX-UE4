@@ -31,6 +31,9 @@ public class FaceFXLib : ModuleRules
 
     public FaceFXLib(TargetInfo Target)
     {
+        PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+        bEnforceIWYU = false;
+
         Type = ModuleType.External;
 
         string FaceFXLib;
