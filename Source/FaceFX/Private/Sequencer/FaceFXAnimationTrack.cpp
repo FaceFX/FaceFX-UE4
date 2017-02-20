@@ -18,13 +18,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFX.h"
 #include "Sequencer/FaceFXAnimationTrack.h"
-
+#include "FaceFX.h"
 #include "Sequencer/FaceFXAnimationSection.h"
 #include "Sequencer/FaceFXAnimationSectionTemplate.h"
 #include "FaceFXAnim.h"
-
 #include "IMovieScenePlayer.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"

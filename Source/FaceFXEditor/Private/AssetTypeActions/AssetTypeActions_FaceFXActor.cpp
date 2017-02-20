@@ -18,11 +18,10 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFXEditor.h"
 #include "AssetTypeActions_FaceFXActor.h"
+#include "FaceFXEditor.h"
 #include "FaceFXEditorTools.h"
 #include "FaceFX.h"
-
 #include "ModuleManager.h"
 #include "IContentBrowserSingleton.h"
 #include "ContentBrowserModule.h"

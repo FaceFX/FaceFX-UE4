@@ -18,13 +18,12 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFXEditor.h"
 #include "AssetTypeActions_FaceFXBase.h"
+#include "FaceFXEditor.h"
 #include "FaceFXEditorTools.h"
 #include "FaceFX.h"
 #include "Factories/FaceFxActorFactory.h"
 #include "Include/Slate/FaceFXResultWidget.h"
-
 #include "IMainFrameModule.h"
 #include "ModuleManager.h"
 #include "DesktopPlatformModule.h"

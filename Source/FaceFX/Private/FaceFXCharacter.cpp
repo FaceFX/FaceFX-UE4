@@ -18,11 +18,10 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFX.h"
 #include "FaceFXCharacter.h"
+#include "FaceFX.h"
 #include "FaceFXContext.h"
 #include "FaceFXActor.h"
-
 #include "GameFramework/Actor.h"
 #include "Animation/FaceFXComponent.h"
 #include "Components/AudioComponent.h"

@@ -17,11 +17,9 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 *******************************************************************************/
-
-#include "FaceFXEditor.h"
 #include "AssetTypeActions_FaceFXAnim.h"
+#include "FaceFXEditor.h"
 #include "FaceFX.h"
-
 #include "IMainFrameModule.h"
 #include "ModuleManager.h"
 #include "IContentBrowserSingleton.h"

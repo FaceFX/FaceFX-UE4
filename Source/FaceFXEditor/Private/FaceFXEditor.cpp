@@ -19,7 +19,6 @@
 *******************************************************************************/
 
 #include "FaceFXEditor.h"
-
 #include "Include/Slate/FaceFXStyle.h"
 #include "AssetTypeActions/AssetTypeActions_FaceFXActor.h"
 #include "AssetTypeActions/AssetTypeActions_FaceFXAnim.h"
@@ -28,7 +27,6 @@
 #include "FaceFXEditorTools.h"
 #include "Sequencer/FaceFXSequencer.h"
 #include "Sequencer/FaceFXAnimationTrackEditor.h"
-
 #include "Matinee/MatineeActor.h"
 #include "EngineUtils.h"
 

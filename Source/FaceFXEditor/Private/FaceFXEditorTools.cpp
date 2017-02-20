@@ -18,11 +18,10 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFXEditor.h"
 #include "FaceFXEditorTools.h"
+#include "FaceFXEditor.h"
 #include "FaceFX.h"
 #include "Include/Slate/FaceFXComboChoiceWidget.h"
-
 #include "AssetToolsModule.h"
 #include "ObjectTools.h"
 #include "Factories/Factory.h"

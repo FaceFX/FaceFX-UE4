@@ -17,9 +17,9 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 *******************************************************************************/
-
-#include "FaceFXEditor.h"
 #include "FaceFXComboChoiceWidget.h"
+#include "FaceFXEditor.h"
+
 
 #include "EditorStyleSet.h"
 #include "SScrollBox.h"
