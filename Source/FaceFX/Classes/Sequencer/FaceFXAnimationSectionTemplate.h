@@ -45,37 +45,55 @@ struct FFaceFXAnimationTrackData : IPersistentEvaluationData
 };
 
 /** The data per section */
+USTRUCT()
 struct FFaceFXAnimationSectionData
 {
+	GENERATED_BODY()
+
 	/** Track that is being instanced */
+	UPROPERTY()
 	FGuid TrackId;
 
 	/** The row index of the section in use */
+	UPROPERTY()
 	int32 RowIndex;
 
 	/** The animation id of the section if its ID based. If its asset based, this is invalid */
+	UPROPERTY()
 	FFaceFXAnimId AnimationId;
 
 	/** The animation asset set for a section */
+	UPROPERTY()
 	TAssetPtr<UFaceFXAnim> Animation;
 
 	/** The component ID of that section */
+	UPROPERTY()
 	FFaceFXSkelMeshComponentId ComponentId;
 
 	/** The total duration of the animation */
+	UPROPERTY()
 	float AnimDuration;
 
 	/** The offset the the beginning of the animation */
+	UPROPERTY()
 	float StartOffset;
 
 	/** The offset the the end of the animation */
+	UPROPERTY()
 	float EndOffset;
 
 	/** The starting time of the animation */
+	UPROPERTY()
 	float StartTime;
 
 	/** The ending time of the animation */
+	UPROPERTY()
 	float EndTime;
+
+	inline bool IsValid() const
+	{
+		return TrackId.IsValid() && RowIndex != INDEX_NONE;
+	}
 
 	FFaceFXAnimationSectionData() : RowIndex(INDEX_NONE), AnimDuration(0.F), StartOffset(0.F), EndOffset(0.F), StartTime(0.F), EndTime(0.F) {}
 };
@@ -131,5 +149,6 @@ private:
 	}
 
 	/** The section data */
+	UPROPERTY()
 	FFaceFXAnimationSectionData SectionData;
 };
