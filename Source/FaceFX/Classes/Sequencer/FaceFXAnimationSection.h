@@ -76,12 +76,24 @@ public:
 		return Animation;
 	}
 
+
 	/**
 	* Loads the animation represented by this section
 	* @param Owner The owner of the potentially loaded animation data
 	* @returns The loaded animation, else nullptr if not found or unset
 	*/
-	UFaceFXAnim* GetAnimation(UObject* Owner = nullptr) const;
+	inline UFaceFXAnim* GetAnimation(UObject* Owner = nullptr) const
+	{
+		return GetAnimation(Animation, Owner);
+	}
+
+	/**
+	* Loads the animation represented by this section
+	* @param Asset The asset to get the animation from
+	* @param Owner The owner of the potentially loaded animation data
+	* @returns The loaded animation, else nullptr if not found or unset
+	*/
+	static UFaceFXAnim* GetAnimation(const TAssetPtr<UFaceFXAnim>& Asset, UObject* Owner = nullptr);
 
 	/**
 	* Gets the duration of the assigned animation
@@ -135,11 +147,26 @@ public:
 	*/
 	inline float GetPlaybackLocation(float Position) const
 	{
-		const float AnimLength = GetAnimationDuration() - (GetStartOffset() + GetEndOffset());
+		return GetPlaybackLocation(Position, GetAnimationDuration(), GetStartOffset(), GetEndOffset(), GetStartTime(), GetEndTime());
+	}
 
-		const float RelPosition = FMath::Clamp(Position, GetStartTime(), GetEndTime()) - GetStartTime();
+	/**
+	* Gets the section playback location for a giving sequencer playback location
+	* @param Position The position on the sequencer timeline
+	* @param AnimDuration The total duration of the animation
+	* @param StartOffset The offset the the beginning of the animation
+	* @param EndOffset The offset the the end of the animation
+	* @param StartTime The starting time of the animation
+	* @param EndTime The ending time of the animation
+	* @returns The playback location for the given section
+	*/
+	static inline float GetPlaybackLocation(float Position, float AnimDuration, float StartOffset, float EndOffset, float StartTime, float EndTime)
+	{
+		const float AnimLength = AnimDuration - (StartOffset + EndOffset);
+
+		const float RelPosition = FMath::Clamp(Position, StartTime, EndTime) - StartTime;
 		Position = AnimLength > 0.F ? FMath::Fmod(RelPosition, AnimLength) : 0.F;
-		Position += GetStartOffset();
+		Position += StartOffset;
 		return Position;
 	}
 

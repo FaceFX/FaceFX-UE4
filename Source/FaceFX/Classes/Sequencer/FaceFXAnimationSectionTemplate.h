@@ -22,38 +22,93 @@ SOFTWARE.
 
 #include "MovieSceneEvalTemplate.h"
 #include "MovieSceneExecutionToken.h"
+#include "ObjectKey.h"
 
+#include "FaceFXData.h"
 #include "FaceFXAnimationSectionTemplate.generated.h"
 
+class UFaceFXAnim;
 class UFaceFXAnimationSection;
 class UFaceFXAnimationTrack;
+
 
 /** Data shared per sequencer track */
 struct FFaceFXAnimationTrackData : IPersistentEvaluationData
 {
-	FFaceFXAnimationTrackData() : ActiveSection(nullptr) {}
+	FFaceFXAnimationTrackData() : ActiveSectionRowIndex(INDEX_NONE) {}
 
 	/** The active playing section */
-	const UFaceFXAnimationSection* ActiveSection;
+	int32 ActiveSectionRowIndex;
+
+	/** The FaceFX components per section rows */
+	TMap<int32, FObjectKey> SectionRowFaceFXComponents;
+};
+
+/** The data per section */
+struct FFaceFXAnimationSectionData
+{
+	/** Track that is being instanced */
+	FGuid TrackId;
+
+	/** The row index of the section in use */
+	int32 RowIndex;
+
+	/** The animation id of the section if its ID based. If its asset based, this is invalid */
+	FFaceFXAnimId AnimationId;
+
+	/** The animation asset set for a section */
+	TAssetPtr<UFaceFXAnim> Animation;
+
+	/** The component ID of that section */
+	FFaceFXSkelMeshComponentId ComponentId;
+
+	/** The total duration of the animation */
+	float AnimDuration;
+
+	/** The offset the the beginning of the animation */
+	float StartOffset;
+
+	/** The offset the the end of the animation */
+	float EndOffset;
+
+	/** The starting time of the animation */
+	float StartTime;
+
+	/** The ending time of the animation */
+	float EndTime;
+
+	FFaceFXAnimationSectionData() : RowIndex(INDEX_NONE), AnimDuration(0.F), StartOffset(0.F), EndOffset(0.F), StartTime(0.F), EndTime(0.F) {}
 };
 
 /** Execution token for Sequencer FaceFX animation section playback */
 struct FFaceFXAnimationExecutionToken : public IMovieSceneExecutionToken
 {
-	FFaceFXAnimationExecutionToken(const UFaceFXAnimationSection* Section = nullptr) : AnimationSection(Section) {}
+	FFaceFXAnimationExecutionToken(const FFaceFXAnimationSectionData& InSectionData = FFaceFXAnimationSectionData()) : SectionData(InSectionData) {}
 
 	virtual void Execute(const FMovieSceneContext& Context, const FMovieSceneEvaluationOperand& Operand, FPersistentEvaluationData& PersistentData, IMovieScenePlayer& Player) override;
 
 	/** Gets the row index of the section within the track */
-	int32 GetSectionRowIndex() const;
+	inline int32 GetSectionRowIndex() const
+	{
+		return SectionData.RowIndex;
+	}
 
 	/** Gets the id of the section's owning track */
-	FGuid GetSectionTrackId() const;
+	inline const FGuid& GetSectionTrackId() const
+	{
+		return SectionData.TrackId;
+	}
+
+	/** Gets the section data */
+	inline const FFaceFXAnimationSectionData& GetSectionData() const
+	{
+		return SectionData;
+	}
 
 private:
 
-	/** The animation section to play */
-	const UFaceFXAnimationSection* AnimationSection;
+	/** The section data */
+	FFaceFXAnimationSectionData SectionData;
 };
 
 /** Section template for Sequencer FaceFX animation sections */
@@ -62,7 +117,7 @@ struct FFaceFXAnimationSectionTemplate : public FMovieSceneEvalTemplate
 {
 	GENERATED_BODY()
 
-	FFaceFXAnimationSectionTemplate(const UFaceFXAnimationSection* Section = nullptr, const UFaceFXAnimationTrack* Track = nullptr) : AnimationSection(Section), AnimationTrack(Track) {}
+	FFaceFXAnimationSectionTemplate(const UFaceFXAnimationSection* Section = nullptr, const UFaceFXAnimationTrack* Track = nullptr);
 
 private:
 
@@ -75,11 +130,6 @@ private:
 		EnableOverrides(FMovieSceneEvalTemplateBase::EOverrideMask::RequiresTearDownFlag);
 	}
 
-	/** The section which is currently active within this track */
-	UPROPERTY(Transient)
-	const UFaceFXAnimationSection* AnimationSection;
-
-	/** Track that is being instanced */
-	UPROPERTY(Transient)
-	const UFaceFXAnimationTrack* AnimationTrack;
+	/** The section data */
+	FFaceFXAnimationSectionData SectionData;
 };
