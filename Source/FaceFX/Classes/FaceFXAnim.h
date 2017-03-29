@@ -26,7 +26,7 @@
 #include "FaceFXAnim.generated.h"
 
 /** Asset that contains a set of animations */
-UCLASS(hideCategories=Object)
+UCLASS(BlueprintType, hideCategories=Object)
 class FACEFX_API UFaceFXAnim : public UFaceFXAsset
 {
 	GENERATED_UCLASS_BODY()
