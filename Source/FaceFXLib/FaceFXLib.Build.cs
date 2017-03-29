@@ -85,7 +85,10 @@ public class FaceFXLib : ModuleRules
             FaceFXLib = "libfacefx.lib";
         }
 
-        string CompilerFolder = WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2015 ? "vs14" : "vs12";
+        // TODO: This should be updated when upgrading to the FaceFX Runtime v1.3 which has explicit
+        //       support for vs15 (Visual Studio 2017).
+        string CompilerFolder = (WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2015
+                              || WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2017) ? "vs14" : "vs12";
 
         string PlatformFolder = string.Empty;
 
