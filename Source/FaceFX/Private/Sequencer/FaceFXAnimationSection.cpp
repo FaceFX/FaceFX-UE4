@@ -20,8 +20,10 @@ SOFTWARE.
 
 #include "Sequencer/FaceFXAnimationSection.h"
 #include "FaceFX.h"
+
 #include "Sequencer/FaceFXAnimationTrack.h"
 #include "FaceFXCharacter.h"
+
 #include "MovieSceneSequence.h"
 #include "MovieScenePossessable.h"
 
@@ -97,12 +99,12 @@ void UFaceFXAnimationSection::GetSnapTimes(TArray<float>& OutSnapTimes, bool bGe
 	}
 }
 
-UFaceFXAnim* UFaceFXAnimationSection::GetAnimation(UObject* Owner) const
+UFaceFXAnim* UFaceFXAnimationSection::GetAnimation(const TAssetPtr<UFaceFXAnim>& Asset, UObject* Owner)
 {
-	UFaceFXAnim* NewAnim = Animation.Get();
-	if (!NewAnim && Animation.ToStringReference().IsValid())
+	UFaceFXAnim* NewAnim = Asset.Get();
+	if (!NewAnim && Asset.ToStringReference().IsValid())
 	{
-		NewAnim = Cast<UFaceFXAnim>(StaticLoadObject(UFaceFXAnim::StaticClass(), Owner, *Animation.ToStringReference().ToString()));
+		NewAnim = Cast<UFaceFXAnim>(StaticLoadObject(UFaceFXAnim::StaticClass(), Owner, *Asset.ToStringReference().ToString()));
 	}
 	return NewAnim;
 }

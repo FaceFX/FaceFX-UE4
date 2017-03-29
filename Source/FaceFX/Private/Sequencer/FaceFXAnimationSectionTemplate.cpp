@@ -20,9 +20,12 @@ SOFTWARE.
 
 #include "Sequencer/FaceFXAnimationSectionTemplate.h"
 #include "FaceFX.h"
+
 #include "Sequencer/FaceFXAnimationTrack.h"
 #include "Sequencer/FaceFXAnimationSection.h"
 #include "Animation/FaceFXComponent.h"
+#include "FaceFXAnim.h"
+
 #include "IMovieScenePlayer.h"
 #include "MovieSceneCommonHelpers.h"
 #include "Animation/AnimInstance.h"
@@ -45,10 +48,31 @@ UFaceFXComponent* GetFaceFXComponent(UObject* Object)
 	return FaceFXComponent;
 }
 
+FFaceFXAnimationSectionTemplate::FFaceFXAnimationSectionTemplate(const UFaceFXAnimationSection* Section, const UFaceFXAnimationTrack* Track)
+{
+	if (Track)
+	{
+		SectionData.TrackId = Track->GetSignature();
+	}
+
+	if (Section)
+	{
+		SectionData.RowIndex = Section->GetRowIndex();
+		SectionData.AnimationId = Section->GetAnimationId();
+		SectionData.Animation = Section->GetAnimationAsset();
+		SectionData.ComponentId = Section->GetComponent();
+		SectionData.AnimDuration = Section->GetAnimationDuration();
+		SectionData.StartOffset = Section->GetStartOffset();
+		SectionData.EndOffset = Section->GetEndOffset();
+		SectionData.StartTime = Section->GetStartTime();
+		SectionData.EndTime = Section->GetEndTime();
+	}
+}
+
 void FFaceFXAnimationSectionTemplate::Evaluate(const FMovieSceneEvaluationOperand& Operand, const FMovieSceneContext& Context, const FPersistentEvaluationData& PersistentData, FMovieSceneExecutionTokens& ExecutionTokens) const
 {
-	check(AnimationTrack);
-	check(AnimationSection);
+	check(SectionData.TrackId.IsValid());
+	check(SectionData.RowIndex != INDEX_NONE);
 
 	if (Context.IsSilent())
 	{
@@ -68,7 +92,7 @@ void FFaceFXAnimationSectionTemplate::Evaluate(const FMovieSceneEvaluationOperan
 			const FFaceFXAnimationExecutionToken Token = (const FFaceFXAnimationExecutionToken&)TokenEntry.Token.Get(FFaceFXAnimationExecutionToken());
 
 			//same track. Check for ordering precedence
-			if (Token.GetSectionRowIndex() > AnimationSection->GetRowIndex())
+			if (Token.GetSectionRowIndex() > SectionData.RowIndex)
 			{
 				ExecutionTokens.Tokens.RemoveAtSwap(Idx);
 			}
@@ -80,42 +104,44 @@ void FFaceFXAnimationSectionTemplate::Evaluate(const FMovieSceneEvaluationOperan
 		}
 	}
 
-	ExecutionTokens.Add(FFaceFXAnimationExecutionToken(AnimationSection));
+	ExecutionTokens.Add(FFaceFXAnimationExecutionToken(SectionData));
 }
 
 void FFaceFXAnimationSectionTemplate::TearDown(FPersistentEvaluationData& PersistentData, IMovieScenePlayer& Player) const
 {
-	check(AnimationSection);
+	check(SectionData.RowIndex != INDEX_NONE);
 
-	if (UObject* Actor = AnimationSection->GetActor())
+	FFaceFXAnimationTrackData& TrackData = PersistentData.GetOrAddTrackData<FFaceFXAnimationTrackData>();
+
+	FObjectKey* Key = TrackData.SectionRowFaceFXComponents.Find(SectionData.RowIndex);
+	if (!Key)
 	{
-		UFaceFXComponent* FaceFXComponent = GetFaceFXComponent(Actor);
-		if (!FaceFXComponent)
-		{
-			return;
-		}
+		return;
+	}
 
+	if (UFaceFXComponent* FaceFXComponent = Cast<UFaceFXComponent>(Key->ResolveObjectPtr()))
+	{
 		//check if the currently active section for this track is actually the active one
-		FFaceFXAnimationTrackData& TrackData = PersistentData.GetOrAddTrackData<FFaceFXAnimationTrackData>();
-		if (TrackData.ActiveSection != AnimationSection)
+		if (TrackData.ActiveSectionRowIndex != SectionData.RowIndex)
 		{
 			//ignore as we're playing another section right now
 			return;
 		}
 
+		FFaceFXAnimId AnimId = SectionData.AnimationId;
+
 		//determine animation, either by ID of by asset
-		FFaceFXAnimId FaceFXAnimId = AnimationSection->GetAnimationId();
-		if (!FaceFXAnimId.IsValid())
+		if (!AnimId.IsValid())
 		{
-			if (UFaceFXAnim* Anim = AnimationSection->GetAnimation(FaceFXComponent))
+			if (const UFaceFXAnim* Anim = UFaceFXAnimationSection::GetAnimation(SectionData.Animation, FaceFXComponent))
 			{
-				FaceFXAnimId = Anim->GetId();
+				AnimId = Anim->GetId();
 			}
 		}
 
 		//Only stop if that's current animation active in the FaceFX component
-		USkeletalMeshComponent* SkelMeshTarget = FaceFXComponent->GetSkelMeshTarget(AnimationSection->GetComponent());
-		if (FaceFXComponent->IsAnimationActive(FaceFXAnimId, SkelMeshTarget, Actor))
+		USkeletalMeshComponent* SkelMeshTarget = FaceFXComponent->GetSkelMeshTarget(SectionData.ComponentId);
+		if (FaceFXComponent->IsAnimationActive(AnimId, SkelMeshTarget))
 		{
 			FaceFXComponent->Stop(SkelMeshTarget);
 
@@ -128,50 +154,26 @@ void FFaceFXAnimationSectionTemplate::TearDown(FPersistentEvaluationData& Persis
 	}
 }
 
-int32 FFaceFXAnimationExecutionToken::GetSectionRowIndex() const
-{
-	if (AnimationSection)
-	{
-		return AnimationSection->GetRowIndex();
-	}
-	return INDEX_NONE;
-}
-
-FGuid FFaceFXAnimationExecutionToken::GetSectionTrackId() const
-{
-	if (AnimationSection)
-	{
-		if (UFaceFXAnimationTrack* Track = AnimationSection->GetTrack())
-		{
-			return Track->GetSignature();
-		}
-	}
-	return FGuid();
-}
-
 void FFaceFXAnimationExecutionToken::Execute(const FMovieSceneContext& Context, const FMovieSceneEvaluationOperand& Operand, FPersistentEvaluationData& PersistentData, IMovieScenePlayer& Player)
 {
-	check(AnimationSection);
+	check(SectionData.RowIndex != INDEX_NONE);
 
 	//update track data
 	FFaceFXAnimationTrackData& TrackData = PersistentData.GetOrAddTrackData<FFaceFXAnimationTrackData>();
-	const bool IsNewAnimSection = TrackData.ActiveSection != AnimationSection;
-	TrackData.ActiveSection = AnimationSection;
+	const bool IsNewAnimSection = TrackData.ActiveSectionRowIndex != SectionData.RowIndex;
+	TrackData.ActiveSectionRowIndex = SectionData.RowIndex;
 
 	const EMovieScenePlayerStatus::Type State = Context.GetStatus();
 
 	const float Position = Context.GetTime();
 	const float LastPosition = Context.GetPreviousTime();
-	const float PlaybackLocation = AnimationSection->GetPlaybackLocation(Position);
+	const float PlaybackLocation = UFaceFXAnimationSection::GetPlaybackLocation(Position, SectionData.AnimDuration, SectionData.StartOffset, SectionData.EndOffset, SectionData.StartTime, SectionData.EndTime);
 
 	//during reverse playback we use scrubbing instead, as reverse playback on audio component/FaceFX is not supported
 	const bool bIsReversePlayback = Context.GetDirection() == EPlayDirection::Backwards;
 	const bool bScrub = State != EMovieScenePlayerStatus::Playing || bIsReversePlayback;
 	const bool bPaused = State == EMovieScenePlayerStatus::Stopped && Position == LastPosition;
 
-	//the id of the section if id based. If its asset based, this is invalid
-	const FFaceFXAnimId& FaceFXAnimId = AnimationSection->GetAnimationId();
-	
 	for (TWeakObjectPtr<> Object : Player.FindBoundObjects(Operand))
 	{
 		if (UObject* RuntimeObject = Object.Get())
@@ -182,14 +184,23 @@ void FFaceFXAnimationExecutionToken::Execute(const FMovieSceneContext& Context, 
 				continue;
 			}
 
+			TrackData.SectionRowFaceFXComponents.Add(SectionData.RowIndex, FaceFXComponent);
+
+			const bool IsUseIdBasedAnim = SectionData.AnimationId.IsValid();
+
 			//FaceFX animation set for the section. Only used if the FaceFXAnimId is not set
-			UFaceFXAnim* FaceFXAnim = FaceFXAnimId.IsValid() ? nullptr : AnimationSection->GetAnimation(FaceFXComponent);
+			UFaceFXAnim* FaceFXAnim = IsUseIdBasedAnim ? nullptr : UFaceFXAnimationSection::GetAnimation(SectionData.Animation, FaceFXComponent);
+			if (!IsUseIdBasedAnim && !FaceFXAnim)
+			{
+				//animation not found
+				continue;
+			}
 
 			//may be null if the skel mesh component id is unset and there is no character setup on the component
-			USkeletalMeshComponent* SkelMeshTarget = FaceFXComponent->GetSkelMeshTarget(AnimationSection->GetComponent());
+			USkeletalMeshComponent* SkelMeshTarget = FaceFXComponent->GetSkelMeshTarget(SectionData.ComponentId);
 
 			//check if we currently play the animation specified by this section (either by ID or asset). New sections are considered as animation changes as well
-			const bool IsAnimChanged = IsNewAnimSection || !FaceFXComponent->IsAnimationActive(FaceFXAnimId.IsValid() ? FaceFXAnimId : FaceFXAnim->GetId(), SkelMeshTarget, RuntimeObject);
+			const bool IsAnimChanged = IsNewAnimSection || !FaceFXComponent->IsAnimationActive(IsUseIdBasedAnim ? SectionData.AnimationId : FaceFXAnim->GetId(), SkelMeshTarget, RuntimeObject);
 
 			//Always stop when we switch track keys to prevent playing animations when switching backward after the end of another track animation
 			//Thats because we don't check here how long the animation actually plays and rely on the JumpTo/Play functionality alone to determine that
@@ -203,7 +214,7 @@ void FFaceFXAnimationExecutionToken::Execute(const FMovieSceneContext& Context, 
 			if (State == EMovieScenePlayerStatus::Playing && !bIsReversePlayback)
 			{
 				//Playback mode. Check if we currently play this animation already
-				if (!IsAnimChanged && FaceFXComponent->IsPlayingAnimation(FaceFXAnimId.IsValid() ? FaceFXAnimId : FaceFXAnim->GetId(), SkelMeshTarget, RuntimeObject))
+				if (!IsAnimChanged && FaceFXComponent->IsPlayingAnimation(IsUseIdBasedAnim ? SectionData.AnimationId : FaceFXAnim->GetId(), SkelMeshTarget, RuntimeObject))
 				{
 					//No need to updating the FaceFXComponent when we already play this animation
 					UpdateAnimation = false;
@@ -220,10 +231,10 @@ void FFaceFXAnimationExecutionToken::Execute(const FMovieSceneContext& Context, 
 				else
 				{
 					//jump if not stopping
-					if (FaceFXAnimId.IsValid())
+					if (IsUseIdBasedAnim)
 					{
 						//play by animation id
-						JumpSucceeded = FaceFXComponent->JumpToById(PlaybackLocation, bScrub, FaceFXAnimId.Group, FaceFXAnimId.Name, false, SkelMeshTarget, RuntimeObject);
+						JumpSucceeded = FaceFXComponent->JumpToById(PlaybackLocation, bScrub, SectionData.AnimationId.Group, SectionData.AnimationId.Name, false, SkelMeshTarget, RuntimeObject);
 					}
 					else if (FaceFXAnim)
 					{
