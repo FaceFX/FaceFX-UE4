@@ -57,6 +57,7 @@ FFaceFXAnimationSectionTemplate::FFaceFXAnimationSectionTemplate(const UFaceFXAn
 
 	if (Section)
 	{
+		//Copy all required section data
 		SectionData.RowIndex = Section->GetRowIndex();
 		SectionData.AnimationId = Section->GetAnimationId();
 		SectionData.Animation = Section->GetAnimationAsset();
@@ -71,8 +72,7 @@ FFaceFXAnimationSectionTemplate::FFaceFXAnimationSectionTemplate(const UFaceFXAn
 
 void FFaceFXAnimationSectionTemplate::Evaluate(const FMovieSceneEvaluationOperand& Operand, const FMovieSceneContext& Context, const FPersistentEvaluationData& PersistentData, FMovieSceneExecutionTokens& ExecutionTokens) const
 {
-	check(SectionData.TrackId.IsValid());
-	check(SectionData.RowIndex != INDEX_NONE);
+	check(SectionData.IsValid());
 
 	if (Context.IsSilent())
 	{
@@ -109,7 +109,7 @@ void FFaceFXAnimationSectionTemplate::Evaluate(const FMovieSceneEvaluationOperan
 
 void FFaceFXAnimationSectionTemplate::TearDown(FPersistentEvaluationData& PersistentData, IMovieScenePlayer& Player) const
 {
-	check(SectionData.RowIndex != INDEX_NONE);
+	check(SectionData.IsValid());
 
 	FFaceFXAnimationTrackData& TrackData = PersistentData.GetOrAddTrackData<FFaceFXAnimationTrackData>();
 
@@ -156,7 +156,7 @@ void FFaceFXAnimationSectionTemplate::TearDown(FPersistentEvaluationData& Persis
 
 void FFaceFXAnimationExecutionToken::Execute(const FMovieSceneContext& Context, const FMovieSceneEvaluationOperand& Operand, FPersistentEvaluationData& PersistentData, IMovieScenePlayer& Player)
 {
-	check(SectionData.RowIndex != INDEX_NONE);
+	check(SectionData.IsValid());
 
 	//update track data
 	FFaceFXAnimationTrackData& TrackData = PersistentData.GetOrAddTrackData<FFaceFXAnimationTrackData>();
