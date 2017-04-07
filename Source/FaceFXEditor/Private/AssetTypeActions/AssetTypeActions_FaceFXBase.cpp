@@ -22,7 +22,7 @@
 #include "FaceFXEditor.h"
 #include "FaceFXEditorTools.h"
 #include "FaceFX.h"
-#include "Factories/FaceFxActorFactory.h"
+#include "Factories/FaceFXActorFactory.h"
 #include "Include/Slate/FaceFXResultWidget.h"
 #include "IMainFrameModule.h"
 #include "ModuleManager.h"

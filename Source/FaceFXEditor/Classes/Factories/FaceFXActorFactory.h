@@ -21,8 +21,8 @@
 #pragma once
 
 #include "FaceFXAsset.h"
-#include "FaceFxEditorTools.h"
-#include "Include/Slate/FaceFxStyle.h"
+#include "FaceFXEditorTools.h"
+#include "Include/Slate/FaceFXStyle.h"
 
 #include "IAssetTypeActions.h"
 #include "Factories/Factory.h"

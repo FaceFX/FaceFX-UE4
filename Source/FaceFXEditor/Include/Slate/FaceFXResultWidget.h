@@ -21,7 +21,7 @@
 #pragma once
 
 #include "SCompoundWidget.h"
-#include "FaceFxEditorTools.h"
+#include "FaceFXEditorTools.h"
 
 /** A widget that wraps a asset reference into a textbox and goto button */
 class FFaceFXAssetRefWidget : public SCompoundWidget
