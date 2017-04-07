@@ -21,7 +21,7 @@
 #pragma once
 
 #include "IAssetTypeActions.h"
-#include "Include/Slate/FaceFxStyle.h"
+#include "Include/Slate/FaceFXStyle.h"
 #include "FaceFXAnimFactory.generated.h"
 
 UCLASS(hidecategories=Object)

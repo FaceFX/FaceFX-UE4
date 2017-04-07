@@ -20,7 +20,7 @@ Tutorial
 
 + With the FaceFX Track selected, scrub to the time in the Matinee where you want to start the FaceFX animation, then hit **Enter** to insert a key and display the FaceFX animation selection dialog.
 
-+ Select the FaceFX Animation you want to play.  It is your responsibility to select an animation that is compatible with the FaceFx Actor specified by the scene object.  A toaster message and errors in the log will alert you during playback if an an incompatible message was selected.  You can optionally choose to loop the FaceFX animation or change the **Target Skeletal Mesh Component**. 
++ Select the FaceFX Animation you want to play.  It is your responsibility to select an animation that is compatible with the FaceFX Actor specified by the scene object.  A toaster message and errors in the log will alert you during playback if an an incompatible message was selected.  You can optionally choose to loop the FaceFX animation or change the **Target Skeletal Mesh Component**. 
 
 <img src="Images/SpecifyFaceFXMatineeAnimation.png" width="254">
 

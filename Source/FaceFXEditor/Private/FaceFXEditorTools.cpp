@@ -96,7 +96,6 @@ FString GetAnimAssetFileName(const FString& Folder, const FString& Group, const 
 
 /**
 * Finds a UFaceFXAnim asset that is linked to the same source file
-* @param FaceFxFilepath The path to the source .facefx asset file
 * @returns The asset that links to the same source file or nullptr if not found
 */
 UFaceFXAnim* FindAnimationAsset(const FString& SourceAssetFolder, const FString& SourceAssetFile, const FName& AnimGroup, const FName& AnimName)
