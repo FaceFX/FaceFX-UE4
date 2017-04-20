@@ -27,7 +27,7 @@ public class FaceFXLib : ModuleRules
     static bool DebugLibsWarningDisplayed = false;
 
     //The folder in the FaceFX runtime is located in. You need to update this whenever you update your FaceFX runtime
-    public static string RuntimeFolder { get { return "facefx-runtime-1.2.0/facefx"; } }
+    public static string RuntimeFolder { get { return "facefx-runtime-1.3.0/facefx"; } }
 
     public FaceFXLib(TargetInfo Target)
     {
@@ -85,10 +85,12 @@ public class FaceFXLib : ModuleRules
             FaceFXLib = "libfacefx.lib";
         }
 
-        // TODO: This should be updated when upgrading to the FaceFX Runtime v1.3 which has explicit
-        //       support for vs15 (Visual Studio 2017).
-        string CompilerFolder = (WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2015
-                              || WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2017) ? "vs14" : "vs12";
+        string CompilerFolder = "vs14";
+
+        if (WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2017)
+        {
+            CompilerFolder = "vs15";
+        }
 
         string PlatformFolder = string.Empty;
 
