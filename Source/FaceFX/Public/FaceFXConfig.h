@@ -21,7 +21,7 @@
 #pragma once
 
 #include "Modules/ModuleVersion.h"
-#include "facefx-runtime-1.2.0/facefx/facefx.h"
+#include "facefx-runtime-1.3.0/facefx/facefx.h"
 
 // The number of total FaceFX channels. One channel per animation we want to be
 // able to play at once per FaceFXCharacter. Default Value: 1
