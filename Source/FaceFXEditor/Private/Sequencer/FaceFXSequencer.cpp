@@ -30,7 +30,7 @@ void FFaceFXSequencer::Initialize()
 	ISequencerModule& SequencerModule = FModuleManager::Get().LoadModuleChecked<ISequencerModule>("Sequencer");
 
 	// register track editors
-	TrackEditorHandle = SequencerModule.RegisterTrackEditor_Handle(FOnCreateTrackEditor::CreateStatic(&FFaceFXAnimationTrackEditor::CreateTrackEditor));
+	TrackEditorHandle = SequencerModule.RegisterTrackEditor(FOnCreateTrackEditor::CreateStatic(&FFaceFXAnimationTrackEditor::CreateTrackEditor));
 }
 
 void FFaceFXSequencer::Shutdown()
@@ -38,5 +38,5 @@ void FFaceFXSequencer::Shutdown()
 	ISequencerModule& SequencerModule = FModuleManager::Get().GetModuleChecked<ISequencerModule>("Sequencer");
 
 	// unregister track editors
-	SequencerModule.UnRegisterTrackEditor_Handle(TrackEditorHandle);
+	SequencerModule.UnRegisterTrackEditor(TrackEditorHandle);
 }

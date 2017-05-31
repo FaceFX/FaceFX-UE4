@@ -70,6 +70,22 @@ FFaceFXAnimationSectionTemplate::FFaceFXAnimationSectionTemplate(const UFaceFXAn
 	}
 }
 
+FSharedPersistentDataKey GetSharedDataKey()
+{
+	static FMovieSceneSharedDataId DataId(FMovieSceneSharedDataId::Allocate());
+	return FSharedPersistentDataKey(DataId, FMovieSceneEvaluationOperand());
+}
+
+FMovieSceneSharedDataId GetSharedTokenId(const FGuid& TrackId)
+{
+	static TMap<FGuid, FMovieSceneSharedDataId> SharedDataIds;
+	if (FMovieSceneSharedDataId* Id = SharedDataIds.Find(TrackId))
+	{
+		return *Id;
+	}
+	return SharedDataIds.Add(TrackId, FMovieSceneSharedDataId::Allocate());
+}
+
 void FFaceFXAnimationSectionTemplate::Evaluate(const FMovieSceneEvaluationOperand& Operand, const FMovieSceneContext& Context, const FPersistentEvaluationData& PersistentData, FMovieSceneExecutionTokens& ExecutionTokens) const
 {
 	check(SectionData.IsValid());
@@ -80,47 +96,52 @@ void FFaceFXAnimationSectionTemplate::Evaluate(const FMovieSceneEvaluationOperan
 	}
 
 	//search for any token in a higher row. Lower rows take precedence. We only allow ONE section at a time per track
-	const FMovieSceneTrackIdentifier TrackId = PersistentData.GetTrackKey().TrackIdentifier;
+	const FMovieSceneSharedDataId SharedTokenId = GetSharedTokenId(SectionData.TrackId);
 
-	for(int32 Idx = ExecutionTokens.Tokens.Num() - 1; Idx >= 0; --Idx)
+	if (IMovieSceneSharedExecutionToken* ExistingToken = ExecutionTokens.FindShared(SharedTokenId))
 	{
-		FMovieSceneExecutionTokens::FEntry& TokenEntry = ExecutionTokens.Tokens[Idx];
+		FFaceFXAnimationExecutionToken* ExistingTokenFaceFX = (FFaceFXAnimationExecutionToken*)ExistingToken;
 
-		//only sort within same track
-		if (TokenEntry.TrackKey.TrackIdentifier == TrackId)
+		//same track. If our section row is higher than the existing one, we ignore it
+		if (SectionData.RowIndex > ExistingTokenFaceFX->GetSectionRowIndex())
 		{
-			const FFaceFXAnimationExecutionToken Token = (const FFaceFXAnimationExecutionToken&)TokenEntry.Token.Get(FFaceFXAnimationExecutionToken());
-
-			//same track. Check for ordering precedence
-			if (Token.GetSectionRowIndex() > SectionData.RowIndex)
-			{
-				ExecutionTokens.Tokens.RemoveAtSwap(Idx);
-			}
-			else
-			{
-				//keep existing token
-				return;
-			}
+			return;
 		}
-	}
 
-	ExecutionTokens.Add(FFaceFXAnimationExecutionToken(SectionData));
+		//replace existing token
+		*ExistingTokenFaceFX = FFaceFXAnimationExecutionToken(SectionData, Operand, Context);
+	}
+	else
+	{
+		//add new token
+		ExecutionTokens.AddShared(SharedTokenId, FFaceFXAnimationExecutionToken(SectionData, Operand, Context));
+	}
 }
 
 void FFaceFXAnimationSectionTemplate::TearDown(FPersistentEvaluationData& PersistentData, IMovieScenePlayer& Player) const
 {
 	check(SectionData.IsValid());
 
-	FFaceFXAnimationTrackData& TrackData = PersistentData.GetOrAddTrackData<FFaceFXAnimationTrackData>();
+	const FMovieSceneEvaluationKey& TrackKey = PersistentData.GetTrackKey();
 
-	FObjectKey* Key = TrackData.SectionRowFaceFXComponents.Find(SectionData.RowIndex);
-	if (!Key)
+	FFaceFXAnimationSharedData* SharedData = PersistentData.Find<FFaceFXAnimationSharedData>(GetSharedDataKey());
+	if (!SharedData)
 	{
+		//Nothing to tear down
 		return;
 	}
 
-	if (UFaceFXComponent* FaceFXComponent = Cast<UFaceFXComponent>(Key->ResolveObjectPtr()))
+	for (auto It = SharedData->TrackData.CreateIterator(); It; ++It)
 	{
+		const FGuid& TrackId = It.Key();
+		if (TrackId != SectionData.TrackId)
+		{
+			//other track is getting teared down
+			continue;
+		}
+
+		FFaceFXAnimationTrackData& TrackData = It.Value();
+
 		//check if the currently active section for this track is actually the active one
 		if (TrackData.ActiveSectionRowIndex != SectionData.RowIndex)
 		{
@@ -128,42 +149,55 @@ void FFaceFXAnimationSectionTemplate::TearDown(FPersistentEvaluationData& Persis
 			return;
 		}
 
-		FFaceFXAnimId AnimId = SectionData.AnimationId;
-
-		//determine animation, either by ID of by asset
-		if (!AnimId.IsValid())
+		FObjectKey* Key = TrackData.SectionRowFaceFXComponents.Find(SectionData.RowIndex);
+		if (!Key)
 		{
-			if (const UFaceFXAnim* Anim = UFaceFXAnimationSection::GetAnimation(SectionData.Animation, FaceFXComponent))
-			{
-				AnimId = Anim->GetId();
-			}
+			return;
 		}
 
-		//Only stop if that's current animation active in the FaceFX component
-		USkeletalMeshComponent* SkelMeshTarget = FaceFXComponent->GetSkelMeshTarget(SectionData.ComponentId);
-		if (FaceFXComponent->IsAnimationActive(AnimId, SkelMeshTarget))
+		if (UFaceFXComponent* FaceFXComponent = Cast<UFaceFXComponent>(Key->ResolveObjectPtr()))
 		{
-			FaceFXComponent->Stop(SkelMeshTarget);
+			FFaceFXAnimId AnimId = SectionData.AnimationId;
 
-			if (SkelMeshTarget)
+			//determine animation, either by ID of by asset
+			if (!AnimId.IsValid())
 			{
-				//enforce an update on the bones to trigger blend nodes
-				SkelMeshTarget->RefreshBoneTransforms();
+				if (const UFaceFXAnim* Anim = UFaceFXAnimationSection::GetAnimation(SectionData.Animation, FaceFXComponent))
+				{
+					AnimId = Anim->GetId();
+				}
+			}
+
+			//Only stop if that's current animation active in the FaceFX component
+			USkeletalMeshComponent* SkelMeshTarget = FaceFXComponent->GetSkelMeshTarget(SectionData.ComponentId);
+			if (FaceFXComponent->IsAnimationActive(AnimId, SkelMeshTarget))
+			{
+				FaceFXComponent->Stop(SkelMeshTarget);
+
+				if (SkelMeshTarget)
+				{
+					//enforce an update on the bones to trigger blend nodes
+					SkelMeshTarget->RefreshBoneTransforms();
+				}
 			}
 		}
 	}
+
+	SharedData->TrackData.Empty();
 }
 
-void FFaceFXAnimationExecutionToken::Execute(const FMovieSceneContext& Context, const FMovieSceneEvaluationOperand& Operand, FPersistentEvaluationData& PersistentData, IMovieScenePlayer& Player)
+void FFaceFXAnimationExecutionToken::Execute(FPersistentEvaluationData& PersistentData, IMovieScenePlayer& Player)
 {
 	check(SectionData.IsValid());
 
+	FFaceFXAnimationSharedData& SharedData = PersistentData.GetOrAdd<FFaceFXAnimationSharedData>(GetSharedDataKey());
+
 	//update track data
-	FFaceFXAnimationTrackData& TrackData = PersistentData.GetOrAddTrackData<FFaceFXAnimationTrackData>();
+	FFaceFXAnimationTrackData& TrackData = SharedData.TrackData.FindOrAdd(GetSectionTrackId());
 	const bool IsNewAnimSection = TrackData.ActiveSectionRowIndex != SectionData.RowIndex;
 	TrackData.ActiveSectionRowIndex = SectionData.RowIndex;
 
-	const EMovieScenePlayerStatus::Type State = Context.GetStatus();
+	const EMovieScenePlayerStatus::Type State = Player.GetPlaybackStatus();
 
 	const float Position = Context.GetTime();
 	const float LastPosition = Context.GetPreviousTime();
@@ -172,7 +206,7 @@ void FFaceFXAnimationExecutionToken::Execute(const FMovieSceneContext& Context, 
 	//during reverse playback we use scrubbing instead, as reverse playback on audio component/FaceFX is not supported
 	const bool bIsReversePlayback = Context.GetDirection() == EPlayDirection::Backwards;
 	const bool bScrub = State != EMovieScenePlayerStatus::Playing || bIsReversePlayback;
-	const bool bPaused = State == EMovieScenePlayerStatus::Stopped && Position == LastPosition;
+	const bool bPaused = State == EMovieScenePlayerStatus::Stopped && Position != LastPosition;
 
 	for (TWeakObjectPtr<> Object : Player.FindBoundObjects(Operand))
 	{

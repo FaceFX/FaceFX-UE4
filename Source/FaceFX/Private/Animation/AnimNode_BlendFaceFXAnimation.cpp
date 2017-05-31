@@ -213,7 +213,7 @@ void FAnimNode_BlendFaceFXAnimation::EvaluateComponentSpace(FComponentSpacePoseC
 					FTransform& BoneTM = TargetBlendTransform[0].Transform;
 
 					//convert to Bone Space
-					FAnimationRuntime::ConvertCSTransformToBoneSpace(Component, Output.Pose, BoneTM, CompactPoseBoneIndex, BCS_ParentBoneSpace);
+					FAnimationRuntime::ConvertCSTransformToBoneSpace(FTransform::Identity, Output.Pose, BoneTM, CompactPoseBoneIndex, BCS_ParentBoneSpace);
 
 					//apply transformations in bone space
 					if(TranslationMode == BMM_Replace && RotationMode == BMM_Replace && ScaleMode == BMM_Replace)
@@ -245,7 +245,7 @@ void FAnimNode_BlendFaceFXAnimation::EvaluateComponentSpace(FComponentSpacePoseC
 					}
 
 					//convert back to Component Space
-					FAnimationRuntime::ConvertBoneSpaceTransformToCS(Component, Output.Pose, BoneTM, CompactPoseBoneIndex, BCS_ParentBoneSpace);
+					FAnimationRuntime::ConvertBoneSpaceTransformToCS(FTransform::Identity, Output.Pose, BoneTM, CompactPoseBoneIndex, BCS_ParentBoneSpace);
 
 					//sanity check
 					//checkSlow(!ContainsNaN(resultTransforms));

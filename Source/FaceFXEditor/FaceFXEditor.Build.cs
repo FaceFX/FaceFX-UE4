@@ -22,7 +22,7 @@ using UnrealBuildTool;
 
 public class FaceFXEditor : ModuleRules
 {
-    public FaceFXEditor(TargetInfo Target)
+    public FaceFXEditor(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
         bEnforceIWYU = false;

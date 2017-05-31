@@ -33,7 +33,7 @@ class UFaceFXAnimationTrack;
 
 
 /** Data shared per sequencer track */
-struct FFaceFXAnimationTrackData : IPersistentEvaluationData
+struct FFaceFXAnimationTrackData
 {
 	FFaceFXAnimationTrackData() : ActiveSectionRowIndex(INDEX_NONE) {}
 
@@ -42,6 +42,13 @@ struct FFaceFXAnimationTrackData : IPersistentEvaluationData
 
 	/** The FaceFX components per section rows */
 	TMap<int32, FObjectKey> SectionRowFaceFXComponents;
+};
+
+/** The shared data container containing all FaceFX track data */
+struct FFaceFXAnimationSharedData : IPersistentEvaluationData
+{
+	/** The per track data */
+	TMap<FGuid, FFaceFXAnimationTrackData> TrackData;
 };
 
 /** The data per section */
@@ -99,11 +106,12 @@ struct FFaceFXAnimationSectionData
 };
 
 /** Execution token for Sequencer FaceFX animation section playback */
-struct FFaceFXAnimationExecutionToken : public IMovieSceneExecutionToken
+struct FFaceFXAnimationExecutionToken : public IMovieSceneSharedExecutionToken
 {
-	FFaceFXAnimationExecutionToken(const FFaceFXAnimationSectionData& InSectionData = FFaceFXAnimationSectionData()) : SectionData(InSectionData) {}
+	FFaceFXAnimationExecutionToken(const FFaceFXAnimationSectionData& InSectionData = FFaceFXAnimationSectionData(), const FMovieSceneEvaluationOperand& InOperand = FMovieSceneEvaluationOperand(), 
+		const FMovieSceneContext& InContext = FMovieSceneContext(FMovieSceneEvaluationRange(-1.F))) : SectionData(InSectionData), Operand(InOperand), Context(InContext) {}
 
-	virtual void Execute(const FMovieSceneContext& Context, const FMovieSceneEvaluationOperand& Operand, FPersistentEvaluationData& PersistentData, IMovieScenePlayer& Player) override;
+	virtual void Execute(FPersistentEvaluationData& PersistentData, IMovieScenePlayer& Player) override;
 
 	/** Gets the row index of the section within the track */
 	inline int32 GetSectionRowIndex() const
@@ -123,10 +131,22 @@ struct FFaceFXAnimationExecutionToken : public IMovieSceneExecutionToken
 		return SectionData;
 	}
 
+	/** Gets the assigned operand */
+	inline const FMovieSceneEvaluationOperand& GetOperand() const
+	{
+		return Operand;
+	}
+
 private:
 
 	/** The section data */
 	FFaceFXAnimationSectionData SectionData;
+
+	/** The evaluation operand */
+	FMovieSceneEvaluationOperand Operand;
+
+	/** The evaluation context */
+	FMovieSceneContext Context;
 };
 
 /** Section template for Sequencer FaceFX animation sections */

@@ -120,7 +120,7 @@ private:
 				if (SourceEditor && Editor == SourceEditor)
 				{
 					//while being within editor we only show the error once
-					TPairInitializer<UFaceFXCharacter*, const UFaceFXAnim*> Entry(Character_, Asset_);
+					TPair<UFaceFXCharacter*, const UFaceFXAnim*> Entry(Character_, Asset_);
 					if (ShownErrors.Contains(Entry))
 					{
 						//already shown once
