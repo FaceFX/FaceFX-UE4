@@ -22,8 +22,8 @@ using UnrealBuildTool;
 
 public class FaceFX : ModuleRules
 {
-    public FaceFX(TargetInfo Target)
-	{
+    public FaceFX(ReadOnlyTargetRules Target) : base(Target)
+    {
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
         bEnforceIWYU = false;
 
@@ -44,5 +44,5 @@ public class FaceFX : ModuleRules
         }
 
         PublicIncludePathModuleNames.Add("FaceFXLib");
-	}
+    }
 }

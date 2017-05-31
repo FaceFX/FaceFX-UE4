@@ -63,7 +63,7 @@ float FFaceFXAnimationSection::GetSectionHeight() const
 
 int32 FFaceFXAnimationSection::OnPaintSection(FSequencerSectionPainter& Painter) const
 {
-	const ESlateDrawEffect::Type DrawEffects = Painter.bParentEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
+	const ESlateDrawEffect DrawEffects = Painter.bParentEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 
 	UFaceFXAnimationSection* AnimSection = CastChecked<UFaceFXAnimationSection>(&Section);
 	const float AnimSectionDuration = AnimSection->GetAnimationDuration();

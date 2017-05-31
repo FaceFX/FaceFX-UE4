@@ -29,7 +29,7 @@ public class FaceFXLib : ModuleRules
     //The folder in the FaceFX runtime is located in. You need to update this whenever you update your FaceFX runtime
     public static string RuntimeFolder { get { return "facefx-runtime-1.3.0/facefx"; } }
 
-    public FaceFXLib(TargetInfo Target)
+    public FaceFXLib(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
         bEnforceIWYU = false;
@@ -63,7 +63,7 @@ public class FaceFXLib : ModuleRules
     /// <param name="FaceFXDirLib">The result facefx directory for libraries</param>
     /// <param name="FaceFXLib">The actual lib filename</param>
     /// <returns>True if all libs were found, else false</returns>
-    private bool GetLibs(TargetInfo Target, out string FaceFXDir, out string FaceFXDirLib, out string FaceFXLib)
+    private bool GetLibs(ReadOnlyTargetRules Target, out string FaceFXDir, out string FaceFXDirLib, out string FaceFXLib)
     {
         FaceFXDir = Path.Combine(new []{ this.ModuleDirectory, RuntimeFolder });
         FaceFXDirLib = string.Empty;
