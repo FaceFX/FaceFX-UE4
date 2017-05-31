@@ -792,7 +792,7 @@ bool UFaceFXCharacter::SetupMorphTargets()
 		}
 
 		//the lookup for the created facefx ids and the morph target names
-		TMap<uint64_t, FName> NameLookUp;
+		TMap<uint64, FName> NameLookUp;
 		NameLookUp.Reserve(NumMorphTargets);
 
 		TArray<ffx_id_index_t> TrackIndices;
