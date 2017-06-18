@@ -55,7 +55,7 @@ UObject* UFaceFXActorFactory::FactoryCreateNew(UClass* InClass, UObject* InParen
 
 void UFaceFXActorFactory::OnFxActorCompilationBeforeDelete(UObject* Asset, const FString& CompilationFolder, bool LoadResult, FFaceFXImportResult& OutResultMessages)
 {
-	if(LoadResult && FFaceFXEditorTools::IsImportAnimationOnActorImport())
+	if(LoadResult && FFaceFXConfig::Get().IsImportAnimationOnActorImport())
 	{
 		//generate proper factory
 		UFaceFXAnimFactory* Factory = NewObject<UFaceFXAnimFactory>(UFaceFXAnimFactory::StaticClass());
@@ -72,7 +72,7 @@ void UFaceFXActorFactory::HandleFaceFXActorCreated(UFaceFXActor* Asset, const FS
 {
 	check(Asset);
 
-	if(!FFaceFXEditorTools::IsImportAnimationOnActorImport())
+	if(!FFaceFXConfig::Get().IsImportAnimationOnActorImport())
 	{
 		//animation import disabled
 		return;

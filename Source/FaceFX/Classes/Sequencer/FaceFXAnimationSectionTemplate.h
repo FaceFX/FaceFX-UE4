@@ -42,6 +42,11 @@ struct FFaceFXAnimationTrackData
 
 	/** The FaceFX components per section rows */
 	TMap<int32, FObjectKey> SectionRowFaceFXComponents;
+
+	inline bool IsValid() const
+	{
+		return ActiveSectionRowIndex != INDEX_NONE;
+	}
 };
 
 /** The shared data container containing all FaceFX track data */

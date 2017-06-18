@@ -194,7 +194,7 @@ void FFaceFXAnimationExecutionToken::Execute(FPersistentEvaluationData& Persiste
 
 	//update track data
 	FFaceFXAnimationTrackData& TrackData = SharedData.TrackData.FindOrAdd(GetSectionTrackId());
-	const bool IsNewAnimSection = TrackData.ActiveSectionRowIndex != SectionData.RowIndex;
+	const bool IsNewAnimSection = TrackData.IsValid() && TrackData.ActiveSectionRowIndex != SectionData.RowIndex;
 	TrackData.ActiveSectionRowIndex = SectionData.RowIndex;
 
 	const EMovieScenePlayerStatus::Type State = Player.GetPlaybackStatus();

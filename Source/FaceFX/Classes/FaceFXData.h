@@ -25,6 +25,14 @@
 #include "UObject/ObjectMacros.h"
 #include "FaceFXData.generated.h"
 
+/** The different playback states */
+enum class EPlaybackState : uint8
+{
+	Playing,
+	Paused,
+	Stopped
+};
+
 /** The target platform for FaceFX platform specific compilation data */
 UENUM()
 namespace EFaceFXTargetPlatform

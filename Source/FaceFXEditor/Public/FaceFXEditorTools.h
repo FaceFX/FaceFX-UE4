@@ -397,50 +397,10 @@ struct FACEFXEDITOR_API FFaceFXEditorTools
 	static uint32 AssetCategory;
 
 	/**
-	* Gets the path to the FaceFX Studio installation. Configurable via engine ini file (section "ThirdParty.FaceFX", property "StudioPathAbsolute")
-	* @returns The path to the installation
-	*/
-	static const FString& GetFaceFXStudioPath();
-
-	/**
-	* Gets the indicator if the import shall search through all existing USoundWave assets and look for an asset that was generated with the linked sound source file per FaceFX Animation.
-	* @returns True if enabled, else false
-	*/
-	static bool IsImportLookupAudio();
-
-	/**
-	* Gets the indicator if the import shall search through all existing UFaceFXAnimation assets and look for an asset that was generated with the linked .ffxanim source file.
-	* @returns True if enabled, else false
-	*/
-	static bool IsImportLookupAnimation();
-
-	/**
-	* Gets the indicator if the audio data (.wav files only) shall be automatically imported during the FaceFX Animation import process
-	* @returns True if enabled, else false
-	*/
-	static bool IsImportAudio();
-
-	/**
-	* Gets the indicator if animations shall be imported during FaceFX actor import
-	* @returns True if enabled, else false
-	*/
-	static bool IsImportAnimationOnActorImport();
-
-	/**
-	* Gets the indicator if the editor shall show a warning toaster message when an UFaceFXAnimation is tried to get played on an
-	* UFaceFXCharacter which FaceFX actor handle is incompatible with that animation
-	* @returns True if enabled, else false
-	*/
-	static bool IsShowToasterMessageOnIncompatibleAnim();
-
-	/**
 	* Checks if FaceFX studio is installed within the standard installation path
 	* @returns True if installed, else false
 	*/
-	static inline bool IsFaceFXStudioInstalled()
-	{
-		return FPaths::FileExists(GetFaceFXStudioPath());
-	}
+	static bool IsFaceFXStudioInstalled();
 
 	/**
 	* Opens the given FaceFX asset within FaceFX studio in case this is installed locally

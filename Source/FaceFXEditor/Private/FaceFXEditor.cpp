@@ -51,7 +51,7 @@ class FFaceFXEditorModule : public FDefaultModuleImpl
 		FFaceFXStyle::Initialize();
 		FFaceFXSequencer::Get().Initialize();
 
-		if(GIsEditor && FFaceFXEditorTools::IsShowToasterMessageOnIncompatibleAnim())
+		if(GIsEditor && FFaceFXConfig::Get().IsShowToasterMessageOnIncompatibleAnim())
 		{
 			OnFaceFXCharacterPlayAssetIncompatibleHandle = UFaceFXCharacter::OnFaceFXCharacterPlayAssetIncompatible.AddRaw(this, &FFaceFXEditorModule::OnFaceFXCharacterPlayAssetIncompatible);
 		}
