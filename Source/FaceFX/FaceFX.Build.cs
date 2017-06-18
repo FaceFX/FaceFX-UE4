@@ -27,7 +27,7 @@ public class FaceFX : ModuleRules
     /// Target audio system can then be selected at runtime via CVar: FaceFX.PreferredAudioSystem (within FaceFXAudio.cpp)
     /// Default target audio system will be set to Wwise if bCompileWithWwise is set to true
     /// </summary>
-    private static bool bCompileWithWwise = true;
+    private static bool bCompileWithWwise = false;
 
     public FaceFX(ReadOnlyTargetRules Target) : base(Target)
 	{
