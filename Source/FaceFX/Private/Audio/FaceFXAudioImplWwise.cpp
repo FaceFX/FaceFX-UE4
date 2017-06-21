@@ -97,7 +97,7 @@ bool FFaceFXAudioWwise::Play(float Position, UActorComponent** OutAudioComp)
 		UAkComponent* AudioComp = GetAudioComponent();
 		if (!AudioComp)
 		{
-			UE_LOG(LogFaceFX, Error, TEXT("FFaceFXAudioWwise::PlayAudio. Playing audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAudioComponent. Actor: %s. Asset: %s")
+			UE_LOG(LogFaceFX, Error, TEXT("FFaceFXAudioWwise::PlayAudio. Playing audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAkComponent. Actor: %s. Asset: %s")
 				, *GetNameSafe(GetOwningActor()), *CurrentAnimSound.ToStringReference().ToString());
 			return false;
 		}
@@ -197,7 +197,7 @@ bool FFaceFXAudioWwise::Pause(bool fadeOut)
 		return true;
 	}
 
-	UE_LOG(LogFaceFX, Error, TEXT("FFaceFXAudioWwise::PauseAudio. Pausing audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAudioComponent. Actor: %s."), *GetNameSafe(GetOwningActor()));
+	UE_LOG(LogFaceFX, Error, TEXT("FFaceFXAudioWwise::PauseAudio. Pausing audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAkComponent. Actor: %s."), *GetNameSafe(GetOwningActor()));
 	return false;
 }
 
@@ -222,7 +222,7 @@ bool FFaceFXAudioWwise::Stop(bool enforceAudioCompStop)
 		return true;
 	}
 
-	UE_LOG(LogFaceFX, Error, TEXT("FFaceFXAudioWwise::StopAudio. Stopping audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAudioComponent. Actor: %s."), *GetNameSafe(GetOwningActor()));
+	UE_LOG(LogFaceFX, Error, TEXT("FFaceFXAudioWwise::StopAudio. Stopping audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAkComponent. Actor: %s."), *GetNameSafe(GetOwningActor()));
 	return false;
 }
 
@@ -246,7 +246,7 @@ bool FFaceFXAudioWwise::Resume()
 		return true;
 	}
 
-	UE_LOG(LogFaceFX, Error, TEXT("FFaceFXAudioWwise::PauseAudio. Pausing audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAudioComponent. Actor: %s."), *GetNameSafe(GetOwningActor()));
+	UE_LOG(LogFaceFX, Error, TEXT("FFaceFXAudioWwise::PauseAudio. Pausing audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAkComponent. Actor: %s."), *GetNameSafe(GetOwningActor()));
 	return false;
 }
 
