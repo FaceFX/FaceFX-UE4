@@ -97,3 +97,98 @@
 #error                                                                         \
     "FaceFX Sequencer support requires Unreal Engine 4.12 or higher. Please update your engine or use a previous version of the plugin.";
 #endif
+
+
+#if WITH_EDITOR
+
+/** A layer to access the FaceFX ini config values */
+struct FACEFX_API FFaceFXConfig
+{
+	/** Gets the singleton instance */
+	static const FFaceFXConfig& Get();
+
+	/**
+	* Gets the path to the FaceFX.ini file
+	* @returns The path to the ini
+	*/
+	static const FString& GetFaceFXIni();
+
+	/**
+	* Gets the path to the FaceFX Studio installation. Configurable via engine ini file (section "ThirdParty.FaceFX", property "StudioPathAbsolute")
+	* @returns The path to the installation
+	*/
+	inline const FString& GetFaceFXStudioPath() const
+	{
+		return StudioPath;
+	}
+
+	/**
+	* Gets the indicator if the import shall search through all existing USoundWave assets and look for an asset that was generated with the linked sound source file per FaceFX Animation.
+	* @returns True if enabled, else false
+	*/
+	inline bool IsImportLookupAudio() const
+	{
+		return bIsImportLookupAudio;
+	}
+
+	/**
+	* Gets the indicator if the import shall search through all existing UFaceFXAnimation assets and look for an asset that was generated with the linked .ffxanim source file.
+	* @returns True if enabled, else false
+	*/
+	inline bool IsImportLookupAnimation() const
+	{
+		return bIsImportLookupAnimation;
+	}
+
+	/**
+	* Gets the indicator if the audio data (.wav files only) shall be automatically imported during the FaceFX Animation import process
+	* @returns True if enabled, else false
+	*/
+	inline bool IsImportAudio() const
+	{
+		return bIsImportAudio;
+	}
+
+	/**
+	* Gets the indicator if animations shall be imported during FaceFX actor import
+	* @returns True if enabled, else false
+	*/
+	inline bool IsImportAnimationOnActorImport() const
+	{
+		return bIsImportAnimationOnActorImport;
+	}
+
+	/**
+	* Gets the indicator if the editor shall show a warning toaster message when an UFaceFXAnimation is tried to get played on an
+	* UFaceFXCharacter which FaceFX actor handle is incompatible with that animation
+	* @returns True if enabled, else false
+	*/
+	inline bool IsShowToasterMessageOnIncompatibleAnim() const
+	{
+		return bShowToasterMessageOnIncompatibleAnim;
+	}
+
+private:
+
+	FFaceFXConfig();
+
+	/** Path to FaceFX Studio */
+	FString StudioPath;
+
+	/** Indicator if audio assets shall be looked up during import */
+	bool bIsImportLookupAudio;
+
+	/** Indicator if animation assets shall be looked up during import */
+	bool bIsImportLookupAnimation;
+
+	/** Indicator if audio shall be imported during FaceFX import process */
+	bool bIsImportAudio;
+
+	/** Indicator if animations shall be imported during FaceFX actor import */
+	bool bIsImportAnimationOnActorImport;
+
+	/** Indicator if the editor shall show a warning toaster message when an UFaceFXAnimation is tried to get played on */
+	bool bShowToasterMessageOnIncompatibleAnim;
+};
+
+#endif //WITH_EDITOR

@@ -24,8 +24,6 @@
 #include "FaceFXActor.h"
 #include "GameFramework/Actor.h"
 #include "Animation/FaceFXComponent.h"
-#include "Components/AudioComponent.h"
-#include "Sound/SoundWave.h"
 #include "Engine/StreamableManager.h"
 
 DECLARE_CYCLE_STAT(TEXT("Tick FaceFX Character"), STAT_FaceFXTick, STATGROUP_FACEFX);
@@ -54,24 +52,25 @@ UFaceFXCharacter::UFaceFXCharacter(const class FObjectInitializer& PCIP) : Super
 	CurrentTime(.0F),
 	CurrentAnimProgress(0.F),
 	CurrentAnimDuration(.0F),
-	CurrentAudioProgress(0.F),
 	AnimPlaybackState(EPlaybackState::Stopped),
-	AudioPlaybackState(EPlaybackState::Stopped),
 	bIsDirty(true),
 	bIsLooping(false),
 	bCanPlay(true),
-	bIsAutoPlaySound(false),
 	bDisabledMorphTargets(false)
 #if WITH_EDITOR
 	,LastFrameNumber(0)
 #endif
 {
-#if WITH_EDITOR
 	if(!IsTemplate())
 	{
+#if WITH_EDITOR
 		OnFaceFXAnimChangedHandle = UFaceFXCharacter::OnAssetChanged.AddUObject(this, &UFaceFXCharacter::OnFaceFXAssetChanged);
-	}
 #endif
+
+		//create own audio player
+		AudioPlayer = FFaceFXAudio::Create(this);
+		check(AudioPlayer.IsValid());
+	}
 }
 
 void UFaceFXCharacter::BeginDestroy()
@@ -124,6 +123,12 @@ bool UFaceFXCharacter::TickUntil(float Duration, bool& OutAudioStarted)
 	return true;
 }
 
+AActor* UFaceFXCharacter::GetOwningActor() const
+{
+	const UFaceFXComponent* OwnerComp = Cast<UFaceFXComponent>(GetOuter());
+	return OwnerComp ? OwnerComp->GetOwner() : nullptr;
+}
+
 void UFaceFXCharacter::Tick(float DeltaTime)
 {
 	SCOPE_CYCLE_COUNTER(STAT_FaceFXTick);
@@ -144,10 +149,8 @@ void UFaceFXCharacter::Tick(float DeltaTime)
 	CurrentTime += DeltaTime;
 	CurrentAnimProgress += DeltaTime;
 
-	if(IsPlayingAudio())
-	{
-		CurrentAudioProgress += DeltaTime;
-	}
+	//tick the audio player to update its progression
+	AudioPlayer->Tick(DeltaTime);
 
 	if(IsNonZeroTick && CurrentAnimProgress >= CurrentAnimDuration)
 	{
@@ -172,8 +175,8 @@ void UFaceFXCharacter::Tick(float DeltaTime)
 	if(IsAudioStarted())
 	{
 		SCOPE_CYCLE_COUNTER(STAT_FaceFXEvents);
-		UAudioComponent* AudioCompStartedOn = nullptr;
-		const bool AudioStarted = PlayAudio(&AudioCompStartedOn);
+		UActorComponent* AudioCompStartedOn = nullptr;
+		const bool AudioStarted = AudioPlayer->Play(&AudioCompStartedOn);
 
 		OnPlaybackStartAudio.Broadcast(this, GetCurrentAnimationId(), AudioStarted, AudioCompStartedOn);
 	}
@@ -380,7 +383,7 @@ bool UFaceFXCharacter::Play(const UFaceFXAnim* Animation, bool Loop)
 
 		CurrentAnimHandle = NewAnimHandle;
 
-		PrepareAudio(Animation);
+		AudioPlayer->Prepare(Animation);
 	}
 
 	//get anim bounds
@@ -450,7 +453,7 @@ bool UFaceFXCharacter::Resume()
 	}
 
 	AnimPlaybackState = EPlaybackState::Playing;
-	ResumeAudio();
+	AudioPlayer->Resume();
 
 	return true;
 }
@@ -470,7 +473,7 @@ bool UFaceFXCharacter::Pause(bool fadeOut)
 	}
 
 	AnimPlaybackState = EPlaybackState::Paused;
-	PauseAudio(fadeOut);
+	AudioPlayer->Pause(fadeOut);
 
 	{
 		SCOPE_CYCLE_COUNTER(STAT_FaceFXEvents);
@@ -507,7 +510,7 @@ bool UFaceFXCharacter::Stop(bool enforceStop)
 	CurrentAnimProgress = .0F;
 	CurrentAnim = nullptr;
 	AnimPlaybackState = EPlaybackState::Stopped;
-	StopAudio(enforceStop);
+	AudioPlayer->Stop(enforceStop);
 
 	UnloadCurrentAnim();
 
@@ -573,10 +576,10 @@ bool UFaceFXCharacter::JumpTo(float Position)
 	{
 		const float AudioPosition = Position + CurrentAnimStart;
 		checkf(AudioPosition >= 0.F, TEXT("Invalid audio playback range."));
-		return PlayAudio(AudioPosition);
+		return AudioPlayer->Play(AudioPosition);
 	}
 
-	StopAudio();
+	AudioPlayer->Stop();
 	return true;
 }
 
@@ -792,7 +795,7 @@ bool UFaceFXCharacter::SetupMorphTargets()
 		}
 
 		//the lookup for the created facefx ids and the morph target names
-		TMap<uint64, FName> NameLookUp;
+		TMap<uint64_t, FName> NameLookUp;
 		NameLookUp.Reserve(NumMorphTargets);
 
 		TArray<ffx_id_index_t> TrackIndices;
@@ -862,6 +865,36 @@ bool UFaceFXCharacter::IsCanPlay(const UFaceFXAnim* Animation) const
 bool UFaceFXCharacter::IsCanPlay(ffx_anim_handle_t* AnimationHandle) const
 {
 	return ActorHandle && AnimationHandle && Check(ffx_check_actor_compatibility_with_anim(ActorHandle, AnimationHandle));
+}
+
+bool UFaceFXCharacter::IsPlayingAudio() const
+{
+	check(AudioPlayer.IsValid());
+	return AudioPlayer->IsPlaying();
+}
+
+bool UFaceFXCharacter::IsPlayingOrPausedAudio() const
+{
+	check(AudioPlayer.IsValid());
+	return AudioPlayer->IsPlayingOrPaused();
+}
+
+bool UFaceFXCharacter::IsAutoPlaySound() const
+{
+	check(AudioPlayer.IsValid());
+	return AudioPlayer->IsAutoPlaySound();
+}
+
+void UFaceFXCharacter::SetAutoPlaySound(bool isAutoPlaySound)
+{
+	check(AudioPlayer.IsValid());
+	AudioPlayer->SetAutoPlaySound(isAutoPlaySound);
+}
+
+void UFaceFXCharacter::SetAudioComponent(UActorComponent* Component)
+{
+	check(AudioPlayer.IsValid());
+	AudioPlayer->SetAudioComponent(Component);
 }
 
 bool UFaceFXCharacter::IsAudioStarted()
@@ -935,154 +968,6 @@ USkeletalMeshComponent* UFaceFXCharacter::GetOwningSkelMeshComponent() const
 UFaceFXComponent* UFaceFXCharacter::GetOwningFaceFXComponent() const
 {
 	return Cast<UFaceFXComponent>(GetOuter());
-}
-
-AActor* UFaceFXCharacter::GetOwningActor() const
-{
-	const UFaceFXComponent* OwnerComp = Cast<UFaceFXComponent>(GetOuter());
-	return OwnerComp ? OwnerComp->GetOwner() : nullptr;
-}
-
-UAudioComponent* UFaceFXCharacter::GetAudioComponent() const
-{
-	if(AudioComponent)
-	{
-		return AudioComponent;
-	}
-	AActor* Owner = GetOwningActor();
-	return Owner ? Owner->FindComponentByClass<UAudioComponent>() : nullptr;
-}
-
-void UFaceFXCharacter::PrepareAudio(const UFaceFXAnim* Animation)
-{
-	check(Animation);
-
-	CurrentAnimSound = bIsAutoPlaySound ? Animation->GetAudio() : nullptr;
-
-	if(bIsAutoPlaySound && !CurrentAnimSound.IsValid() && CurrentAnimSound.ToStringReference().IsValid())
-	{
-		//asset not loaded yet -> async load to have it (hopefully) ready when the FaceFX runtime audio start event triggers
-		TArray<FStringAssetReference> StreamingRequests;
-		StreamingRequests.Add(CurrentAnimSound.ToStringReference());
-		FaceFX::GetStreamer().RequestAsyncLoad(StreamingRequests, FStreamableDelegate());
-	}
-}
-
-bool UFaceFXCharacter::PlayAudio(float Position, UAudioComponent** OutAudioComp)
-{
-	if(bIsAutoPlaySound && CurrentAnimSound.ToStringReference().IsValid())
-	{
-		UAudioComponent* AudioComp = GetAudioComponent();
-
-		if(!AudioComp)
-		{
-			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::PlayAudio. Playing audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAudioComponent. Actor: %s. Asset: %s")
-				, *GetNameSafe(GetOwningActor()), *CurrentAnimSound.ToStringReference().ToString());
-			return false;
-		}
-
-		USoundWave* Sound = CurrentAnimSound.Get();
-		if(!Sound)
-		{
-			//sound not loaded (yet) -> load sync now. Here we could also use a delayed audio playback system
-			Sound = Cast<USoundWave>(StaticLoadObject(USoundWave::StaticClass(), this, *CurrentAnimSound.ToStringReference().ToString()));
-		}
-
-		if(Sound)
-		{
-			CurrentAudioProgress = FMath::Clamp(Position, 0.F, Sound->GetDuration());
-			AudioComp->SetSound(Sound);
-			AudioComp->bIsUISound = true;
-			AudioComp->Play(CurrentAudioProgress);
-
-			if(OutAudioComp)
-			{
-				*OutAudioComp = AudioComp;
-			}
-			AudioPlaybackState = AudioComp->IsPlaying() ? EPlaybackState::Playing : EPlaybackState::Stopped;
-			return IsPlayingAudio();
-		}
-		else
-		{
-			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::PlayAudio. Playing audio failed. Audio asset failed to load. Actor: %s. Asset: %s"),
-				*GetNameSafe(GetOwningActor()), *CurrentAnimSound.ToStringReference().ToString());
-		}
-	}
-
-	//no audio set or not to start
-	return true;
-}
-
-bool UFaceFXCharacter::PauseAudio(bool fadeOut)
-{
-	if(!IsPlayingAudio())
-	{
-		//nothing playing right now
-		return true;
-	}
-
-	AudioPlaybackState = EPlaybackState::Paused;
-
-	if(UAudioComponent* AudioComp = GetAudioComponent())
-	{
-		AudioComp->Stop();
-		AudioComp->bIsUISound = true;
-		AudioComp->Play(CurrentAudioProgress);
-		if (fadeOut)
-		{
-			//fade out instead of direct stopping to support very short playback durations when play/pausing in one tick (i.e. for scrubbing)
-			AudioComp->FadeOut(0.050f, 1.f);
-		}
-		else
-		{
-			AudioComp->Stop();
-		}
-		return true;
-	}
-
-	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::PauseAudio. Pausing audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAudioComponent. Actor: %s."), *GetNameSafe(GetOwningActor()));
-	return false;
-}
-
-bool UFaceFXCharacter::StopAudio(bool enforceAudioCompStop)
-{
-	if (!IsPlayingOrPausedAudio() && !enforceAudioCompStop)
-	{
-		//nothing playing right now
-		return true;
-	}
-
-	CurrentAudioProgress = 0.F;
-	AudioPlaybackState = EPlaybackState::Stopped;
-
-	if(UAudioComponent* AudioComp = GetAudioComponent())
-	{
-		AudioComp->SetSound(nullptr);
-		AudioComp->Stop();
-		return true;
-	}
-
-	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::StopAudio. Stopping audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAudioComponent. Actor: %s."), *GetNameSafe(GetOwningActor()));
-	return false;
-}
-
-bool UFaceFXCharacter::ResumeAudio()
-{
-	if(IsPlayingAudio())
-	{
-		//already playing audio
-		return true;
-	}
-
-	if(UAudioComponent* AudioComp = GetAudioComponent())
-	{
-		AudioPlaybackState = EPlaybackState::Playing;
-		AudioComp->Play(CurrentAudioProgress);
-		return true;
-	}
-
-	UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::PauseAudio. Pausing audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAudioComponent. Actor: %s."), *GetNameSafe(GetOwningActor()));
-	return false;
 }
 
 void UFaceFXCharacter::UpdateTransforms()

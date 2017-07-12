@@ -25,12 +25,6 @@
 
 DEFINE_LOG_CATEGORY(LogFaceFX);
 
-const FString& FaceFX::GetFaceFXIni()
-{
-	static FString IniPath = FPaths::EnginePluginsDir() / TEXT("Runtime/FaceFX/Config/FaceFX.ini");
-	return IniPath;
-}
-
 FString FaceFX::GetVersion()
 {
 	char ffx_version_string[32];

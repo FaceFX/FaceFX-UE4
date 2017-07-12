@@ -34,7 +34,7 @@ void UFaceFXComponent::OnRegister()
 	CreateAllCharacters();
 }
 
-bool UFaceFXComponent::Setup(USkeletalMeshComponent* SkelMeshComp, UAudioComponent* AudioComponent, const UFaceFXActor* Asset, bool IsAutoPlaySound, bool IsDisableMorphTargets, const UObject* Caller)
+bool UFaceFXComponent::Setup(USkeletalMeshComponent* SkelMeshComp, UActorComponent* AudioComponent, const UFaceFXActor* Asset, bool IsAutoPlaySound, bool IsDisableMorphTargets, const UObject* Caller)
 {
 	if(!SkelMeshComp)
 	{
@@ -254,7 +254,7 @@ USkeletalMeshComponent* UFaceFXComponent::GetSkelMeshTarget(const FFaceFXSkelMes
 	return nullptr;
 }
 
-void UFaceFXComponent::OnCharacterAudioStart(UFaceFXCharacter* Character, const FFaceFXAnimId& AnimId, bool IsAudioStarted, class UAudioComponent* AudioComponentStartedOn)
+void UFaceFXComponent::OnCharacterAudioStart(UFaceFXCharacter* Character, const FFaceFXAnimId& AnimId, bool IsAudioStarted, UActorComponent* AudioComponentStartedOn)
 {
 	//lookup the linked entry
 	if(FFaceFXEntry* Entry = Entries.FindByKey(Character))

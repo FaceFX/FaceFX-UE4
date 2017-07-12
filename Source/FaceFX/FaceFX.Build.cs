@@ -22,8 +22,15 @@ using UnrealBuildTool;
 
 public class FaceFX : ModuleRules
 {
+    /// <summary>
+    /// Indicator if the FaceFX plugin shall be compiled with Wwise being linked in. Default value: false
+    /// Target audio system can then be selected at runtime via CVar: FaceFX.PreferredAudioSystem (within FaceFXAudio.cpp)
+    /// Default target audio system will be set to Wwise if bCompileWithWwise is set to true
+    /// </summary>
+    private static bool bCompileWithWwise = false;
+
     public FaceFX(ReadOnlyTargetRules Target) : base(Target)
-    {
+	{
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
         bEnforceIWYU = false;
 
@@ -44,5 +51,11 @@ public class FaceFX : ModuleRules
         }
 
         PublicIncludePathModuleNames.Add("FaceFXLib");
+
+        if(bCompileWithWwise)
+        {
+            PrivateDependencyModuleNames.Add("AkAudio");
+        }
+        Definitions.Add(string.Format("WITH_WWISE={0}", bCompileWithWwise ? "1" : "0"));
     }
 }

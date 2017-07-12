@@ -27,10 +27,10 @@
 #include "Tickable.h"
 #include "FaceFXCharacter.generated.h"
 
+struct IFaceFXAudio;
 class UFaceFXActor;
 class UFaceFXComponent;
 class UFaceFXAsset;
-class UAudioComponent;
 class AActor;
 
 /** Class that represents a FaceFX character instance */
@@ -41,7 +41,7 @@ class FACEFX_API UFaceFXCharacter : public UObject, public FTickableGameObject
 
 	/** The delegate used for various FaceFX events */
 	DECLARE_MULTICAST_DELEGATE_TwoParams(FOnFaceFXCharacterEventSignature, UFaceFXCharacter* /*Character*/, const FFaceFXAnimId& /*AnimId*/);
-	DECLARE_MULTICAST_DELEGATE_FourParams(FOnFaceFXCharacterAudioStartEventSignature, UFaceFXCharacter* /*Character*/, const FFaceFXAnimId& /*AnimId*/, bool /*IsAudioStarted*/, UAudioComponent* /*AudioComponentStartedOn*/);
+	DECLARE_MULTICAST_DELEGATE_FourParams(FOnFaceFXCharacterAudioStartEventSignature, UFaceFXCharacter* /*Character*/, const FFaceFXAnimId& /*AnimId*/, bool /*IsAudioStarted*/, UActorComponent* /*AudioComponentStartedOn*/);
 	DECLARE_MULTICAST_DELEGATE_TwoParams(FOnFaceFXCharacterPlayAssetIncompatibleSignature, UFaceFXCharacter* /*Character*/, const UFaceFXAnim* /*Asset*/);
 
 public:
@@ -223,24 +223,6 @@ public:
 	}
 
 	/**
-	* Gets the indicator if the character is playing a audio right now
-	* @returns True if playing, else false
-	*/
-	inline bool IsPlayingAudio() const
-	{
-		return AudioPlaybackState == EPlaybackState::Playing;
-	}
-
-	/**
-	* Gets the indicator if the audio is currently playing or paused
-	* @returns True if paused or playing, else false
-	*/
-	inline bool IsPlayingOrPausedAudio() const
-	{
-		return AudioPlaybackState != EPlaybackState::Stopped;
-	}
-
-	/**
 	* Gets the indicator if the current animation is looping
 	* @returns True if looping else false
 	*/
@@ -257,21 +239,42 @@ public:
 	bool IsCanPlay(const UFaceFXAnim* Animation) const;
 
 	/**
+	* Gets the indicator if the character is playing a audio right now
+	* @returns True if playing, else false
+	*/
+	bool IsPlayingAudio() const;
+
+	/**
+	* Gets the indicator if the audio is currently playing or paused
+	* @returns True if paused or playing, else false
+	*/
+	bool IsPlayingOrPausedAudio() const;
+
+	/**
 	* Gets the indicator if the audio shall be played automatically if available
 	* @returns True if auto play is enabled, else false
 	*/
-	inline bool IsAutoPlaySound() const
-	{
-		return bIsAutoPlaySound;
-	}
+	bool IsAutoPlaySound() const;
 
 	/**
 	* Sets the indicator if the audio shall be played automatically if available
 	* @param isAutoPlaySound The new indicator value
 	*/
-	inline void SetAutoPlaySound(bool isAutoPlaySound)
+	void SetAutoPlaySound(bool isAutoPlaySound);
+
+	/**
+	* Sets the audio component for this character
+	* @param Component The new audio component
+	*/
+	void SetAudioComponent(UActorComponent* Component);
+
+	/** 
+	* Gets the audio player associated with this character 
+	* @returns The audio player
+	*/
+	inline IFaceFXAudio* GetAudioPlayer() const
 	{
-		bIsAutoPlaySound = isAutoPlaySound;
+		return AudioPlayer.Get();
 	}
 
 	/**
@@ -315,13 +318,10 @@ public:
 	}
 
 	/**
-	* Sets the audio component for this character
-	* @param Component The new audio component
+	* Gets the owning actor
+	* @returns The actor or nullptr if not belonging to one
 	*/
-	inline void SetAudioComponent(UAudioComponent* Component)
-	{
-		AudioComponent = Component;
-	}
+	AActor* GetOwningActor() const;
 
 	//FTickableGameObject
 	virtual void Tick(float DeltaTime) override;
@@ -385,14 +385,6 @@ public:
 
 private:
 
-	/** The different playback states */
-	enum class EPlaybackState : uint8
-	{
-		Playing,
-		Paused,
-		Stopped
-	};
-
 	/**
 	* Gets the currently playing animation
 	* @returns The animation name
@@ -410,18 +402,6 @@ private:
 	* @returns The FaceFX component or nullptr if there is no or another owner of this FaceFX character instance
 	*/
 	UFaceFXComponent* GetOwningFaceFXComponent() const;
-
-	/**
-	* Gets the owning actor
-	* @returns The actor or nullptr if not belonging to one
-	*/
-	AActor* GetOwningActor() const;
-
-	/**
-	* Gets the audio component assigned to this character. If not set the audio component will be looked up from the owning actors component list
-	* @returns The audio component or nullptr if not found
-	*/
-	UAudioComponent* GetAudioComponent() const;
 
 	/**
 	* Checks if the character FaceFX actor handle can play the given animation handle
@@ -458,50 +438,6 @@ private:
 	* Unload the current animation
 	*/
 	void UnloadCurrentAnim();
-
-	/**
-	* Prepares the audio data if needed for the current animation
-	* @param Animation The animation to prepare the audio for
-	*/
-	void PrepareAudio(const UFaceFXAnim* Animation);
-
-	/**
-	* Plays the audio if available
-	* @param OutAudioComp The audio component on which audio was started to play. Unchanged if function returns false
-	* @returns True if audio playback successfully started on the owning actors Audio component, else false
-	*/
-	inline bool PlayAudio(UAudioComponent** OutAudioComp = nullptr)
-	{
-		return PlayAudio(0.F, OutAudioComp);
-	}
-
-	/**
-	* Plays the audio if available
-	* @param Position The position to start the audio at. Ranging from 0 to audio playback duration. Keep at 0 to start from the beginning. Will be clamped at 0
-	* @param OutAudioComp The audio component on which audio was started to play. Unchanged if function returns false
-	* @returns True if audio playback successfully started on the owning actors Audio component, else false
-	*/
-	bool PlayAudio(float Position = 0.F, UAudioComponent** OutAudioComp = nullptr);
-
-	/**
-	* Pausing the playback of the currently playing audio
-	* @param fadeOut Indicator if the playback shall fade out quickly instead of stopping
-	* @returns True if succeeded, else false
-	*/
-	bool PauseAudio(bool fadeOut = false);
-
-	/**
-	* Stops the playback of the currently playing audio
-	* @param enforceAudioCompStop Indicator if the stop on the audio component is enforced
-	* @returns True if succeeded, else false
-	*/
-	bool StopAudio(bool enforceAudioCompStop = false);
-
-	/**
-	* Resumes the playback of the currently paused audio
-	* @returns True if succeeded, else false
-	*/
-	bool ResumeAudio();
 
 	/** Enforces a tick with a zero delta */
 	inline void EnforceZeroTick()
@@ -546,9 +482,8 @@ private:
 	UPROPERTY(Transient)
 	const UFaceFXActor* FaceFXActor;
 
-	/** The audio component assigned to this character */
-	UPROPERTY(Transient)
-	UAudioComponent* AudioComponent;
+	/** The audio player for this character */
+	TSharedPtr<IFaceFXAudio> AudioPlayer;
 
 	/** The associated actor handle */
 	struct ffx_actor_handle_t* ActorHandle;
@@ -592,21 +527,12 @@ private:
 	/** The starting location of the currently playing animation */
 	float CurrentAnimStart;
 
-	/** The location at which we are right now on the audio playback (in seconds) */
-	float CurrentAudioProgress;
-
 	/** The animation asset of the currently playing animation */
 	UPROPERTY(Transient)
 	const UFaceFXAnim* CurrentAnim;
 
-	/** The current audio asset that was assigned to the current animation*/
-	TAssetPtr<USoundWave> CurrentAnimSound;
-
 	/** The animation playback state */
 	EPlaybackState AnimPlaybackState;
-
-	/** The audio playback state */
-	EPlaybackState AudioPlaybackState;
 
 	/** Dirty indicator */
 	uint8 bIsDirty : 1;
@@ -616,9 +542,6 @@ private:
 
 	/** Indicator if this character is allowed to play */
 	uint8 bCanPlay : 1;
-
-	/** Indicator that defines if the FaceFX character shall play the sound wave assigned to the FaceFX Animation asset automatically when this animation is getting played */
-	uint8 bIsAutoPlaySound : 1;
 
 	/** Indicator if the use of available morph targets shall be disabled */
 	uint8 bDisabledMorphTargets : 1;

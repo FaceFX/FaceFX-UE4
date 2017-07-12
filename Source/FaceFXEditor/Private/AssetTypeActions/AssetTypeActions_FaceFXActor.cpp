@@ -113,7 +113,6 @@ void FAssetTypeActions_FaceFXActor::GetActions( const TArray<UObject*>& InObject
 #endif //FACEFX_USEANIMATIONLINKAGE
 }
 
-/** Determine if we can edit assets */
 bool FAssetTypeActions_FaceFXActor::CanExecuteEdit(const TArray<UObject*> Objects) const
 {
 	return FFaceFXEditorTools::IsFaceFXStudioInstalled();

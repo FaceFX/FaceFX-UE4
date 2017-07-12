@@ -26,14 +26,12 @@
 #include "FaceFXComponent.generated.h"
 
 class USkeletalMeshComponent;
-class UAudioComponent;
-class UAudioComponent;
 class UFaceFXCharacter;
 
 
 /** The delegate used for various FaceFX events */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnFaceFXEventSignature, USkeletalMeshComponent*, SkelMeshComp, const FName&, AnimId);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnFaceFXAudioStartEventSignature, USkeletalMeshComponent*, SkelMeshComp, const FName&, AnimId, bool, IsAudioStarted, UAudioComponent*, AudioComponentStartedOn);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnFaceFXAudioStartEventSignature, USkeletalMeshComponent*, SkelMeshComp, const FName&, AnimId, bool, IsAudioStarted, UActorComponent*, AudioComponentStartedOn);
 
 /** A single FaceFX entry for a skelmesh */
 USTRUCT()
@@ -42,7 +40,7 @@ struct FACEFX_API FFaceFXEntry
 	GENERATED_USTRUCT_BODY()
 
 	FFaceFXEntry() : SkelMeshComp(nullptr), AudioComp(nullptr), Character(nullptr), bIsAutoPlaySound(true) {}
-	FFaceFXEntry(USkeletalMeshComponent* InSkelMeshComp, UAudioComponent* InAudioComp, const TAssetPtr<class UFaceFXActor>& InAsset, bool InIsAutoPlaySound = true, bool InIsDisableMorphTargets = false) :
+	FFaceFXEntry(USkeletalMeshComponent* InSkelMeshComp, UActorComponent* InAudioComp, const TAssetPtr<class UFaceFXActor>& InAsset, bool InIsAutoPlaySound = true, bool InIsDisableMorphTargets = false) :
 		SkelMeshComp(InSkelMeshComp), AudioComp(InAudioComp), Asset(InAsset), Character(nullptr), bIsAutoPlaySound(InIsAutoPlaySound), bIsDisableMorphTargets(InIsDisableMorphTargets) {}
 
 	/** The linked skelmesh component */
@@ -51,7 +49,7 @@ struct FACEFX_API FFaceFXEntry
 
 	/** The linked audio component */
 	UPROPERTY(BlueprintReadOnly, Category=FaceFX)
-	UAudioComponent* AudioComp;
+	UActorComponent* AudioComp;
 
 	/** The asset to use when instantiating the facial character instance */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=FaceFX)
@@ -102,7 +100,7 @@ public:
 	* @return True if succeeded, else false
 	*/
 	UFUNCTION(BlueprintCallable, Category=FaceFX, Meta=(IsAutoPlaySound=true, HidePin="Caller", DefaultToSelf="Caller"))
-	bool Setup(USkeletalMeshComponent* SkelMeshComp, UAudioComponent* AudioComponent, const UFaceFXActor* Asset, bool IsAutoPlaySound, bool IsDisableMorphTargets, const UObject* Caller = nullptr);
+	bool Setup(USkeletalMeshComponent* SkelMeshComp, UActorComponent* AudioComponent, const UFaceFXActor* Asset, bool IsAutoPlaySound, bool IsDisableMorphTargets, const UObject* Caller = nullptr);
 
 	/**
 	* Starts the playback of the given facial animation for a given skel mesh components character
@@ -321,7 +319,7 @@ private:
 	* @param AudioComponentStartedOn The audio component on which the FaceFX character instance started the audio playback on. Will be set if IsAudioStarted is true
 	*/
 	UFUNCTION()
-	void OnCharacterAudioStart(UFaceFXCharacter* Character, const FFaceFXAnimId& AnimId, bool IsAudioStarted, UAudioComponent* AudioComponentStartedOn);
+	void OnCharacterAudioStart(UFaceFXCharacter* Character, const FFaceFXAnimId& AnimId, bool IsAudioStarted, UActorComponent* AudioComponentStartedOn);
 
 	/**
 	* Callback for when a FaceFX character instance stopped playback

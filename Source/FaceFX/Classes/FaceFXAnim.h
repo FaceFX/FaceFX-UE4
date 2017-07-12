@@ -214,6 +214,42 @@ public:
 	}
 
 	/**
+	* Gets the assigned AK audio asset for Play
+	* @returns The AK audio asset
+	*/
+	inline const TAssetPtr<UObject>& GetAudioAkEvent() const
+	{
+		return AudioAkEvent;
+	}
+
+	/**
+	* Gets the assigned AK audio asset for Stop
+	* @returns The AK audio asset
+	*/
+	inline const TAssetPtr<UObject>& GetAudioAkEventStop() const
+	{
+		return AudioAkEventStop;
+	}
+
+	/**
+	* Gets the assigned AK audio asset for Pause
+	* @returns The AK audio asset
+	*/
+	inline const TAssetPtr<UObject>& GetAudioAkEventPause() const
+	{
+		return AudioAkEventPause;
+	}
+
+	/**
+	* Gets the assigned AK audio asset for Resume
+	* @returns The AK audio asset
+	*/
+	inline const TAssetPtr<UObject>& GetAudioAkEventResume() const
+	{
+		return AudioAkEventResume;
+	}
+
+	/**
 	* Gets the indicator if the group and animation name are set
 	* @returns True if set, else false
 	*/
@@ -256,8 +292,24 @@ private:
 	FFaceFXAnimId Id;
 
 	/** The linked audio asset */
-	UPROPERTY(EditInstanceOnly, Category=FaceFX)
+	UPROPERTY(EditInstanceOnly, Category=Audio)
 	TAssetPtr<USoundWave> Audio;
+
+	/** The linked Wwise audio event asset for: Play */
+	UPROPERTY(EditInstanceOnly, Category=AkAudio)
+	TAssetPtr<UObject> AudioAkEvent;
+
+	/** The linked Wwise audio event asset for: Stop */
+	UPROPERTY(EditInstanceOnly, Category = AkAudio)
+	TAssetPtr<UObject> AudioAkEventStop;
+
+	/** The linked Wwise audio event asset for: Pause */
+	UPROPERTY(EditInstanceOnly, Category = AkAudio)
+	TAssetPtr<UObject> AudioAkEventPause;
+
+	/** The linked Wwise audio event asset for: Resume */
+	UPROPERTY(EditInstanceOnly, Category = AkAudio)
+	TAssetPtr<UObject> AudioAkEventResume;
 
 #if WITH_EDITORONLY_DATA
 

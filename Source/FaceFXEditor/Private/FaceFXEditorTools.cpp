@@ -297,88 +297,9 @@ bool FFaceFXImportActionResult::Rollback()
 	return false;
 }
 
-const FString& FFaceFXEditorTools::GetFaceFXStudioPath()
+bool FFaceFXEditorTools::IsFaceFXStudioInstalled()
 {
-	static FString StudioPath = TEXT("C:/Program Files (x86)/FaceFX/FaceFX Studio Professional 2015/facefx-studio.exe");
-	static bool bIsLoaded = false;
-	if(!bIsLoaded)
-	{
-		//try once to fetch overrides from ini
-		GConfig->GetString(FACEFX_CONFIG_NS, TEXT("StudioPathAbsolute"), StudioPath, FaceFX::GetFaceFXIni());
-		bIsLoaded = true;
-	}
-
-	return StudioPath;
-}
-
-bool FFaceFXEditorTools::IsImportLookupAudio()
-{
-	static bool Value = true;
-	static bool bIsLoaded = false;
-	if(!bIsLoaded)
-	{
-		//try once to fetch overrides from ini
-		GConfig->GetBool(FACEFX_CONFIG_NS, TEXT("IsImportLookupAudio"), Value, FaceFX::GetFaceFXIni());
-		bIsLoaded = true;
-	}
-
-	return Value;
-}
-
-bool FFaceFXEditorTools::IsImportLookupAnimation()
-{
-	static bool Value = true;
-	static bool bIsLoaded = false;
-	if(!bIsLoaded)
-	{
-		//try once to fetch overrides from ini
-		GConfig->GetBool(FACEFX_CONFIG_NS, TEXT("IsImportLookupAnimation"), Value, FaceFX::GetFaceFXIni());
-		bIsLoaded = true;
-	}
-
-	return Value;
-}
-
-bool FFaceFXEditorTools::IsImportAudio()
-{
-	static bool Value = true;
-	static bool bIsLoaded = false;
-	if(!bIsLoaded)
-	{
-		//try once to fetch overrides from ini
-		GConfig->GetBool(FACEFX_CONFIG_NS, TEXT("IsImportAudio"), Value, FaceFX::GetFaceFXIni());
-		bIsLoaded = true;
-	}
-
-	return Value;
-}
-
-bool FFaceFXEditorTools::IsImportAnimationOnActorImport()
-{
-	static bool Value = true;
-	static bool bIsLoaded = false;
-	if(!bIsLoaded)
-	{
-		//try once to fetch overrides from ini
-		GConfig->GetBool(FACEFX_CONFIG_NS, TEXT("IsImportAnimationOnActorImport"), Value, FaceFX::GetFaceFXIni());
-		bIsLoaded = true;
-	}
-
-	return Value;
-}
-
-bool FFaceFXEditorTools::IsShowToasterMessageOnIncompatibleAnim()
-{
-	static bool Value = true;
-	static bool bIsLoaded = false;
-	if(!bIsLoaded)
-	{
-		//try once to fetch overrides from ini
-		GConfig->GetBool(FACEFX_CONFIG_NS, TEXT("ShowToasterMessageOnIncompatibleAnim"), Value, FaceFX::GetFaceFXIni());
-		bIsLoaded = true;
-	}
-
-	return Value;
+	return FPaths::FileExists(FFaceFXConfig::Get().GetFaceFXStudioPath());
 }
 
 bool FFaceFXEditorTools::OpenFaceFXStudio(UFaceFXActor* Asset, FString* OutErrorMessage)
@@ -392,7 +313,7 @@ bool FFaceFXEditorTools::OpenFaceFXStudio(UFaceFXActor* Asset, FString* OutError
 		return false;
 	}
 
-	const FString StudioPath = GetFaceFXStudioPath();
+	const FString StudioPath = FFaceFXConfig::Get().GetFaceFXStudioPath();
 	if(!FPaths::FileExists(StudioPath))
 	{
 		//asset does not exist
@@ -681,7 +602,7 @@ UFaceFXAnim* FFaceFXEditorTools::ReimportOrCreateAnimAsset(const FString& Compil
 	//First try to find an existing Animation Asset that links to the same animation file
 	const FString Filename = GetAnimAssetFileName(CompilationFolder, AnimGroup, AnimFile);
 
-	if(IsImportLookupAnimation())
+	if(FFaceFXConfig::Get().IsImportLookupAnimation())
 	{
 		//Try to find an existing UFaceFXAnim asset that is using the same source .ffxanim file which we could reuse
 		if(UFaceFXAnim* ExistingAnim = FindAnimationAsset(FaceFXActor->GetAssetFolder(), FaceFXActor->GetAssetName(), AnimGroupName, AnimIdName))
@@ -1002,7 +923,7 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAnim* Asset, const FSt
 	}
 
 	//as a last step load the audio asset if desired
-	return !IsImportAudio() || LoadAudio(Asset, Folder, OutResultMessages);
+	return !FFaceFXConfig::Get().IsImportAudio() || LoadAudio(Asset, Folder, OutResultMessages);
 }
 
 bool FFaceFXEditorTools::LoadAudio(UFaceFXAnim* Asset, const FString& Folder, FFaceFXImportResult& OutResultMessages)
@@ -1039,7 +960,7 @@ bool FFaceFXEditorTools::LoadAudio(UFaceFXAnim* Asset, const FString& Folder, FF
 				if(Asset->GetAbsoluteAudioPath(AudioFile) && FPaths::FileExists(AudioFile))
 				{
 					//try to find sound asset
-					if(IsImportLookupAudio())
+					if(FFaceFXConfig::Get().IsImportLookupAudio())
 					{
 						//try to lookup audio
 						Asset->Audio = LocateAudio(AudioFile);

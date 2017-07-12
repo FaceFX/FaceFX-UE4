@@ -31,12 +31,6 @@ DECLARE_STATS_GROUP(TEXT("FaceFX"),STATGROUP_FACEFX, STATCAT_Advance);
 struct FACEFX_API FaceFX
 {
 	/**
-	* Gets the path to the FaceFX.ini file
-	* @returns The path to the ini
-	*/
-	static const FString& GetFaceFXIni();
-
-	/**
 	* Gets the FaceFX version
 	* @returns The FaceFX version string
 	*/
