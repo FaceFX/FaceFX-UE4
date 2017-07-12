@@ -72,7 +72,7 @@ private:
 	TSharedRef<SWidget> CreateOutlinerWidget(FGuid ObjectBinding);
 
 	/** Adds a new FaceFX section */
-	bool AddFaceFXSection(float KeyTime, UObject* Object, FFaceFXAnimComponentSet AnimCompSet);
+	FKeyPropertyResult AddFaceFXSection(float KeyTime, UObject* Object, FFaceFXAnimComponentSet AnimCompSet);
 
 	/** Callback for when the add FaceFX track dialog was closed */
 	void OnFaceFXTrackDialogClosed(FGuid ObjectBinding);

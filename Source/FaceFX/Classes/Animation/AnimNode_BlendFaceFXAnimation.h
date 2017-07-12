@@ -29,7 +29,7 @@
 struct FAnimInstanceProxy;
 
 /** Anim graph node that blends in facial animation bone transforms into the pose */
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FACEFX_API FAnimNode_BlendFaceFXAnimation : public FAnimNode_Base
 {
 	GENERATED_USTRUCT_BODY()

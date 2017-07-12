@@ -34,7 +34,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnFaceFXEventSignature, USkeletalM
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnFaceFXAudioStartEventSignature, USkeletalMeshComponent*, SkelMeshComp, const FName&, AnimId, bool, IsAudioStarted, UActorComponent*, AudioComponentStartedOn);
 
 /** A single FaceFX entry for a skelmesh */
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FACEFX_API FFaceFXEntry
 {
 	GENERATED_USTRUCT_BODY()

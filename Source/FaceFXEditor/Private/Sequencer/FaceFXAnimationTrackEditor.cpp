@@ -85,7 +85,7 @@ int32 FFaceFXAnimationSection::OnPaintSection(FSequencerSectionPainter& Painter)
 			Points.Add(FVector2D(CurrentPixels, 0));
 			Points.Add(FVector2D(CurrentPixels, Painter.SectionGeometry.Size.Y));
 
-			FSlateDrawElement::MakeLines(Painter.DrawElements, ++LayerId, Painter.SectionGeometry.ToPaintGeometry(), Points, Painter.SectionClippingRect, DrawEffects);
+			FSlateDrawElement::MakeLines(Painter.DrawElements, ++LayerId, Painter.SectionGeometry.ToPaintGeometry(), Points, DrawEffects);
 		}
 		CurrentTime += AnimLength;
 	}
@@ -156,29 +156,31 @@ TSharedRef<SWidget> FFaceFXAnimationTrackEditor::CreateOutlinerWidget(FGuid Obje
 	return SNew(STextBlock).Text(LOCTEXT("SequencerAddSectionMissingComp", "Missing FaceFX component."));
 }
 
-bool FFaceFXAnimationTrackEditor::AddFaceFXSection(float KeyTime, UObject* Object, FFaceFXAnimComponentSet AnimCompSet)
+FKeyPropertyResult FFaceFXAnimationTrackEditor::AddFaceFXSection(float KeyTime, UObject* Object, FFaceFXAnimComponentSet AnimCompSet)
 {
+	FKeyPropertyResult result;
+
 	bool bHandleCreated = false;
 	bool bTrackCreated = false;
 	bool bTrackModified = false;
 
 	FFindOrCreateHandleResult HandleResult = FindOrCreateHandleToObject(Object);
 	FGuid ObjectHandle = HandleResult.Handle;
-	bHandleCreated |= HandleResult.bWasCreated;
+	result.bHandleCreated |= HandleResult.bWasCreated;
 	if (ObjectHandle.IsValid())
 	{
 		FFindOrCreateTrackResult TrackResult = FindOrCreateTrackForObject(ObjectHandle, UFaceFXAnimationTrack::StaticClass());
 		UMovieSceneTrack* Track = TrackResult.Track;
-		bTrackCreated |= TrackResult.bWasCreated;
+		result.bTrackCreated |= TrackResult.bWasCreated;
 
 		if (UFaceFXAnimationTrack* AnimTrack = Cast<UFaceFXAnimationTrack>(Track))
 		{
 			AnimTrack->AddSection(KeyTime, AnimCompSet);
-			bTrackModified = true;
+			result.bTrackModified = true;
 		}
 	}
 
-	return bHandleCreated || bTrackCreated || bTrackModified;
+	return result;
 }
 
 UFaceFXComponent* FFaceFXAnimationTrackEditor::GetFaceFXComponent(const FGuid& Guid)
