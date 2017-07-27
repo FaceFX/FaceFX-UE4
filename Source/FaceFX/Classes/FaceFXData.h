@@ -40,19 +40,45 @@ namespace EFaceFXTargetPlatform
 	enum Type
 	{
 		PC = 0,
-#if FACEFX_SUPPORT_PS4
 		PS4,
-#endif
-#if FACEFX_SUPPORT_XBONE
 		XBoxOne,
-#endif
-		MAX
+		MAX UMETA(Hidden)
 	};
 }
 
 /** Helper stuff for the enum EFaceFXTargetPlatform */
 namespace EFaceFXTargetPlatformHelper
 {
+	/** 
+	* Gets the indicator if the given platform type is supported by the plugin build. 
+	* Controlled via FaceFXConfig.h preprocessor defines (FACEFX_SUPPORT_PS4, FACEFX_SUPPORT_XBONE)
+	* @param Platform The platform type to check
+	* @returns True if supported, else false
+	*/
+	static inline bool IsSupported(EFaceFXTargetPlatform::Type Platform)
+	{
+		switch (Platform)
+		{
+		case EFaceFXTargetPlatform::PC:
+		{
+			return true;
+		}
+#if FACEFX_SUPPORT_PS4
+		case EFaceFXTargetPlatform::PS4:
+		{
+			return true;
+		}
+#endif //FACEFX_SUPPORT_PS4
+#if FACEFX_SUPPORT_XBONE
+		case EFaceFXTargetPlatform::XBoxOne:
+		{
+			return true;
+		}
+#endif //FACEFX_SUPPORT_XBONE
+		}
+		return false;
+	}
+
 	/**
 	* Converts the given platform type to a string representation
 	* @param Platform The platform type
@@ -67,20 +93,16 @@ namespace EFaceFXTargetPlatformHelper
 				static FString s_PC = TEXT("PC");
 				return s_PC;
 			}
-#if FACEFX_SUPPORT_PS4
 		case EFaceFXTargetPlatform::PS4:
 			{
 				static FString s_PS4 = TEXT("PS4");
 				return s_PS4;
 			}
-#endif
-#if FACEFX_SUPPORT_XBONE
 		case EFaceFXTargetPlatform::XBoxOne:
 			{
 				static FString s_XBONE = TEXT("XBONE");
 				return s_XBONE;
 			}
-#endif
 		}
 
 		static FString s_UNKNOWN = TEXT("<Unknown>");

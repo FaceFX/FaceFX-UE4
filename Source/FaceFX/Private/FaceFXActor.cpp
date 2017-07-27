@@ -61,13 +61,10 @@ void UFaceFXActor::GetResourceSizeEx(FResourceSizeEx& CumulativeResourceSize)
 
 void UFaceFXActor::Serialize(FArchive& Ar)
 {
+	FScopedPlatformDataCooking<TArray<FFaceFXActorData>> ScopedCooking(this, Ar, &PlatformData);
+
 	if(!IsTemplate() && Ar.IsSaving())
 	{
-		if(Ar.IsCooking())
-		{
-			ClearPlatformData(Ar, PlatformData);
-		}
-
 #if FACEFX_USEANIMATIONLINKAGE
 		//cleanup references to deleted assets
 		for(int32 i=Animations.Num()-1; i>=0; --i)
