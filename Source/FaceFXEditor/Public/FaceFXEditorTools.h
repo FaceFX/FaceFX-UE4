@@ -459,15 +459,13 @@ struct FACEFXEDITOR_API FFaceFXEditorTools
 	*/
 	static inline FString GetPlatformFolder(const FString& Folder, EFaceFXTargetPlatform::Type Platform)
 	{
+		checkf(EFaceFXTargetPlatformHelper::IsSupported(Platform), TEXT("Unsupported target platform type"));
+
 		switch(Platform)
 		{
 		case EFaceFXTargetPlatform::PC: return Folder / TEXT("x86");
-#if FACEFX_SUPPORT_PS4
 		case EFaceFXTargetPlatform::PS4: return Folder / TEXT("ps4");
-#endif //FACEFX_SUPPORT_PS4
-#if FACEFX_SUPPORT_XBONE
 		case EFaceFXTargetPlatform::XBoxOne: return Folder / TEXT("xboxone");
-#endif //FACEFX_SUPPORT_XBONE
 		default: checkf(false, TEXT("Unknown target platform type"));
 		}
 		return TEXT("");

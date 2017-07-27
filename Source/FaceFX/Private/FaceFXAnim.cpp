@@ -57,11 +57,7 @@ void UFaceFXAnim::GetResourceSizeEx(FResourceSizeEx& CumulativeResourceSize)
 
 void UFaceFXAnim::Serialize(FArchive& Ar)
 {
-	if(!IsTemplate() && Ar.IsSaving() && Ar.IsCooking())
-	{
-		ClearPlatformData(Ar, PlatformData);
-	}
-
+	FScopedPlatformDataCooking<TArray<FFaceFXAnimData>> ScopedCooking(this, Ar, &PlatformData);
 	Super::Serialize(Ar);
 }
 

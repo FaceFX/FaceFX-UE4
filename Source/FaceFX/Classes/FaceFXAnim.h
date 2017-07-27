@@ -284,7 +284,7 @@ public:
 private:
 
 	/** The animation data. Its a list of data per platform. Will be cooked out to only the target platform. */
-	UPROPERTY(EditInstanceOnly, Category=FaceFX)
+	UPROPERTY(VisibleInstanceOnly, Category=FaceFX)
 	TArray<FFaceFXAnimData> PlatformData;
 
 	/** The animation Id */

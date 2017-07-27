@@ -27,7 +27,7 @@ class UAudioComponent;
 /** Audio layer that uses the Unreal Audio System */
 struct FFaceFXAudioDefault : public IFaceFXAudio, public FGCObject
 {
-	FFaceFXAudioDefault(UFaceFXCharacter* InOwner) : AudioComponent(nullptr), IFaceFXAudio(InOwner) {}
+	FFaceFXAudioDefault(UFaceFXCharacter* InOwner) : IFaceFXAudio(InOwner), AudioComponent(nullptr) {}
 
 	/**
 	* Prepares the audio data if needed for the current animation
