@@ -415,6 +415,11 @@ bool FFaceFXEditorTools::LoadCompiledPlatformActorData(UFaceFXActor* Asset, cons
     for(int8 i = 0; i<EFaceFXTargetPlatform::MAX; ++i)
     {
         const EFaceFXTargetPlatform::Type Target = EFaceFXTargetPlatform::Type(i);
+		if (!EFaceFXTargetPlatformHelper::IsSupported(Target))
+		{
+			//unsupported target type - ignore
+			continue;
+		}
 
         const FString PlatformFolder = GetPlatformFolder(Folder, Target);
 
@@ -458,6 +463,11 @@ bool FFaceFXEditorTools::LoadCompiledPlatformActorData(UFaceFXActor* Asset, cons
     for(int8 i = 0; i<EFaceFXTargetPlatform::MAX; ++i)
     {
         const EFaceFXTargetPlatform::Type Target = EFaceFXTargetPlatform::Type(i);
+		if (!EFaceFXTargetPlatformHelper::IsSupported(Target))
+		{
+			//unsupported target type - ignore
+			continue;
+		}
 
         FFaceFXActorData& TargetData = Asset->GetOrCreatePlatformData(Target);
 
@@ -469,6 +479,11 @@ bool FFaceFXEditorTools::LoadCompiledPlatformActorData(UFaceFXActor* Asset, cons
     for(int8 i = 0; i<EFaceFXTargetPlatform::MAX; ++i)
     {
         const EFaceFXTargetPlatform::Type Target = EFaceFXTargetPlatform::Type(i);
+		if (!EFaceFXTargetPlatformHelper::IsSupported(Target))
+		{
+			//unsupported target type - ignore
+			continue;
+		}
 
         const FString PlatformFolder = GetPlatformFolder(Folder, Target);
 
@@ -837,6 +852,11 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAnim* Asset, const FSt
 	for(int8 i=0; i<EFaceFXTargetPlatform::MAX; ++i)
 	{
 		const EFaceFXTargetPlatform::Type Target = EFaceFXTargetPlatform::Type(i);
+		if (!EFaceFXTargetPlatformHelper::IsSupported(Target))
+		{
+			//unsupported target type - ignore
+			continue;
+		}
 
 		const FString File = GetAnimAssetFileName(Folder, Asset->GetGroup().ToString(), Asset->GetName().ToString(), Target);
 		const bool FileExists = FPaths::FileExists(File);
