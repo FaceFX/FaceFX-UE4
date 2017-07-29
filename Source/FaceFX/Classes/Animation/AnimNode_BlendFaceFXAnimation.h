@@ -69,10 +69,18 @@ private:
 	/** struct that holds a transform / boneidx mapping */
 	struct FBlendFacialAnimationEntry
 	{
-		FBlendFacialAnimationEntry(int32 InBoneIdx, int32 InTransformIdx) : BoneIdx(InBoneIdx), TransformIdx(InTransformIdx) {}
+		FBlendFacialAnimationEntry(int32 InBoneIdx, int32 InTransformIdx, const FTransform& InBoneRefPose) : BoneIdx(InBoneIdx), TransformIdx(InTransformIdx)
+		{
+			BoneRefPoseScale = InBoneRefPose.GetScale3D();
+			BoneRefPoseTranslation = InBoneRefPose.GetTranslation();
+			BoneRefPoseRotation = FRotator(InBoneRefPose.GetRotation());
+		}
 
 		int32 BoneIdx;
 		int32 TransformIdx;
+		FVector BoneRefPoseScale;
+		FVector BoneRefPoseTranslation;
+		FRotator BoneRefPoseRotation;
 	};
 
 	/** The bone indices where to copy the transforms into. Based on the bone names coming from the facefx character instance */
