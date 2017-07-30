@@ -247,10 +247,9 @@ void FAnimNode_BlendFaceFXAnimation::EvaluateComponentSpace(FComponentSpacePoseC
 						{
 						case EBoneModificationMode::BMM_Additive:
 						{
-							//determine offset based on rotators
-							const FRotator FaceFXBoneRotation = FRotator(FaceFXBoneTM.GetRotation());
-							const FRotator OffsetRotation = FaceFXBoneRotation - Entry.BoneRefPoseRotation;							
-							BoneTM.SetRotation(FQuat(OffsetRotation) * BoneTM.GetRotation());
+							//determine offset
+							const FQuat OffsetRotation = FaceFXBoneTM.GetRotation() * Entry.BoneRefPoseRotationInv;
+							BoneTM.SetRotation(OffsetRotation * BoneTM.GetRotation());
 						}
 						break;
 						case EBoneModificationMode::BMM_Replace:
