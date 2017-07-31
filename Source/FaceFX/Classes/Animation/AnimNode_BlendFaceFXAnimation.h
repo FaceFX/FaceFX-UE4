@@ -73,14 +73,14 @@ private:
 		{
 			BoneRefPoseScale = InBoneRefPose.GetScale3D();
 			BoneRefPoseTranslation = InBoneRefPose.GetTranslation();
-			BoneRefPoseRotation = FRotator(InBoneRefPose.GetRotation());
+			BoneRefPoseRotationInv = InBoneRefPose.GetRotation().Inverse();
 		}
 
 		int32 BoneIdx;
 		int32 TransformIdx;
 		FVector BoneRefPoseScale;
 		FVector BoneRefPoseTranslation;
-		FRotator BoneRefPoseRotation;
+		FQuat BoneRefPoseRotationInv;
 	};
 
 	/** The bone indices where to copy the transforms into. Based on the bone names coming from the facefx character instance */
