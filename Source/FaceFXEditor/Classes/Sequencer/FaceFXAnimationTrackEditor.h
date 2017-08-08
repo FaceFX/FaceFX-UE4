@@ -72,7 +72,7 @@ private:
 	TSharedRef<SWidget> CreateOutlinerWidget(FGuid ObjectBinding);
 
 	/** Adds a new FaceFX section */
-	bool AddFaceFXSection(float KeyTime, UObject* Object, FFaceFXAnimComponentSet AnimCompSet);
+	FKeyPropertyResult AddFaceFXSection(float KeyTime, UObject* Object, FFaceFXAnimComponentSet AnimCompSet);
 
 	/** Callback for when the add FaceFX track dialog was closed */
 	void OnFaceFXTrackDialogClosed(FGuid ObjectBinding);
@@ -97,7 +97,6 @@ public:
 
 	//ISequencerSection
 	virtual UMovieSceneSection* GetSectionObject() override;
-	virtual FText GetDisplayName() const override;
 	virtual FText GetSectionTitle() const override;
 	virtual float GetSectionHeight() const override;
 	virtual void GenerateSectionLayout(class ISectionLayoutBuilder& LayoutBuilder) const override {}

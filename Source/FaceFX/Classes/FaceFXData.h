@@ -111,7 +111,7 @@ namespace EFaceFXTargetPlatformHelper
 }
 
 /** The struct represents a FaceFX animation identifier */
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FFaceFXAnimId
 {
 	GENERATED_USTRUCT_BODY()

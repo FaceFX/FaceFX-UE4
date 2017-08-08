@@ -82,7 +82,7 @@ private:
 	* Event callback for when the FaceFX anim asset was selected
 	* @param AssetData The asset selection data
 	*/
-	void OnAnimAssetSelected(const class FAssetData& AssetData);
+	void OnAnimAssetSelected(const FAssetData& AssetData);
 
 	/**
 	* Event callback for when the keyframe loop setting checkbox got (un)checked

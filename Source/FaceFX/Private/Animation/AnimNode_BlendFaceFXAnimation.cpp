@@ -39,7 +39,7 @@ FAnimNode_BlendFaceFXAnimation::FAnimNode_BlendFaceFXAnimation() :
 #endif
 }
 
-void FAnimNode_BlendFaceFXAnimation::Initialize(const FAnimationInitializeContext& Context)
+void FAnimNode_BlendFaceFXAnimation::Initialize_AnyThread(const FAnimationInitializeContext& Context)
 {
 	ComponentPose.Initialize(Context);
 
@@ -52,7 +52,7 @@ void FAnimNode_BlendFaceFXAnimation::Initialize(const FAnimationInitializeContex
 	}
 }
 
-void FAnimNode_BlendFaceFXAnimation::CacheBones(const FAnimationCacheBonesContext & Context)
+void FAnimNode_BlendFaceFXAnimation::CacheBones_AnyThread(const FAnimationCacheBonesContext & Context)
 {
 	ComponentPose.CacheBones(Context);
 
@@ -138,18 +138,18 @@ void FAnimNode_BlendFaceFXAnimation::LoadFaceFXData(FAnimInstanceProxy* AnimInst
 	}
 }
 
-void FAnimNode_BlendFaceFXAnimation::Update(const FAnimationUpdateContext& Context)
+void FAnimNode_BlendFaceFXAnimation::Update_AnyThread(const FAnimationUpdateContext& Context)
 {
 	ComponentPose.Update(Context);
 	EvaluateGraphExposedInputs.Execute(Context);
 }
 
-void FAnimNode_BlendFaceFXAnimation::Evaluate(FPoseContext& Output)
+void FAnimNode_BlendFaceFXAnimation::Evaluate_AnyThread(FPoseContext& Output)
 {
 	//convert on the fly to component space and back - This should not happen as the node uses CS.
 	//Yet it happened on invalid VIMs. When this happens the blend node needs to be relinked and the VIM needs to be recompiled and saved
 	FComponentSpacePoseContext InputCSPose(Output.AnimInstanceProxy);
-	EvaluateComponentSpace(InputCSPose);
+	EvaluateComponentSpace_AnyThread(InputCSPose);
 	InputCSPose.Pose.ConvertToLocalPoses(Output.Pose);
 
 #if !UE_BUILD_SHIPPING
@@ -162,7 +162,7 @@ void FAnimNode_BlendFaceFXAnimation::Evaluate(FPoseContext& Output)
 #endif
 }
 
-void FAnimNode_BlendFaceFXAnimation::EvaluateComponentSpace(FComponentSpacePoseContext& Output)
+void FAnimNode_BlendFaceFXAnimation::EvaluateComponentSpace_AnyThread(FComponentSpacePoseContext& Output)
 {
 	SCOPE_CYCLE_COUNTER(STAT_FaceFXBlend);
 
