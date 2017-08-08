@@ -42,11 +42,6 @@ UMovieSceneSection* FFaceFXAnimationSection::GetSectionObject()
 	return &Section;
 }
 
-FText FFaceFXAnimationSection::GetDisplayName() const
-{
-	return LOCTEXT("SequencerAnimationSection", "FaceFX");
-}
-
 FText FFaceFXAnimationSection::GetSectionTitle() const
 {
 	if (const UFaceFXAnimationSection* AnimSection = Cast<UFaceFXAnimationSection>(&Section))
