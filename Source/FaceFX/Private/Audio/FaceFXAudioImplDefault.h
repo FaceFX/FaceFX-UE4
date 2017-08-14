@@ -25,7 +25,7 @@ SOFTWARE.
 class UAudioComponent;
 
 /** Audio layer that uses the Unreal Audio System */
-struct FFaceFXAudioDefault : public IFaceFXAudio, public FGCObject
+struct FFaceFXAudioDefault : public IFaceFXAudio
 {
 	FFaceFXAudioDefault(UFaceFXCharacter* InOwner) : IFaceFXAudio(InOwner), AudioComponent(nullptr) {}
 
@@ -69,10 +69,6 @@ struct FFaceFXAudioDefault : public IFaceFXAudio, public FGCObject
 	*/
 	virtual bool SetAudioComponent(UActorComponent* Component) override;
 
-	//FGCObject
-	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
-	//~FGCObject
-
 private:
 
 	/**
@@ -82,7 +78,7 @@ private:
 	UAudioComponent* GetAudioComponent() const;
 
 	/** The audio component assigned to the character */
-	UAudioComponent* AudioComponent;
+	TWeakObjectPtr<UAudioComponent> AudioComponent;
 
 	/** The current audio asset that was assigned to the current animation*/
 	TAssetPtr<USoundWave> CurrentAnimSound;

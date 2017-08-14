@@ -263,19 +263,13 @@ bool FFaceFXAudioWwise::SetAudioComponent(UActorComponent* Component)
 
 UAkComponent* FFaceFXAudioWwise::GetAudioComponent() const
 {
-	if (AudioComponent)
+	if (UAkComponent* AudioComponentPtr = AudioComponent.Get())
 	{
-		return AudioComponent;
+		return AudioComponentPtr;
 	}
 
 	AActor* OwningActor = GetOwningActor();
 	return OwningActor ? OwningActor->FindComponentByClass<UAkComponent>() : nullptr;
 }
-
-void FFaceFXAudioWwise::AddReferencedObjects(FReferenceCollector& Collector)
-{
-	Collector.AddReferencedObject(AudioComponent);
-}
-
 
 #endif //WITH_WWISE

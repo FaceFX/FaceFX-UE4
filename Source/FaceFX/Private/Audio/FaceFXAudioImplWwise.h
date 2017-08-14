@@ -28,7 +28,7 @@ class UAkComponent;
 class UAkAudioEvent;
 
 /** Audio layer that uses WWise */
-struct FFaceFXAudioWwise : public IFaceFXAudio, public FGCObject
+struct FFaceFXAudioWwise : public IFaceFXAudio
 {
 	FFaceFXAudioWwise(UFaceFXCharacter* InOwner) : AudioComponent(nullptr), IFaceFXAudio(InOwner) {}
 
@@ -72,10 +72,6 @@ struct FFaceFXAudioWwise : public IFaceFXAudio, public FGCObject
 	*/
 	virtual bool SetAudioComponent(UActorComponent* Component) override;
 
-	//FGCObject
-	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
-	//~FGCObject
-
 private:
 
 	/**
@@ -85,7 +81,7 @@ private:
 	UAkComponent* GetAudioComponent() const;
 
 	/** The audio component assigned to the character */
-	UAkComponent* AudioComponent;
+	TWeakObjectPtr<UAkComponent> AudioComponent;
 
 	/** The currently playing AK sound event for Play */
 	TAssetPtr<UAkAudioEvent> CurrentAnimSound;
