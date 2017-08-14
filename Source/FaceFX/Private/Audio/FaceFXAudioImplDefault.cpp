@@ -173,16 +173,11 @@ bool FFaceFXAudioDefault::SetAudioComponent(UActorComponent* Component)
 
 UAudioComponent* FFaceFXAudioDefault::GetAudioComponent() const
 {
-	if (AudioComponent)
+	if (UAudioComponent* AudioComponentPtr = AudioComponent.Get())
 	{
-		return AudioComponent;
+		return AudioComponentPtr;
 	}
 	
 	AActor* OwningActor = GetOwningActor();
 	return OwningActor ? OwningActor->FindComponentByClass<UAudioComponent>() : nullptr;
-}
-
-void FFaceFXAudioDefault::AddReferencedObjects(FReferenceCollector& Collector)
-{
-	Collector.AddReferencedObject(AudioComponent);
 }
