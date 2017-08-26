@@ -56,6 +56,10 @@ struct FACEFX_API FAnimNode_BlendFaceFXAnimation : public FAnimNode_Base
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=BlendMode)
 	TEnumAsByte<EBoneModificationMode> ScaleMode;
 
+	/** Indicator if stripped name space bone mapping shall be skipped during bone matching phase in case a bone name was not found */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=BoneMapping)
+	bool bSkipBoneMappingWithoutNS;
+
 	// FAnimNode_Base interface
 	virtual void Initialize_AnyThread(const FAnimationInitializeContext& Context) override;
 	virtual void CacheBones_AnyThread(const FAnimationCacheBonesContext & Context) override;
