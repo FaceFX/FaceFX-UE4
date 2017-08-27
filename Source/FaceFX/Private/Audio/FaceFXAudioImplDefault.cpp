@@ -103,12 +103,17 @@ bool FFaceFXAudioDefault::Pause(bool fadeOut)
 		AudioComp->Stop();
 		AudioComp->bIsUISound = true;
 		AudioComp->Play(CurrentProgress);
-		if (fadeOut)
-		{
-			//fade out instead of direct stopping to support very short playback durations when play/pausing in one tick (i.e. for scrubbing)
-			AudioComp->FadeOut(0.050f, 1.f);
-		}
-		else
+
+		//Since UE4.17 the engine does not update the audio times anymore within editor worlds. 
+		//Without that the fade out does not work properly anymore as it never stops. Deactivated for now.
+		//See: FAudioDevice::UpdateActiveSoundPlaybackTime
+
+		//if (fadeOut)
+		//{
+		//	//fade out instead of direct stopping to support very short playback durations when play/pausing in one tick (i.e. for scrubbing)
+		//	AudioComp->FadeOut(0.050f, 1.f);
+		//}
+		//else
 		{
 			AudioComp->Stop();
 		}
