@@ -85,6 +85,7 @@ void FAnimNode_BlendFaceFXAnimation::LoadFaceFXData(FAnimInstanceProxy* AnimInst
 
 		bFaceFXCharacterLoadingCompleted = true;
 
+		//generate the bone mapping indices out of the bone names
 		if(UFaceFXComponent* FaceFXComp = Owner->FindComponentByClass<UFaceFXComponent>())
 		{
 			if(UFaceFXCharacter* FaceFXChar = FaceFXComp->GetCharacter(Component))
@@ -99,7 +100,20 @@ void FAnimNode_BlendFaceFXAnimation::LoadFaceFXData(FAnimInstanceProxy* AnimInst
 					if(BoneTransformIdx != INDEX_NONE)
 					{
 						//find skeleton bone index
-						const int32 BoneIdx = Component->GetBoneIndex(BoneName);
+						int32 BoneIdx = Component->GetBoneIndex(BoneName);
+						
+						if (BoneIdx == INDEX_NONE && !bSkipBoneMappingWithoutNS)
+						{
+							//strip any existing namespace from the bone name and try matching against it
+							FString BoneNameWithOutNS = BoneName.ToString();
+							int32 LastNSLocation;
+							if (BoneNameWithOutNS.FindLastChar(':', LastNSLocation) && BoneNameWithOutNS.Len() > LastNSLocation)
+							{
+								BoneNameWithOutNS = BoneNameWithOutNS.RightChop(LastNSLocation + 1);
+								BoneIdx = Component->GetBoneIndex(*BoneNameWithOutNS);
+							}
+						}
+
 						if(BoneIdx != INDEX_NONE)
 						{
 							const FTransform& BoneRefPose = BoneRefPoses[BoneIdx];
