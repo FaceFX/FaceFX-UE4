@@ -45,7 +45,7 @@ FFaceFXConfig::FFaceFXConfig() : bIsImportLookupAudio(false), bIsImportLookupAni
 		if (!GConfig->GetString(FACEFX_CONFIG_NS, TEXT("StudioPathAbsolute"), StudioPath, IniFile))
 		{
 			//fallback to default
-			StudioPath = TEXT("C:/Program Files (x86)/FaceFX/FaceFX Studio Professional 2015/facefx-studio.exe");
+			StudioPath = TEXT("C:/Program Files (x86)/FaceFX/FaceFX Studio Professional 2017/facefx-studio.exe");
 		}
 	}
 
