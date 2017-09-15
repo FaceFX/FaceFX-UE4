@@ -8,9 +8,9 @@ After installing FaceFX Studio Professional, you need to install the FaceFX Runt
 
 **Note:** The FaceFX Runtime plugin for FaceFX Studio requires FaceFX Studio Professional 2015.1 or newer.
 
-To install the plugin, go into your **Documents** folder (e.g. C:\Users\Steve\Documents), navigate into the **FaceFX Studio 2015\Scripts** folder, create a new folder there called **FaceFXRuntime**, and copy the contents of this plugin folder there. For example, after having performed these steps, and assuming your Windows user name is Steve, you should have the following folder on your system:
+To install the plugin, go into your **Documents** folder (e.g. C:\Users\Steve\Documents), navigate into the **FaceFX Studio 2017\Scripts** folder, create a new folder there called **FaceFXRuntime**, and copy the contents of this plugin folder there. For example, after having performed these steps, and assuming your Windows user name is Steve, you should have the following folder on your system:
 
-C:\Users\Steve\Documents\FaceFX Studio 2015\Scripts\FaceFXRuntime
+C:\Users\Steve\Documents\FaceFX Studio 2017\Scripts\FaceFXRuntime
 
 and inside that folder should be the following files:
 
@@ -22,7 +22,7 @@ Restart FaceFX Studio. After restarting FaceFX Studio you should see the option 
 
 #### Optional steps
 
-You can also copy the version of **ffxc.exe** you prefer from **facefx/tools/compiler/bin/windows** into your **FaceFXRuntime** folder to be parallel to the **FaceFXRuntime.py** file. For example, if you prefer the vs12 64-bit version, copy **facefx/tools/compiler/bin/windows/vs12/Release/ffxc.exe** into C:\Users\Steve\Documents\FaceFX Studio 2015\Scripts\FaceFXRuntime. The contents of the **FaceFXRuntime** folder would then be:
+You can also copy the version of **ffxc.exe** you prefer from **facefx/tools/compiler/bin/windows** into your **FaceFXRuntime** folder to be parallel to the **FaceFXRuntime.py** file. For example, if you prefer the vs12 64-bit version, copy **facefx/tools/compiler/bin/windows/vs12/Release/ffxc.exe** into C:\Users\Steve\Documents\FaceFX Studio 2017\Scripts\FaceFXRuntime. The contents of the **FaceFXRuntime** folder would then be:
 
 + \_\_init\_\_.py
 + FaceFXRuntime.py

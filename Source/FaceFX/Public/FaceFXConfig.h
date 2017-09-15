@@ -38,8 +38,7 @@
 
 // Indicator if imported .ffxanim will be deleted. Default Value: 1
 // When true those asset will be deleted after import and considered as
-// up-to-date when the asset source file does exist during reimport. (Requires
-// FaceFX Studio 2015 Runtime Compiler 1.0 or above)
+// up-to-date when the asset source file does exist during reimport.
 // When false those files are not deleted and are considered always newer than
 // asset. Reimport will always be performed
 #define FACEFX_DELETE_IMPORTED_ANIM 1
