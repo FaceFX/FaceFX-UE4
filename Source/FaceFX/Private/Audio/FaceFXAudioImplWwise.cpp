@@ -38,7 +38,7 @@ UAkAudioEvent* GetAkEvent(UFaceFXCharacter* Character, const TAssetPtr<UAkAudioE
 	if (!SoundEvent)
 	{
 		//sound not loaded (yet) -> load sync now. Here we could also use a delayed audio playback system
-		SoundEvent = Cast<UAkAudioEvent>(StaticLoadObject(UAkAudioEvent::StaticClass(), Character, *Asset.ToStringReference().ToString()));
+		SoundEvent = Cast<UAkAudioEvent>(StaticLoadObject(UAkAudioEvent::StaticClass(), Character, *Asset.ToSoftObjectPath().ToString()));
 	}
 	return SoundEvent;
 }
@@ -49,29 +49,29 @@ void FFaceFXAudioWwise::Prepare(const UFaceFXAnim* Animation)
 
 	if (bIsAutoPlaySound)
 	{
-		CurrentAnimSound = Animation->GetAudioAkEvent().ToStringReference();
-		CurrentAnimSoundStop = Animation->GetAudioAkEventStop().ToStringReference();
-		CurrentAnimSoundPause = Animation->GetAudioAkEventPause().ToStringReference();
-		CurrentAnimSoundResume = Animation->GetAudioAkEventResume().ToStringReference();
+		CurrentAnimSound = Animation->GetAudioAkEvent().ToSoftObjectPath();
+		CurrentAnimSoundStop = Animation->GetAudioAkEventStop().ToSoftObjectPath();
+		CurrentAnimSoundPause = Animation->GetAudioAkEventPause().ToSoftObjectPath();
+		CurrentAnimSoundResume = Animation->GetAudioAkEventResume().ToSoftObjectPath();
 
 		TArray<FStringAssetReference> StreamingRequests;
 
 		//check if asset are not loaded yet -> async load to have it (hopefully) ready when the FaceFX runtime audio start event triggers
-		if (!CurrentAnimSound.IsValid() && CurrentAnimSound.ToStringReference().IsValid())
+		if (!CurrentAnimSound.IsValid() && CurrentAnimSound.ToSoftObjectPath().IsValid())
 		{
-			StreamingRequests.Add(CurrentAnimSound.ToStringReference());
+			StreamingRequests.Add(CurrentAnimSound.ToSoftObjectPath());
 		}
-		if (!CurrentAnimSoundStop.IsValid() && CurrentAnimSoundStop.ToStringReference().IsValid())
+		if (!CurrentAnimSoundStop.IsValid() && CurrentAnimSoundStop.ToSoftObjectPath().IsValid())
 		{
-			StreamingRequests.Add(CurrentAnimSoundStop.ToStringReference());
+			StreamingRequests.Add(CurrentAnimSoundStop.ToSoftObjectPath());
 		}
-		if (!CurrentAnimSoundPause.IsValid() && CurrentAnimSoundPause.ToStringReference().IsValid())
+		if (!CurrentAnimSoundPause.IsValid() && CurrentAnimSoundPause.ToSoftObjectPath().IsValid())
 		{
-			StreamingRequests.Add(CurrentAnimSoundPause.ToStringReference());
+			StreamingRequests.Add(CurrentAnimSoundPause.ToSoftObjectPath());
 		}
-		if (!CurrentAnimSoundResume.IsValid() && CurrentAnimSoundResume.ToStringReference().IsValid())
+		if (!CurrentAnimSoundResume.IsValid() && CurrentAnimSoundResume.ToSoftObjectPath().IsValid())
 		{
-			StreamingRequests.Add(CurrentAnimSoundResume.ToStringReference());
+			StreamingRequests.Add(CurrentAnimSoundResume.ToSoftObjectPath());
 		}
 
 		if (StreamingRequests.Num() > 0)
@@ -92,13 +92,13 @@ void FFaceFXAudioWwise::Prepare(const UFaceFXAnim* Animation)
 
 bool FFaceFXAudioWwise::Play(float Position, UActorComponent** OutAudioComp)
 {
-	if (bIsAutoPlaySound && CurrentAnimSound.ToStringReference().IsValid())
+	if (bIsAutoPlaySound && CurrentAnimSound.ToSoftObjectPath().IsValid())
 	{
 		UAkComponent* AudioComp = GetAudioComponent();
 		if (!AudioComp)
 		{
 			UE_LOG(LogFaceFX, Error, TEXT("FFaceFXAudioWwise::PlayAudio. Playing audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAkComponent. Actor: %s. Asset: %s")
-				, *GetNameSafe(GetOwningActor()), *CurrentAnimSound.ToStringReference().ToString());
+				, *GetNameSafe(GetOwningActor()), *CurrentAnimSound.ToSoftObjectPath().ToString());
 			return false;
 		}
 
@@ -168,7 +168,7 @@ bool FFaceFXAudioWwise::Play(float Position, UActorComponent** OutAudioComp)
 		else
 		{
 			UE_LOG(LogFaceFX, Error, TEXT("FFaceFXAudioWwise::PlayAudio. Playing audio failed. Audio asset failed to load. Actor: %s. Asset: %s"),
-				*GetNameSafe(GetOwningActor()), *CurrentAnimSound.ToStringReference().ToString());
+				*GetNameSafe(GetOwningActor()), *CurrentAnimSound.ToSoftObjectPath().ToString());
 		}
 	}
 

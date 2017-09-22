@@ -87,7 +87,7 @@ public class FaceFXLib : ModuleRules
 
         string CompilerFolder = "vs14";
 
-        if (WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2017)
+        if (Target.WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2017)
         {
             CompilerFolder = "vs15";
         }
@@ -123,7 +123,7 @@ public class FaceFXLib : ModuleRules
         {
             case UnrealTargetConfiguration.Debug:
                 // change bDebugBuildsActuallyUseDebugCRT to true in BuildConfiguration.cs to actually link debug binaries
-                if (BuildConfiguration.bDebugBuildsActuallyUseDebugCRT)
+                if (Target.bDebugBuildsActuallyUseDebugCRT)
                 {
                     ConfigFolder = "Debug";
                     if (DebugLibsWarningDisplayed == false)

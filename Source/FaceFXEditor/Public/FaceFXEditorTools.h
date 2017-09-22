@@ -159,7 +159,7 @@ struct FFaceFXImportResult
 	FFaceFXImportActionResult& Add(const FText& Message, FFaceFXImportActionResult::ActionType Type, FFaceFXImportActionResult::ResultType Result, const TAssetPtr<class UFaceFXAsset>& ImportAsset, const TAssetPtr<TAssetType>& InAsset = nullptr)
 	{
 		FFaceFXImportActionResult NewEntry = FFaceFXImportActionResult(Type, Result, ImportAsset, Message);
-		NewEntry.Asset = InAsset.ToStringReference();
+		NewEntry.Asset = InAsset.ToSoftObjectPath();
 		return Entries[Entries.Add(NewEntry)];
 	}
 

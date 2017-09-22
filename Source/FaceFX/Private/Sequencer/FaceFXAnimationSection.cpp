@@ -102,9 +102,9 @@ void UFaceFXAnimationSection::GetSnapTimes(TArray<float>& OutSnapTimes, bool bGe
 UFaceFXAnim* UFaceFXAnimationSection::GetAnimation(const TAssetPtr<UFaceFXAnim>& Asset, UObject* Owner)
 {
 	UFaceFXAnim* NewAnim = Asset.Get();
-	if (!NewAnim && Asset.ToStringReference().IsValid())
+	if (!NewAnim && Asset.ToSoftObjectPath().IsValid())
 	{
-		NewAnim = Cast<UFaceFXAnim>(StaticLoadObject(UFaceFXAnim::StaticClass(), Owner, *Asset.ToStringReference().ToString()));
+		NewAnim = Cast<UFaceFXAnim>(StaticLoadObject(UFaceFXAnim::StaticClass(), Owner, *Asset.ToSoftObjectPath().ToString()));
 	}
 	return NewAnim;
 }
@@ -199,10 +199,10 @@ FText UFaceFXAnimationSection::GetTitle() const
 		AnimName = AnimId.Group.IsNone() ? TEXT("") : AnimId.Group.ToString() + TEXT(" / ");
 		AnimName += AnimId.Name.ToString();
 	}
-	else if (Animation.ToStringReference().IsValid())
+	else if (Animation.ToSoftObjectPath().IsValid())
 	{
 		//fetch from asset ref
-		AnimName = Animation.ToStringReference().ToString();
+		AnimName = Animation.ToSoftObjectPath().ToString();
 	}
 
 	return FText::FromString(AnimName);

@@ -283,9 +283,9 @@ void UFaceFXMatineeControl::GetTrackKeyForTime(float InTime, TArray<TPair<int32,
 UFaceFXAnim* GetAnimation(const FFaceFXTrackKey& Track, UObject* Owner)
 {
 	UFaceFXAnim* NewAnim = Track.Animation.Get();
-	if(!NewAnim && Track.Animation.ToStringReference().IsValid())
+	if(!NewAnim && Track.Animation.ToSoftObjectPath().IsValid())
 	{
-		NewAnim = Cast<UFaceFXAnim>(StaticLoadObject(UFaceFXAnim::StaticClass(), Owner, *Track.Animation.ToStringReference().ToString()));
+		NewAnim = Cast<UFaceFXAnim>(StaticLoadObject(UFaceFXAnim::StaticClass(), Owner, *Track.Animation.ToSoftObjectPath().ToString()));
 	}
 
 	return NewAnim;

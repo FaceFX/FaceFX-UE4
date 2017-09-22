@@ -122,10 +122,10 @@ UFaceFXAnim* FindAnimationAsset(const FString& SourceAssetFolder, const FString&
 			if(!Asset)
 			{
 				//synchronously load sound asset
-				Asset = Cast<UFaceFXAnim>(StaticLoadObject(UFaceFXAnim::StaticClass(), nullptr, *AssetData.ToStringReference().ToString()));
+				Asset = Cast<UFaceFXAnim>(StaticLoadObject(UFaceFXAnim::StaticClass(), nullptr, *AssetData.ToSoftObjectPath().ToString()));
 			}
 
-			checkf(Asset, TEXT("Internal Error. UFaceFXAnim asset not loaded. %s"), *AssetData.ToStringReference().ToString());
+			checkf(Asset, TEXT("Internal Error. UFaceFXAnim asset not loaded. %s"), *AssetData.ToSoftObjectPath().ToString());
 
 			//check if the anim refers to the same group/id and belong to the same source .facefx
 			const FFaceFXAnimId& AssetAnimId = Asset->GetId();
@@ -1078,10 +1078,10 @@ TAssetPtr<USoundWave> FFaceFXEditorTools::LocateAudio(const FString& AudioSource
 			if(!Asset)
 			{
 				//synchronously load sound asset
-				Asset = Cast<USoundWave>(StaticLoadObject(USoundWave::StaticClass(), nullptr, *AssetData.ToStringReference().ToString()));
+				Asset = Cast<USoundWave>(StaticLoadObject(USoundWave::StaticClass(), nullptr, *AssetData.ToSoftObjectPath().ToString()));
 			}
 
-			checkf(Asset, TEXT("Internal Error. USoundWave asset not loaded. %s"), *AssetData.ToStringReference().ToString());
+			checkf(Asset, TEXT("Internal Error. USoundWave asset not loaded. %s"), *AssetData.ToSoftObjectPath().ToString());
 
 			const FString AssetFileAbs = *Asset->AssetImportData->GetFirstFilename();
 			if(AssetFileAbs.Equals(AudioSourceFileAbs, ESearchCase::IgnoreCase))

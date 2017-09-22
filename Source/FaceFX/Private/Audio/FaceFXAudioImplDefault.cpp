@@ -29,11 +29,11 @@ void FFaceFXAudioDefault::Prepare(const UFaceFXAnim* Animation)
 
 	CurrentAnimSound = bIsAutoPlaySound ? Animation->GetAudio() : nullptr;
 
-	if (bIsAutoPlaySound && !CurrentAnimSound.IsValid() && CurrentAnimSound.ToStringReference().IsValid())
+	if (bIsAutoPlaySound && !CurrentAnimSound.IsValid() && CurrentAnimSound.ToSoftObjectPath().IsValid())
 	{
 		//asset not loaded yet -> async load to have it (hopefully) ready when the FaceFX runtime audio start event triggers
 		TArray<FStringAssetReference> StreamingRequests;
-		StreamingRequests.Add(CurrentAnimSound.ToStringReference());
+		StreamingRequests.Add(CurrentAnimSound.ToSoftObjectPath());
 		FaceFX::GetStreamer().RequestAsyncLoad(StreamingRequests, FStreamableDelegate());
 	}
 
@@ -45,13 +45,13 @@ bool FFaceFXAudioDefault::Play(float Position, UActorComponent** OutAudioComp)
 	UFaceFXCharacter* Character = GetOwner();
 	check(Character);
 
-	if (bIsAutoPlaySound && CurrentAnimSound.ToStringReference().IsValid())
+	if (bIsAutoPlaySound && CurrentAnimSound.ToSoftObjectPath().IsValid())
 	{
 		UAudioComponent* AudioComp = GetAudioComponent();
 		if (!AudioComp)
 		{
 			UE_LOG(LogFaceFX, Error, TEXT("FFaceFXAudioDefault::PlayAudio. Playing audio failed. Owning UFaceFXComponent does not belong to an actor that owns an UAudioComponent. Actor: %s. Asset: %s")
-				, *GetNameSafe(GetOwningActor()), *CurrentAnimSound.ToStringReference().ToString());
+				, *GetNameSafe(GetOwningActor()), *CurrentAnimSound.ToSoftObjectPath().ToString());
 			return false;
 		}
 
@@ -59,7 +59,7 @@ bool FFaceFXAudioDefault::Play(float Position, UActorComponent** OutAudioComp)
 		if (!Sound)
 		{
 			//sound not loaded (yet) -> load sync now. Here we could also use a delayed audio playback system
-			Sound = Cast<USoundWave>(StaticLoadObject(USoundWave::StaticClass(), Character, *CurrentAnimSound.ToStringReference().ToString()));
+			Sound = Cast<USoundWave>(StaticLoadObject(USoundWave::StaticClass(), Character, *CurrentAnimSound.ToSoftObjectPath().ToString()));
 		}
 
 		if (Sound)
@@ -79,7 +79,7 @@ bool FFaceFXAudioDefault::Play(float Position, UActorComponent** OutAudioComp)
 		else
 		{
 			UE_LOG(LogFaceFX, Error, TEXT("FFaceFXAudioDefault::PlayAudio. Playing audio failed. Audio asset failed to load. Actor: %s. Asset: %s"),
-				*GetNameSafe(GetOwningActor()), *CurrentAnimSound.ToStringReference().ToString());
+				*GetNameSafe(GetOwningActor()), *CurrentAnimSound.ToSoftObjectPath().ToString());
 		}
 	}
 
