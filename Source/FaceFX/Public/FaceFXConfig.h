@@ -107,6 +107,12 @@ struct FACEFX_API FFaceFXConfig
 	static const FFaceFXConfig& Get();
 
 	/**
+	* Gets the path to the FaceFX plugin
+	* @returns The path to the FaceFX folder
+	*/
+	static const FString& GetFaceFXPluginFolder();
+
+	/**
 	* Gets the path to the FaceFX.ini file
 	* @returns The path to the ini
 	*/
