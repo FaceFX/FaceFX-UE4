@@ -30,9 +30,23 @@ const FFaceFXConfig& FFaceFXConfig::Get()
 	return Instance;
 }
 
+const FString& FFaceFXConfig::GetFaceFXPluginFolder()
+{
+	static FString FolderPath;
+	if (FolderPath.IsEmpty())
+	{
+		FolderPath = FPaths::EnginePluginsDir() / TEXT("Runtime/FaceFX");
+		if (!FPaths::DirectoryExists(FolderPath))
+		{
+			FolderPath = FPaths::GamePluginsDir() / TEXT("FaceFX");
+		}
+	}
+	return FolderPath;
+}
+
 const FString& FFaceFXConfig::GetFaceFXIni()
 {
-	static FString IniPath = FPaths::EnginePluginsDir() / TEXT("Runtime/FaceFX/Config/FaceFX.ini");
+	static FString IniPath = GetFaceFXPluginFolder() / TEXT("Config/FaceFX.ini");
 	return IniPath;
 }
 

@@ -41,7 +41,7 @@ TSharedPtr<FSlateStyleSet> FFaceFXStyle::StyleSet;
 */
 FString FFaceFXStyle::GetResourcePath(const FString& RelativePath, const ANSICHAR* Extension)
 {
-	static FString ResourceDir = FPaths::EnginePluginsDir() / TEXT("Runtime/FaceFX/Resources");
+	static FString ResourceDir = FFaceFXConfig::GetFaceFXPluginFolder() / TEXT("Resources");
 	return (ResourceDir / RelativePath) + Extension;
 }
 
