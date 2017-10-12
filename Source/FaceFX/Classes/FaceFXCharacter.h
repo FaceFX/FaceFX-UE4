@@ -462,9 +462,10 @@ private:
 
 	/**
 	* Retrieves the morph targets for a skel mesh and creates FaceFX indices for the names
+	* @param Dataset The asset to fetch the ids from
 	* @returns True if setup succeeded, else false
 	*/
-	bool SetupMorphTargets();
+	bool SetupMorphTargets(const UFaceFXActor* Dataset);
 
 	/** Processes the morph targets for the current frame state */
 	void ProcessMorphTargets();

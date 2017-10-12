@@ -735,7 +735,7 @@ bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset, bool IsDisabledMorphTar
     }
 
 	bDisabledMorphTargets = IsDisabledMorphTargets;
-	if(!bDisabledMorphTargets && !SetupMorphTargets())
+	if(!bDisabledMorphTargets && !SetupMorphTargets(Dataset))
 	{
 		Reset();
 		return false;
@@ -777,9 +777,10 @@ void UFaceFXCharacter::ProcessMorphTargets()
 	}
 }
 
-bool UFaceFXCharacter::SetupMorphTargets()
+bool UFaceFXCharacter::SetupMorphTargets(const UFaceFXActor* Dataset)
 {
 	check(IsLoaded());
+	check(Dataset);
 
 	//reset morph target data
 	MorphTargetNames.Reset();
@@ -806,7 +807,14 @@ bool UFaceFXCharacter::SetupMorphTargets()
 			const FName& MorphTarget = It.Key();
 
 			ffx_id_index_t IdIndex;
-			if(!Check(ffx_create_id(TCHAR_TO_ANSI(*MorphTarget.ToString()), &IdIndex.id)))
+
+			//Fetch id from data asset. If that fails we check on the runtime data
+			const FFaceFXIdData* AssetIdData = Dataset->GetData().Ids.FindByKey(MorphTarget);
+			if(AssetIdData)
+			{
+				IdIndex.id = AssetIdData->Id;
+			}
+			else if(!Check(ffx_create_id(TCHAR_TO_ANSI(*MorphTarget.ToString()), &IdIndex.id)))
 			{
 				UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::SetupMorphTargets. Unable to create FaceFX id for FaceFX track <%s>. %s. Asset: %s"), *MorphTarget.ToString(), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
 				return false;
@@ -838,7 +846,7 @@ bool UFaceFXCharacter::SetupMorphTargets()
 			if(TrackIndex.index == INDEX_NONE)
 			{
 				//Track was not found -> ignore morph target
-				UE_LOG(LogFaceFX, Verbose, TEXT("UFaceFXCharacter::SetupMorphTargets. No FaceFX track found for SkelMesh Morph Target <%s>. SkelMesh: &s. Asset: %s"),
+				UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::SetupMorphTargets. No FaceFX track found for SkelMesh Morph Target <%s>. SkelMesh: &s. Asset: %s"),
 					*MorphTarget.ToString(), *GetNameSafe(SkelMeshComp->SkeletalMesh), *GetNameSafe(FaceFXActor));
 				continue;
 			}
