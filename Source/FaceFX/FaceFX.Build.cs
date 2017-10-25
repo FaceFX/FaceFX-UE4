@@ -45,7 +45,7 @@ public class FaceFX : ModuleRules
             }
         );
 
-        if (UEBuildConfiguration.bBuildEditor)
+        if (Target.bBuildEditor)
         {
             PrivateDependencyModuleNames.Add("TargetPlatform");
         }

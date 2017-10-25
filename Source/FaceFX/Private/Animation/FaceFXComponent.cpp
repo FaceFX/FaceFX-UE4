@@ -300,7 +300,7 @@ void UFaceFXComponent::CreateCharacter(FFaceFXEntry& Entry)
 		return;
 	}
 
-	if(Entry.Asset.ToStringReference().IsValid())
+	if(Entry.Asset.ToSoftObjectPath().IsValid())
 	{
 		if(UFaceFXActor* FaceFXActor = Entry.Asset.Get())
 		{
@@ -310,7 +310,7 @@ void UFaceFXComponent::CreateCharacter(FFaceFXEntry& Entry)
 
 			if(!Entry.Character->Load(FaceFXActor, Entry.bIsDisableMorphTargets))
 			{
-				UE_LOG(LogFaceFX, Error, TEXT("SkeletalMesh Component FaceFX failed to get initialized. Loading failed. Component=%s. Asset=%s"), *GetName(), *Entry.Asset.ToStringReference().ToString());
+				UE_LOG(LogFaceFX, Error, TEXT("SkeletalMesh Component FaceFX failed to get initialized. Loading failed. Component=%s. Asset=%s"), *GetName(), *Entry.Asset.ToSoftObjectPath().ToString());
 				Entry.Character = nullptr;
 			}
 			else
@@ -330,7 +330,7 @@ void UFaceFXComponent::CreateCharacter(FFaceFXEntry& Entry)
 
 			//asset not loaded yet -> trigger async load
 			TArray<FStringAssetReference> StreamingRequests;
-			StreamingRequests.Add(Entry.Asset.ToStringReference());
+			StreamingRequests.Add(Entry.Asset.ToSoftObjectPath());
 
 			FaceFX::GetStreamer().RequestAsyncLoad(StreamingRequests, FStreamableDelegate::CreateUObject(this, &UFaceFXComponent::OnFaceActorAssetLoaded));
 		}

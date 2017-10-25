@@ -150,7 +150,8 @@ struct FFaceFXAnimId
 	*/
 	FString GetIdString() const
 	{
-		return MoveTemp(Group.ToString() + TEXT(".") + Name.ToString());
+		FString IdString = Group.ToString() + TEXT(".") + Name.ToString();
+		return MoveTemp(IdString);
 	}
 
 	/**

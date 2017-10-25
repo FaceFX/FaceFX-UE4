@@ -357,15 +357,15 @@ TSharedRef<SWidget> FFaceFXResultWidget::ListRowWidget::GenerateWidgetForColumn(
 {
 	if(ColumnName == s_ColIdRootImportAsset)
 	{
-		return SNew(FFaceFXAssetRefWidget).AssetRef(Entry->ImportRootAsset.ToStringReference());
+		return SNew(FFaceFXAssetRefWidget).AssetRef(Entry->ImportRootAsset.ToSoftObjectPath());
 	}
 	else if(ColumnName == s_ColIdImportAsset)
 	{
-		return SNew(FFaceFXAssetRefWidget).AssetRef(Entry->Result.GetImportAsset().ToStringReference());
+		return SNew(FFaceFXAssetRefWidget).AssetRef(Entry->Result.GetImportAsset().ToSoftObjectPath());
 	}
 	else if(ColumnName == s_ColIdAsset)
 	{
-		return SNew(FFaceFXAssetRefWidget).AssetRef(Entry->Result.GetAsset().ToStringReference());
+		return SNew(FFaceFXAssetRefWidget).AssetRef(Entry->Result.GetAsset().ToSoftObjectPath());
 	}
 	else if(ColumnName == s_ColIdSuccess)
 	{
