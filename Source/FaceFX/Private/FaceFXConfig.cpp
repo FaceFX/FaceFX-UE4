@@ -38,7 +38,7 @@ const FString& FFaceFXConfig::GetFaceFXPluginFolder()
 		FolderPath = FPaths::EnginePluginsDir() / TEXT("Runtime/FaceFX");
 		if (!FPaths::DirectoryExists(FolderPath))
 		{
-			FolderPath = FPaths::GamePluginsDir() / TEXT("FaceFX");
+			FolderPath = FPaths::ProjectPluginsDir() / TEXT("FaceFX");
 		}
 	}
 	return FolderPath;
