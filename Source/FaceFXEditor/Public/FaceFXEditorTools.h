@@ -466,6 +466,7 @@ struct FACEFXEDITOR_API FFaceFXEditorTools
 		case EFaceFXTargetPlatform::PC: return Folder / TEXT("x86");
 		case EFaceFXTargetPlatform::PS4: return Folder / TEXT("ps4");
 		case EFaceFXTargetPlatform::XBoxOne: return Folder / TEXT("xboxone");
+		case EFaceFXTargetPlatform::Switch: return Folder / TEXT("switch");
 		default: checkf(false, TEXT("Unknown target platform type"));
 		}
 		return TEXT("");

@@ -46,7 +46,7 @@ FString UFaceFXAsset::GetAssetFolderAbsolute() const
 template <typename T> bool UFaceFXAsset::ClearPlatformData(const FArchive& Ar, T& PlatformData)
 {
 	//check if we actually have platform specific data to store
-	//The list of available platforms are: WindowsNoEditor, WindowsServer, LinuxServer, PS4, XboxOne, IOS, and Android.
+	//The list of available platforms are: WindowsNoEditor, WindowsServer, LinuxServer, PS4, XboxOne, Switch, IOS, and Android.
 	const FString Platform = Ar.CookingTarget()->PlatformName();
 
 	EFaceFXTargetPlatform::Type TargetPlatform = EFaceFXTargetPlatform::PC;
@@ -67,6 +67,13 @@ template <typename T> bool UFaceFXAsset::ClearPlatformData(const FArchive& Ar, T
 	}
 	else
 #endif //FACEFX_SUPPORT_XBONE
+#if FACEFX_SUPPORT_SWITCH
+	if(Platform.Equals("Switch", ESearchCase::IgnoreCase))
+	{
+		TargetPlatform = EFaceFXTargetPlatform::Switch;
+	}
+	else
+#endif //FACEFX_SUPPORT_SWITCH
 	if(!Platform.Equals(TEXT("WindowsNoEditor"), ESearchCase::IgnoreCase) && !Platform.Equals(TEXT("WindowsServer"), ESearchCase::IgnoreCase))
 	{
 		//Unknown target platform

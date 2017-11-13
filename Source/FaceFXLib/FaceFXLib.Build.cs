@@ -112,6 +112,10 @@ public class FaceFXLib : ModuleRules
             //    FaceFXLib = "facefx";
             //    PlatformFolder = Path.Combine(new[] { "ps4", CompilerFolder });
             //    break;
+            //case UnrealTargetPlatform.Switch:
+            //    FaceFXLib = "facefx";
+            //    PlatformFolder = Path.Combine(new[] { "nx", CompilerFolder });
+            //    break;
             default:
                 System.Console.WriteLine(System.String.Format("FaceFX disabled. Unsupported target platform: {0}", Target.Platform));
                 return false;

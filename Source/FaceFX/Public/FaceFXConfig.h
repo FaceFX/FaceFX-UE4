@@ -84,12 +84,14 @@
 // to have the new platform data available during cooking
 // Also remember to adjust the WhitelistPlatforms property within FaceFX.uplugin
 // accordingly to enable FaceFX on these target platforms
-// The module must also link to the PS4 and XBoxOne libs. To enable uncomment
+// The module must also link to the PS4, XBoxOne, and Switch libs. To enable uncomment
 // the place within FaceFXLib.Build.cs.
 // Playstation 4
 #define FACEFX_SUPPORT_PS4 0
 // XBox One
 #define FACEFX_SUPPORT_XBONE 0
+// Nintendo Switch
+#define FACEFX_SUPPORT_SWITCH 0
 
 // Support for sequencer which was added with UE 4.12.
 #if ENGINE_MAJOR_VERSION < 4 && ENGINE_MINOR_VERSION < 13
