@@ -42,6 +42,7 @@ namespace EFaceFXTargetPlatform
 		PC = 0,
 		PS4,
 		XBoxOne,
+		Switch,
 		MAX UMETA(Hidden)
 	};
 }
@@ -51,7 +52,8 @@ namespace EFaceFXTargetPlatformHelper
 {
 	/** 
 	* Gets the indicator if the given platform type is supported by the plugin build. 
-	* Controlled via FaceFXConfig.h preprocessor defines (FACEFX_SUPPORT_PS4, FACEFX_SUPPORT_XBONE)
+	* Controlled via FaceFXConfig.h preprocessor defines (FACEFX_SUPPORT_PS4, FACEFX_SUPPORT_XBONE,
+	* FACEFX_SUPPORT_SWITCH)
 	* @param Platform The platform type to check
 	* @returns True if supported, else false
 	*/
@@ -75,6 +77,12 @@ namespace EFaceFXTargetPlatformHelper
 			return true;
 		}
 #endif //FACEFX_SUPPORT_XBONE
+#if FACEFX_SUPPORT_SWITCH
+		case EFaceFXTargetPlatform::Switch:
+		{
+			return true;
+		}
+#endif //FACEFX_SUPPORT_SWITCH
 		}
 		return false;
 	}
@@ -102,6 +110,11 @@ namespace EFaceFXTargetPlatformHelper
 			{
 				static FString s_XBONE = TEXT("XBONE");
 				return s_XBONE;
+			}
+		case EFaceFXTargetPlatform::Switch:
+			{
+				static FString s_SWITCH = TEXT("SWITCH");
+				return s_SWITCH;
 			}
 		}
 
