@@ -56,3 +56,12 @@ TSharedPtr<IFaceFXAudio> FFaceFXAudio::Create(UFaceFXCharacter* Owner)
 
 	return MakeShareable(new FFaceFXAudioDefault(Owner));
 }
+
+bool FFaceFXAudio::IsUsingSoundWaveAssets()
+{
+#if WITH_WWISE
+	return PreferredAudioSystem != 1;
+#else
+	return true;
+#endif
+}

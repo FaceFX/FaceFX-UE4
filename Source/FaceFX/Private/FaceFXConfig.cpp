@@ -23,6 +23,7 @@ SOFTWARE.
 
 #if WITH_EDITOR
 #include "ConfigCacheIni.h"
+#include "Audio/FaceFXAudio.h"
 
 const FFaceFXConfig& FFaceFXConfig::Get()
 {
@@ -68,6 +69,11 @@ FFaceFXConfig::FFaceFXConfig() : bIsImportLookupAudio(false), bIsImportLookupAni
 	GConfig->GetBool(FACEFX_CONFIG_NS, TEXT("IsImportAudio"), bIsImportAudio, IniFile);
 	GConfig->GetBool(FACEFX_CONFIG_NS, TEXT("IsImportAnimationOnActorImport"), bIsImportAnimationOnActorImport, IniFile);
 	GConfig->GetBool(FACEFX_CONFIG_NS, TEXT("ShowToasterMessageOnIncompatibleAnim"), bShowToasterMessageOnIncompatibleAnim, IniFile);
+}
+
+bool FFaceFXConfig::IsAudioUsingSoundWaveAssets()
+{
+	return FFaceFXAudio::IsUsingSoundWaveAssets();
 }
 
 #endif //WITH_EDITOR

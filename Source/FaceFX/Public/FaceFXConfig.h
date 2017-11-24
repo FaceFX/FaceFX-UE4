@@ -175,6 +175,12 @@ struct FACEFX_API FFaceFXConfig
 		return bShowToasterMessageOnIncompatibleAnim;
 	}
 
+	/**
+	* Gets the indicator if the active audio system is using sound wave assets
+	* @returns True if sound wave assets are used, else false
+	*/
+	static bool IsAudioUsingSoundWaveAssets();
+
 private:
 
 	FFaceFXConfig();

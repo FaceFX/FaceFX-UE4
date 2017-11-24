@@ -942,8 +942,8 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAnim* Asset, const FSt
 		return false;
 	}
 
-	//as a last step load the audio asset if desired
-	return !FFaceFXConfig::Get().IsImportAudio() || LoadAudio(Asset, Folder, OutResultMessages);
+	//as a last step load the audio asset if desired (settings) and supported by the selected audio system
+	return !FFaceFXConfig::Get().IsImportAudio() || !FFaceFXConfig::IsAudioUsingSoundWaveAssets() || LoadAudio(Asset, Folder, OutResultMessages);
 }
 
 bool FFaceFXEditorTools::LoadAudio(UFaceFXAnim* Asset, const FString& Folder, FFaceFXImportResult& OutResultMessages)
@@ -962,11 +962,16 @@ bool FFaceFXEditorTools::LoadAudio(UFaceFXAnim* Asset, const FString& Folder, FF
 				continue;
 			}
 
-			if(Asset->AudioPath.Equals(AudioMapEntry.AudioPath) && Asset->IsAudioAssetSet())
+			if (Asset->AudioPath.Equals(AudioMapEntry.AudioPath) && Asset->IsAudioAssetSet())
 			{
-				//no change
-                OutResultMessages.AddModifySuccess(LOCTEXT("LoadAudioFailedImportNoChange", "Animation already links to the right Audio Asset"), Asset, Asset->Audio);
-				return true;
+				//check if the existing asset ref actually exist (may have been deleted)
+				const bool IsAudioAssetValid = Asset->GetAudio().LoadSynchronous() != nullptr;
+				if (IsAudioAssetValid)
+				{
+					//no change
+					OutResultMessages.AddModifySuccess(LOCTEXT("LoadAudioFailedImportNoChange", "Animation already links to the right Audio Asset"), Asset, Asset->Audio);
+					return true;
+				}
 			}
 
 			//set new path and reset audio link
@@ -1035,9 +1040,8 @@ bool FFaceFXEditorTools::LoadAudio(UFaceFXAnim* Asset, const FString& Folder, FF
 						}
 						else
 						{
-							UE_LOG(LogFaceFX, Error, TEXT("FFaceFXEditorTools::LoadAudio. Importing audio file failed. File: %s. Asset: %s"), *AudioFile, *GetNameSafe(Asset));
-							OutResultMessages.AddCreateError(FText::Format(LOCTEXT("LoadAudioFailedImportFail", "Importing audio asset failed. File: {0}"), FText::FromString(AudioFile)), Asset);
-							return false;
+							UE_LOG(LogFaceFX, Warning, TEXT("FFaceFXEditorTools::LoadAudio. Importing audio file failed. File: %s. Asset: %s"), *AudioFile, *GetNameSafe(Asset));
+							OutResultMessages.AddCreateWarning(FText::Format(LOCTEXT("LoadAudioFailedImportFail", "Importing audio asset failed. File: {0}"), FText::FromString(AudioFile)), Asset);
 						}
 					}
 					else
@@ -1047,9 +1051,8 @@ bool FFaceFXEditorTools::LoadAudio(UFaceFXAnim* Asset, const FString& Folder, FF
 				}
 				else
 				{
-					UE_LOG(LogFaceFX, Error, TEXT("FFaceFXEditorTools::LoadAudio. Audio file does not exist. File: %s. Asset: %s"), *AudioFile, *GetNameSafe(Asset));
-					OutResultMessages.AddCreateError(FText::Format(LOCTEXT("LoadAudioFailedAudioMissing", "Audio file does not exist. File: {0}"), FText::FromString(AudioFile)), Asset);
-					return false;
+					UE_LOG(LogFaceFX, Warning, TEXT("FFaceFXEditorTools::LoadAudio. Audio file does not exist. File: %s. Asset: %s"), *AudioFile, *GetNameSafe(Asset));
+					OutResultMessages.AddCreateWarning(FText::Format(LOCTEXT("LoadAudioFailedAudioMissing", "Audio file does not exist. File: {0}"), FText::FromString(AudioFile)), Asset);
 				}
 			}
 

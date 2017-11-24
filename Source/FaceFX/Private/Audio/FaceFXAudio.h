@@ -181,6 +181,12 @@ struct FFaceFXAudio
 	*/
 	static TSharedPtr<IFaceFXAudio> Create(UFaceFXCharacter* Owner);
 
+	/** 
+	* Gets the indicator if the active audio system is using sound wave assets
+	* @returns True if sound wave assets are used, else false
+	*/
+	static bool IsUsingSoundWaveAssets();
+
 private:
 
 	FFaceFXAudio(){}
