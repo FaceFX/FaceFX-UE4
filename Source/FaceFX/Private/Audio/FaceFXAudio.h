@@ -22,6 +22,7 @@ SOFTWARE.
 
 #include "FaceFXData.h"
 
+class UActorComponent;
 class UFaceFXCharacter;
 class UFaceFXAnim;
 

@@ -20,8 +20,13 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
 #include "SCompoundWidget.h"
 #include "FaceFXEditorTools.h"
+#include "DeclarativeSyntaxSupport.h"
+#include "SListView.h"
+#include "STableRow.h"
+#include "SWindow.h"
 
 /** A widget that wraps a asset reference into a textbox and goto button */
 class FFaceFXAssetRefWidget : public SCompoundWidget

@@ -20,6 +20,8 @@ SOFTWARE.
 
 #pragma once
 
+#include "CoreMinimal.h"
+
 /** Main entrance for FaceFX sequencer support */
 struct FFaceFXSequencer
 {

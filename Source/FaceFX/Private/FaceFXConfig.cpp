@@ -18,12 +18,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFX.h"
 #include "FaceFXConfig.h"
+#include "FaceFX.h"
 
 #if WITH_EDITOR
 #include "ConfigCacheIni.h"
-#include "Audio/FaceFXAudio.h"
 
 const FFaceFXConfig& FFaceFXConfig::Get()
 {

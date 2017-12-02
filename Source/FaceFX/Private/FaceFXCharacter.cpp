@@ -22,9 +22,11 @@
 #include "FaceFX.h"
 #include "FaceFXContext.h"
 #include "FaceFXActor.h"
+#include "Audio/FaceFXAudio.h"
 #include "GameFramework/Actor.h"
 #include "Animation/FaceFXComponent.h"
 #include "Engine/StreamableManager.h"
+#include "Components/SkeletalMeshComponent.h"
 
 DECLARE_CYCLE_STAT(TEXT("Tick FaceFX Character"), STAT_FaceFXTick, STATGROUP_FACEFX);
 DECLARE_CYCLE_STAT(TEXT("Update FaceFX Transforms"), STAT_FaceFXUpdateTransforms, STATGROUP_FACEFX);

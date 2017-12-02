@@ -29,6 +29,7 @@
 #include "DesktopPlatformModule.h"
 #include "ContentBrowserModule.h"
 #include "Dialogs.h"
+#include "Editor.h"
 #include "FeedbackContext.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"

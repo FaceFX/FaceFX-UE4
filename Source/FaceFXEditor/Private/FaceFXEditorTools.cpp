@@ -21,6 +21,7 @@
 #include "FaceFXEditorTools.h"
 #include "FaceFXEditor.h"
 #include "FaceFX.h"
+#include "EditorStyleSet.h"
 #include "Include/Slate/FaceFXComboChoiceWidget.h"
 #include "AssetToolsModule.h"
 #include "ObjectTools.h"
