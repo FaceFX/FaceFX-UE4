@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
 #include "Modules/ModuleVersion.h"
 #include "facefx-runtime-1.3.0/facefx/facefx.h"
 

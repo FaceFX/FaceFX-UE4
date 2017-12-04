@@ -22,6 +22,7 @@
 #include "FaceFX.h"
 #include "IMainFrameModule.h"
 #include "ModuleManager.h"
+#include "MultiBoxBuilder.h"
 #include "IContentBrowserSingleton.h"
 #include "ContentBrowserModule.h"
 

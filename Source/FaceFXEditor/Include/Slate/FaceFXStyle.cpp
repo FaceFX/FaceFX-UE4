@@ -19,6 +19,7 @@
 *******************************************************************************/
 
 #include "FaceFXStyle.h"
+#include "FaceFXConfig.h"
 #include "FaceFXEditor.h"
 #include "SlateStyle.h"
 #include "ClassIconFinder.h"

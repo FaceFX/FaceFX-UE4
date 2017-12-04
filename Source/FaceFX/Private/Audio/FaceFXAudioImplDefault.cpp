@@ -18,10 +18,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFX.h"
 #include "FaceFXAudioImplDefault.h"
+#include "FaceFX.h"
 #include "Sound/SoundWave.h"
 #include "Components/AudioComponent.h"
+#include "Engine/StreamableManager.h"
+#include "GameFramework/Actor.h"
 
 void FFaceFXAudioDefault::Prepare(const UFaceFXAnim* Animation)
 {

@@ -22,6 +22,7 @@
 #include "FaceFXEditor.h"
 #include "FaceFXStyle.h"
 #include "EditorStyleSet.h"
+#include "SlateApplication.h"
 #include "SScrollBox.h"
 #include "SBorder.h"
 #include "SBoxPanel.h"
@@ -32,6 +33,8 @@
 #include "SButton.h"
 #include "Margin.h"
 #include "MessageDialog.h"
+#include "MultiBoxBuilder.h"
+#include "Editor.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 

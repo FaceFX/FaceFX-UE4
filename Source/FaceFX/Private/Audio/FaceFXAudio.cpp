@@ -18,14 +18,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFX.h"
 #include "FaceFXAudio.h"
+#include "FaceFX.h"
 #include "FaceFXAnim.h"
 
 #include "FaceFXAudioImplDefault.h"
 #if WITH_WWISE
 #include "FaceFXAudioImplWwise.h"
 #endif //WITH_WWISE
+
+#include "HAL/IConsoleManager.h"
 
 //Sound system to use within the FaceFX plugin.If the target sound system is invalid, the default (0, Unreal Audio System) will be used.
 // Supported values :

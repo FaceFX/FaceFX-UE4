@@ -28,10 +28,12 @@ SOFTWARE.
 #include "MovieScene.h"
 #include "MovieSceneSection.h"
 #include "MovieSceneTrack.h"
+#include "MultiBoxBuilder.h"
 #include "ISequencerSection.h"
 #include "SequencerUtilities.h"
 #include "SequencerSectionPainter.h"
 #include "CommonMovieSceneTools.h"
+#include "GameFramework/Actor.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 

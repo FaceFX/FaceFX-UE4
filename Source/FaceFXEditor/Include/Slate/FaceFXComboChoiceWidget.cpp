@@ -20,7 +20,7 @@
 #include "FaceFXComboChoiceWidget.h"
 #include "FaceFXEditor.h"
 
-
+#include "Editor.h"
 #include "EditorStyleSet.h"
 #include "SScrollBox.h"
 #include "SBorder.h"

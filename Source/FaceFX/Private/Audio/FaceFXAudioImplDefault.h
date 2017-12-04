@@ -21,8 +21,9 @@ SOFTWARE.
 #pragma once
 
 #include "FaceFXAudio.h"
+#include "Components/AudioComponent.h"
 
-class UAudioComponent;
+class UActorComponent;
 
 /** Audio layer that uses the Unreal Audio System */
 struct FFaceFXAudioDefault : public IFaceFXAudio

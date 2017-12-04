@@ -22,6 +22,7 @@
 
 #include "IAssetTypeActions.h"
 #include "Include/Slate/FaceFXStyle.h"
+#include "Factories/Factory.h"
 #include "FaceFXAnimFactory.generated.h"
 
 UCLASS(hidecategories=Object)
