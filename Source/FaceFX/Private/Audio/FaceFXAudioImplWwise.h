@@ -84,16 +84,16 @@ private:
 	TWeakObjectPtr<UAkComponent> AudioComponent;
 
 	/** The currently playing AK sound event for Play */
-	TAssetPtr<UAkAudioEvent> CurrentAnimSound;
+	TSoftObjectPtr<UAkAudioEvent> CurrentAnimSound;
 
 	/** The currently playing AK sound event for Stop */
-	TAssetPtr<UAkAudioEvent> CurrentAnimSoundStop;
+	TSoftObjectPtr<UAkAudioEvent> CurrentAnimSoundStop;
 
 	/** The currently playing AK sound event for Pause */
-	TAssetPtr<UAkAudioEvent> CurrentAnimSoundPause;
+	TSoftObjectPtr<UAkAudioEvent> CurrentAnimSoundPause;
 
 	/** The currently playing AK sound event for Resume */
-	TAssetPtr<UAkAudioEvent> CurrentAnimSoundResume;
+	TSoftObjectPtr<UAkAudioEvent> CurrentAnimSoundResume;
 };
 
 #endif //WITH_WWISE

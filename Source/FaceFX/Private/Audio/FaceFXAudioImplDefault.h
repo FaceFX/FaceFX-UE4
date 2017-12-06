@@ -82,5 +82,5 @@ private:
 	TWeakObjectPtr<UAudioComponent> AudioComponent;
 
 	/** The current audio asset that was assigned to the current animation*/
-	TAssetPtr<USoundWave> CurrentAnimSound;
+	TSoftObjectPtr<USoundWave> CurrentAnimSound;
 };

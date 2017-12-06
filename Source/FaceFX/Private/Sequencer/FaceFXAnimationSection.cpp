@@ -99,7 +99,7 @@ void UFaceFXAnimationSection::GetSnapTimes(TArray<float>& OutSnapTimes, bool bGe
 	}
 }
 
-UFaceFXAnim* UFaceFXAnimationSection::GetAnimation(const TAssetPtr<UFaceFXAnim>& Asset, UObject* Owner)
+UFaceFXAnim* UFaceFXAnimationSection::GetAnimation(const TSoftObjectPtr<UFaceFXAnim>& Asset, UObject* Owner)
 {
 	UFaceFXAnim* NewAnim = Asset.Get();
 	if (!NewAnim && Asset.ToSoftObjectPath().IsValid())

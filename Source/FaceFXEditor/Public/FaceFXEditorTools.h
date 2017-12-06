@@ -48,7 +48,7 @@ struct FFaceFXImportActionResult
 	};
 
 	FFaceFXImportActionResult() : Type(ActionType::None), Result(ResultType::Error) {}
-	FFaceFXImportActionResult(ActionType InType, ResultType InResult, const TAssetPtr<class UFaceFXAsset>& InImportAsset = nullptr, const FText& InMessage = FText::GetEmpty()) :
+	FFaceFXImportActionResult(ActionType InType, ResultType InResult, const TSoftObjectPtr<class UFaceFXAsset>& InImportAsset = nullptr, const FText& InMessage = FText::GetEmpty()) :
 		Type(InType), Result(InResult), Message(InMessage), ImportAsset(InImportAsset) {}
 
 	/**
@@ -88,7 +88,7 @@ struct FFaceFXImportActionResult
 	* Gets the assigned asset
 	* @returns The asset
 	*/
-	inline const TAssetPtr<UObject>& GetAsset() const
+	inline const TSoftObjectPtr<UObject>& GetAsset() const
 	{
 		return Asset;
 	}
@@ -97,7 +97,7 @@ struct FFaceFXImportActionResult
 	* Sets the assigned asset
 	* @param InAsset The new asset
 	*/
-	inline void SetAsset(const TAssetPtr<UObject>& InAsset)
+	inline void SetAsset(const TSoftObjectPtr<UObject>& InAsset)
 	{
 		Asset = InAsset;
 	}
@@ -107,7 +107,7 @@ struct FFaceFXImportActionResult
 	* Gets the assigned import asset
 	* @returns The import asset
 	*/
-	inline const TAssetPtr<UFaceFXAsset>& GetImportAsset() const
+	inline const TSoftObjectPtr<UFaceFXAsset>& GetImportAsset() const
 	{
 		return ImportAsset;
 	}
@@ -133,10 +133,10 @@ private:
 	FText Message;
 
 	/** The affected asset */
-	TAssetPtr<UObject> Asset;
+	TSoftObjectPtr<UObject> Asset;
 
 	/** The asset for which the action was performed */
-	TAssetPtr<class UFaceFXAsset> ImportAsset;
+	TSoftObjectPtr<class UFaceFXAsset> ImportAsset;
 };
 
 /** A whole result set for a complete import process */
@@ -145,7 +145,7 @@ struct FFaceFXImportResult
 {
 	GENERATED_USTRUCT_BODY()
 
-	FFaceFXImportResult(const TAssetPtr<class UFaceFXAsset>& InImportRootAsset = nullptr) : ImportRootAsset(InImportRootAsset) {}
+	FFaceFXImportResult(const TSoftObjectPtr<class UFaceFXAsset>& InImportRootAsset = nullptr) : ImportRootAsset(InImportRootAsset) {}
 
 	/**
 	* Adds a new message to the result set
@@ -157,7 +157,7 @@ struct FFaceFXImportResult
 	* @returns The added result entry
 	*/
 	template <typename TAssetType = UObject>
-	FFaceFXImportActionResult& Add(const FText& Message, FFaceFXImportActionResult::ActionType Type, FFaceFXImportActionResult::ResultType Result, const TAssetPtr<class UFaceFXAsset>& ImportAsset, const TAssetPtr<TAssetType>& InAsset = nullptr)
+	FFaceFXImportActionResult& Add(const FText& Message, FFaceFXImportActionResult::ActionType Type, FFaceFXImportActionResult::ResultType Result, const TSoftObjectPtr<class UFaceFXAsset>& ImportAsset, const TSoftObjectPtr<TAssetType>& InAsset = nullptr)
 	{
 		FFaceFXImportActionResult NewEntry = FFaceFXImportActionResult(Type, Result, ImportAsset, Message);
 		NewEntry.Asset = InAsset.ToSoftObjectPath();
@@ -172,7 +172,7 @@ struct FFaceFXImportResult
 	* @returns The added result entry
 	*/
 	template <typename TAssetType = UObject>
-	FFaceFXImportActionResult& AddModifyError(const FText& Message, const TAssetPtr<class UFaceFXAsset>& ImportAsset = nullptr, const TAssetPtr<TAssetType>& InAsset = nullptr)
+	FFaceFXImportActionResult& AddModifyError(const FText& Message, const TSoftObjectPtr<class UFaceFXAsset>& ImportAsset = nullptr, const TSoftObjectPtr<TAssetType>& InAsset = nullptr)
 	{
 		return Add(Message, FFaceFXImportActionResult::ActionType::Modify, FFaceFXImportActionResult::ResultType::Error, ImportAsset, InAsset);
 	}
@@ -185,7 +185,7 @@ struct FFaceFXImportResult
 	* @returns The added result entry
 	*/
 	template <typename TAssetType = UObject>
-	FFaceFXImportActionResult& AddCreateError(const FText& Message, const TAssetPtr<class UFaceFXAsset>& ImportAsset = nullptr, const TAssetPtr<TAssetType>& InAsset = nullptr)
+	FFaceFXImportActionResult& AddCreateError(const FText& Message, const TSoftObjectPtr<class UFaceFXAsset>& ImportAsset = nullptr, const TSoftObjectPtr<TAssetType>& InAsset = nullptr)
 	{
 		return Add(Message, FFaceFXImportActionResult::ActionType::Create, FFaceFXImportActionResult::ResultType::Error, ImportAsset, InAsset);
 	}
@@ -198,7 +198,7 @@ struct FFaceFXImportResult
 	* @returns The added result entry
 	*/
 	template <typename TAssetType = UObject>
-	FFaceFXImportActionResult& AddModifyWarning(const FText& Message, const TAssetPtr<class UFaceFXAsset>& ImportAsset = nullptr, const TAssetPtr<TAssetType>& InAsset = nullptr)
+	FFaceFXImportActionResult& AddModifyWarning(const FText& Message, const TSoftObjectPtr<class UFaceFXAsset>& ImportAsset = nullptr, const TSoftObjectPtr<TAssetType>& InAsset = nullptr)
 	{
 		return Add(Message, FFaceFXImportActionResult::ActionType::Modify, FFaceFXImportActionResult::ResultType::Warning, ImportAsset, InAsset);
 	}
@@ -211,7 +211,7 @@ struct FFaceFXImportResult
 	* @returns The added result entry
 	*/
 	template <typename TAssetType = UObject>
-	FFaceFXImportActionResult& AddCreateWarning(const FText& Message, const TAssetPtr<class UFaceFXAsset>& ImportAsset = nullptr, const TAssetPtr<TAssetType>& InAsset = nullptr)
+	FFaceFXImportActionResult& AddCreateWarning(const FText& Message, const TSoftObjectPtr<class UFaceFXAsset>& ImportAsset = nullptr, const TSoftObjectPtr<TAssetType>& InAsset = nullptr)
 	{
 		return Add(Message, FFaceFXImportActionResult::ActionType::Create, FFaceFXImportActionResult::ResultType::Warning, ImportAsset, InAsset);
 	}
@@ -224,7 +224,7 @@ struct FFaceFXImportResult
 	* @returns The added result entry
 	*/
 	template <typename TAssetType = UObject>
-	FFaceFXImportActionResult& AddModifySuccess(const FText& Message, const TAssetPtr<class UFaceFXAsset>& ImportAsset = nullptr, const TAssetPtr<TAssetType>& InAsset = nullptr)
+	FFaceFXImportActionResult& AddModifySuccess(const FText& Message, const TSoftObjectPtr<class UFaceFXAsset>& ImportAsset = nullptr, const TSoftObjectPtr<TAssetType>& InAsset = nullptr)
 	{
 		return Add(Message, FFaceFXImportActionResult::ActionType::Modify, FFaceFXImportActionResult::ResultType::Success, ImportAsset, InAsset);
 	}
@@ -237,7 +237,7 @@ struct FFaceFXImportResult
 	* @returns The added result entry
 	*/
 	template <typename TAssetType = UObject>
-	FFaceFXImportActionResult& AddCreateSuccess(const FText& Message, const TAssetPtr<class UFaceFXAsset>& ImportAsset = nullptr, const TAssetPtr<TAssetType>& InAsset = nullptr)
+	FFaceFXImportActionResult& AddCreateSuccess(const FText& Message, const TSoftObjectPtr<class UFaceFXAsset>& ImportAsset = nullptr, const TSoftObjectPtr<TAssetType>& InAsset = nullptr)
 	{
 		return Add(Message, FFaceFXImportActionResult::ActionType::Create, FFaceFXImportActionResult::ResultType::Success, ImportAsset, InAsset);
 	}
@@ -255,7 +255,7 @@ struct FFaceFXImportResult
 	* Gets the import root asset
 	* @returns The root asset
 	*/
-	inline const TAssetPtr<class UFaceFXAsset>& GetImportRootAsset() const
+	inline const TSoftObjectPtr<class UFaceFXAsset>& GetImportRootAsset() const
 	{
 		return ImportRootAsset;
 	}
@@ -282,7 +282,7 @@ struct FFaceFXImportResult
 		return Result;
 	}
 
-	FORCEINLINE bool operator==(const TAssetPtr<class UFaceFXAsset>& Asset) const
+	FORCEINLINE bool operator==(const TSoftObjectPtr<class UFaceFXAsset>& Asset) const
 	{
 		return ImportRootAsset == Asset;
 	}
@@ -293,7 +293,7 @@ private:
 	TArray<FFaceFXImportActionResult> Entries;
 
 	/** The root action that initially requested the import */
-	TAssetPtr<class UFaceFXAsset> ImportRootAsset;
+	TSoftObjectPtr<class UFaceFXAsset> ImportRootAsset;
 };
 
 /** A list of multiple import results per asset */
@@ -304,7 +304,7 @@ struct FFaceFXImportResultSet
 	* @param Asset The current root asset
 	* @returns The new or existing entry
 	*/
-	inline FFaceFXImportResult& GetOrAdd(const TAssetPtr<class UFaceFXAsset>& Asset)
+	inline FFaceFXImportResult& GetOrAdd(const TSoftObjectPtr<class UFaceFXAsset>& Asset)
 	{
 		if(FFaceFXImportResult* Entry = Entries.FindByKey(Asset))
 		{
@@ -313,7 +313,7 @@ struct FFaceFXImportResultSet
 		return Entries[Entries.Add(FFaceFXImportResult(Asset))];
 	}
 
-	inline const FFaceFXImportResult* GetResult(const TAssetPtr<class UFaceFXAsset>& Asset) const
+	inline const FFaceFXImportResult* GetResult(const TSoftObjectPtr<class UFaceFXAsset>& Asset) const
 	{
 		return Entries.FindByKey(Asset);
 	}
@@ -561,7 +561,7 @@ struct FACEFXEDITOR_API FFaceFXEditorTools
 	* Sets the focus on a given asset within the content browser
 	* @param Asset The asset to focus
 	*/
-	static void ContentBrowserFocusAsset(const FStringAssetReference& Asset);
+	static void ContentBrowserFocusAsset(const FSoftObjectPath& Asset);
 
 	/**
 	* Deletes the gives asset
@@ -617,7 +617,7 @@ private:
 	/**
 	* Locates the USoundWave asset that was generated out of the given audio source file
 	* @param AudioSourceFile The absolute source file path to the audio file
-	* @returns The asset that was generated using that audio source or unassigned TAssetPtr if not found
+	* @returns The asset that was generated using that audio source or unassigned TSoftObjectPtr if not found
 	*/
-	static TAssetPtr<class USoundWave> LocateAudio(const FString& AudioSourceFile);
+	static TSoftObjectPtr<class USoundWave> LocateAudio(const FString& AudioSourceFile);
 };

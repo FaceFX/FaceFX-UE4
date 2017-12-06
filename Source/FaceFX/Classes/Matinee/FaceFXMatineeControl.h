@@ -43,7 +43,7 @@ struct FFaceFXTrackKey
 
 	/** The animation to play */
 	UPROPERTY(EditAnywhere, Category=FaceFX)
-	TAssetPtr<UFaceFXAnim> Animation;
+	TSoftObjectPtr<UFaceFXAnim> Animation;
 
 	/** The time of the key along the track time line */
 	UPROPERTY()
