@@ -329,7 +329,7 @@ void UFaceFXComponent::CreateCharacter(FFaceFXEntry& Entry)
 			++NumAsyncLoadRequestsPending;
 
 			//asset not loaded yet -> trigger async load
-			TArray<FStringAssetReference> StreamingRequests;
+			TArray<FSoftObjectPath> StreamingRequests;
 			StreamingRequests.Add(Entry.Asset.ToSoftObjectPath());
 
 			FaceFX::GetStreamer().RequestAsyncLoad(StreamingRequests, FStreamableDelegate::CreateUObject(this, &UFaceFXComponent::OnFaceActorAssetLoaded));

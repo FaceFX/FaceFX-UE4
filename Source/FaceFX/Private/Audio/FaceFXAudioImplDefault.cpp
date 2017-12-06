@@ -34,7 +34,7 @@ void FFaceFXAudioDefault::Prepare(const UFaceFXAnim* Animation)
 	if (bIsAutoPlaySound && !CurrentAnimSound.IsValid() && CurrentAnimSound.ToSoftObjectPath().IsValid())
 	{
 		//asset not loaded yet -> async load to have it (hopefully) ready when the FaceFX runtime audio start event triggers
-		TArray<FStringAssetReference> StreamingRequests;
+		TArray<FSoftObjectPath> StreamingRequests;
 		StreamingRequests.Add(CurrentAnimSound.ToSoftObjectPath());
 		FaceFX::GetStreamer().RequestAsyncLoad(StreamingRequests, FStreamableDelegate());
 	}

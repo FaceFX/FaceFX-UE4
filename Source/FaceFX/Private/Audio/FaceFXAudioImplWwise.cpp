@@ -32,7 +32,7 @@ SOFTWARE.
 * @param Asset The asset to load
 * @returns The loaded AK event asset
 */
-UAkAudioEvent* GetAkEvent(UFaceFXCharacter* Character, const TAssetPtr<UAkAudioEvent>& Asset)
+UAkAudioEvent* GetAkEvent(UFaceFXCharacter* Character, const TSoftObjectPtr<UAkAudioEvent>& Asset)
 {
 	UAkAudioEvent* SoundEvent = Asset.Get();
 	if (!SoundEvent)
@@ -54,7 +54,7 @@ void FFaceFXAudioWwise::Prepare(const UFaceFXAnim* Animation)
 		CurrentAnimSoundPause = Animation->GetAudioAkEventPause().ToSoftObjectPath();
 		CurrentAnimSoundResume = Animation->GetAudioAkEventResume().ToSoftObjectPath();
 
-		TArray<FStringAssetReference> StreamingRequests;
+		TArray<FSoftObjectPath> StreamingRequests;
 
 		//check if asset are not loaded yet -> async load to have it (hopefully) ready when the FaceFX runtime audio start event triggers
 		if (!CurrentAnimSound.IsValid() && CurrentAnimSound.ToSoftObjectPath().IsValid())

@@ -33,14 +33,14 @@ class FFaceFXAssetRefWidget : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(FFaceFXAssetRefWidget){}
-	SLATE_ARGUMENT(FStringAssetReference, AssetRef)
+	SLATE_ARGUMENT(FSoftObjectPath, AssetRef)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& Args);
 
 private:
 
-	FReply OnClicked(FStringAssetReference InAssetRef);
+	FReply OnClicked(FSoftObjectPath InAssetRef);
 };
 
 /** A widget that shows the Import result data */
@@ -51,7 +51,7 @@ class FFaceFXResultWidget : public SCompoundWidget
 		FFaceFXImportActionResult Result;
 
 		/** The root action that initially requested the import */
-		TAssetPtr<class UFaceFXAsset> ImportRootAsset;
+		TSoftObjectPtr<class UFaceFXAsset> ImportRootAsset;
 	};
 
 	/** Widget used to display the table rows */

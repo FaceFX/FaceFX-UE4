@@ -1065,7 +1065,7 @@ bool FFaceFXEditorTools::LoadAudio(UFaceFXAnim* Asset, const FString& Folder, FF
 	return false;
 }
 
-TAssetPtr<USoundWave> FFaceFXEditorTools::LocateAudio(const FString& AudioSourceFile)
+TSoftObjectPtr<USoundWave> FFaceFXEditorTools::LocateAudio(const FString& AudioSourceFile)
 {
 	TArray<FAssetData> SoundAssets;
 
@@ -1158,7 +1158,7 @@ bool FFaceFXEditorTools::InitializeFromFile(UFaceFXAsset* Asset, const FString& 
 	return Result;
 }
 
-void FFaceFXEditorTools::ContentBrowserFocusAsset(const FStringAssetReference& Asset)
+void FFaceFXEditorTools::ContentBrowserFocusAsset(const FSoftObjectPath& Asset)
 {
 	//UObject* AssetObj = Asset.ResolveObject();
 	UObject* AssetObj = nullptr;

@@ -236,7 +236,7 @@ bool UFaceFXCharacter::GetAnimationBoundsById(const AActor* Actor, const FFaceFX
 				else if (FxEntry->Asset.IsValid())
 				{
 					//fetch from FaceFX actor
-					if (const UFaceFXActor* FxActor = TAssetPtr<UFaceFXActor>(FxEntry->Asset).LoadSynchronous())
+					if (const UFaceFXActor* FxActor = TSoftObjectPtr<UFaceFXActor>(FxEntry->Asset).LoadSynchronous())
 					{
 						return UFaceFXCharacter::GetAnimationBoundsById(FxActor, AnimId, OutStart, OutEnd);
 					}

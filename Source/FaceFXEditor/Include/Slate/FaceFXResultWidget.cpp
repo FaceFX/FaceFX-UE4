@@ -89,7 +89,7 @@ void FFaceFXAssetRefWidget::Construct(const FArguments& Args)
 	];
 }
 
-FReply FFaceFXAssetRefWidget::OnClicked(FStringAssetReference InAssetRef)
+FReply FFaceFXAssetRefWidget::OnClicked(FSoftObjectPath InAssetRef)
 {
 	FFaceFXEditorTools::ContentBrowserFocusAsset(InAssetRef);
 	return FReply::Handled();

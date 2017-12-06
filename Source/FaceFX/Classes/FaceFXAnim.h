@@ -208,7 +208,7 @@ public:
 	* Gets the assigned audio asset
 	* @returns The audio asset
 	*/
-	inline const TAssetPtr<USoundWave>& GetAudio() const
+	inline const TSoftObjectPtr<USoundWave>& GetAudio() const
 	{
 		return Audio;
 	}
@@ -217,7 +217,7 @@ public:
 	* Gets the assigned AK audio asset for Play
 	* @returns The AK audio asset
 	*/
-	inline const TAssetPtr<UObject>& GetAudioAkEvent() const
+	inline const TSoftObjectPtr<UObject>& GetAudioAkEvent() const
 	{
 		return AudioAkEvent;
 	}
@@ -226,7 +226,7 @@ public:
 	* Gets the assigned AK audio asset for Stop
 	* @returns The AK audio asset
 	*/
-	inline const TAssetPtr<UObject>& GetAudioAkEventStop() const
+	inline const TSoftObjectPtr<UObject>& GetAudioAkEventStop() const
 	{
 		return AudioAkEventStop;
 	}
@@ -235,7 +235,7 @@ public:
 	* Gets the assigned AK audio asset for Pause
 	* @returns The AK audio asset
 	*/
-	inline const TAssetPtr<UObject>& GetAudioAkEventPause() const
+	inline const TSoftObjectPtr<UObject>& GetAudioAkEventPause() const
 	{
 		return AudioAkEventPause;
 	}
@@ -244,7 +244,7 @@ public:
 	* Gets the assigned AK audio asset for Resume
 	* @returns The AK audio asset
 	*/
-	inline const TAssetPtr<UObject>& GetAudioAkEventResume() const
+	inline const TSoftObjectPtr<UObject>& GetAudioAkEventResume() const
 	{
 		return AudioAkEventResume;
 	}
@@ -293,23 +293,23 @@ private:
 
 	/** The linked audio asset */
 	UPROPERTY(EditInstanceOnly, Category=Audio)
-	TAssetPtr<USoundWave> Audio;
+	TSoftObjectPtr<USoundWave> Audio;
 
 	/** The linked Wwise audio event asset for: Play */
 	UPROPERTY(EditInstanceOnly, Category=AkAudio)
-	TAssetPtr<UObject> AudioAkEvent;
+	TSoftObjectPtr<UObject> AudioAkEvent;
 
 	/** The linked Wwise audio event asset for: Stop */
 	UPROPERTY(EditInstanceOnly, Category = AkAudio)
-	TAssetPtr<UObject> AudioAkEventStop;
+	TSoftObjectPtr<UObject> AudioAkEventStop;
 
 	/** The linked Wwise audio event asset for: Pause */
 	UPROPERTY(EditInstanceOnly, Category = AkAudio)
-	TAssetPtr<UObject> AudioAkEventPause;
+	TSoftObjectPtr<UObject> AudioAkEventPause;
 
 	/** The linked Wwise audio event asset for: Resume */
 	UPROPERTY(EditInstanceOnly, Category = AkAudio)
-	TAssetPtr<UObject> AudioAkEventResume;
+	TSoftObjectPtr<UObject> AudioAkEventResume;
 
 #if WITH_EDITORONLY_DATA
 
@@ -336,7 +336,7 @@ struct FFaceFXAnimComponentSet
 
 	/** The animation to play */
 	UPROPERTY(EditAnywhere, Category = FaceFX)
-	TAssetPtr<UFaceFXAnim> Animation;
+	TSoftObjectPtr<UFaceFXAnim> Animation;
 
 	inline void Reset()
 	{

@@ -76,7 +76,7 @@ struct FFaceFXAnimationSectionData
 
 	/** The animation asset set for a section */
 	UPROPERTY()
-	TAssetPtr<UFaceFXAnim> Animation;
+	TSoftObjectPtr<UFaceFXAnim> Animation;
 
 	/** The component ID of that section */
 	UPROPERTY()

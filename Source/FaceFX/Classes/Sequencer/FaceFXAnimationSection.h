@@ -65,13 +65,13 @@ public:
 	}
 
 	/** Sets the animation asset */
-	inline void SetAnimation(const TAssetPtr<UFaceFXAnim>& Anim)
+	inline void SetAnimation(const TSoftObjectPtr<UFaceFXAnim>& Anim)
 	{
 		Animation = Anim;
 	}
 
 	/** Gets the assigned animation asset */
-	inline const TAssetPtr<UFaceFXAnim>& GetAnimationAsset() const
+	inline const TSoftObjectPtr<UFaceFXAnim>& GetAnimationAsset() const
 	{
 		return Animation;
 	}
@@ -93,7 +93,7 @@ public:
 	* @param Owner The owner of the potentially loaded animation data
 	* @returns The loaded animation, else nullptr if not found or unset
 	*/
-	static UFaceFXAnim* GetAnimation(const TAssetPtr<UFaceFXAnim>& Asset, UObject* Owner = nullptr);
+	static UFaceFXAnim* GetAnimation(const TSoftObjectPtr<UFaceFXAnim>& Asset, UObject* Owner = nullptr);
 
 	/**
 	* Gets the duration of the assigned animation
@@ -197,7 +197,7 @@ private:
 
 	/** The animation to play */
 	UPROPERTY(EditAnywhere, Category = FaceFX)
-	TAssetPtr<UFaceFXAnim> Animation;
+	TSoftObjectPtr<UFaceFXAnim> Animation;
 
 	/** The offset into the beginning of the animation clip */
 	UPROPERTY(EditAnywhere, Category = FaceFX)

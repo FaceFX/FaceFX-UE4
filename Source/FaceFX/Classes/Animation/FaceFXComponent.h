@@ -40,7 +40,7 @@ struct FACEFX_API FFaceFXEntry
 	GENERATED_USTRUCT_BODY()
 
 	FFaceFXEntry() : SkelMeshComp(nullptr), AudioComp(nullptr), Character(nullptr), bIsAutoPlaySound(true) {}
-	FFaceFXEntry(USkeletalMeshComponent* InSkelMeshComp, UActorComponent* InAudioComp, const TAssetPtr<class UFaceFXActor>& InAsset, bool InIsAutoPlaySound = true, bool InIsDisableMorphTargets = false) :
+	FFaceFXEntry(USkeletalMeshComponent* InSkelMeshComp, UActorComponent* InAudioComp, const TSoftObjectPtr<class UFaceFXActor>& InAsset, bool InIsAutoPlaySound = true, bool InIsDisableMorphTargets = false) :
 		SkelMeshComp(InSkelMeshComp), AudioComp(InAudioComp), Asset(InAsset), Character(nullptr), bIsAutoPlaySound(InIsAutoPlaySound), bIsDisableMorphTargets(InIsDisableMorphTargets) {}
 
 	/** The linked skelmesh component */
@@ -53,7 +53,7 @@ struct FACEFX_API FFaceFXEntry
 
 	/** The asset to use when instantiating the facial character instance */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=FaceFX)
-	TAssetPtr<class UFaceFXActor> Asset;
+	TSoftObjectPtr<class UFaceFXActor> Asset;
 
 	/** The FaceFX character instance that was created for this component */
 	UPROPERTY(Transient, BlueprintReadOnly, Category=FaceFX)
