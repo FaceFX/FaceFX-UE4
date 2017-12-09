@@ -549,7 +549,7 @@ private:
 	/** The track values buffer for the morph target processing */
 	TArray<ffx_track_value_t> MorphTargetTrackValues;
 
-	/** The list of material parameter names retrieved from the skel mesh during asset loading. The indices match the morph target track values: MaterialParameterTrackValues */
+	/** The list of material parameter names retrieved from the skel mesh during asset loading. The indices match the material parameter track values: MaterialParameterTrackValues */
 	TArray<FName> MaterialParameterNames;
 
 	/** The track values buffer for the material parameter processing */

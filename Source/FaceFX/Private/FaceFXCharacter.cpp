@@ -940,7 +940,7 @@ bool UFaceFXCharacter::SetupMaterialParameters(const UFaceFXActor* Dataset, cons
 		return true;
 	}
 
-	//fetch the track indices by their facefx ids generated for the morph target names
+	//fetch the track indices by their facefx ids generated for the material parameter names
 	if (!Check(ffx_find_tracks_in_actor_by_id(ActorHandle, &TrackIndices[0], TrackIndices.Num())))
 	{
 		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::SetupMaterialParameters. Unable to fetch FaceFX track indices. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
@@ -981,7 +981,7 @@ void UFaceFXCharacter::ProcessMaterialParameters()
 		return;
 	}
 
-	//apply morph target track values
+	//apply material parameter track values
 	if (USkeletalMeshComponent* SkelMeshComp = GetOwningSkelMeshComponent())
 	{
 		for (int32 Idx = 0; Idx < MaterialParametersToProcess; ++Idx)
