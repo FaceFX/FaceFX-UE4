@@ -28,11 +28,13 @@
 #include "Engine/StreamableManager.h"
 #include "Components/SkeletalMeshComponent.h"
 
-DECLARE_CYCLE_STAT(TEXT("Tick FaceFX Character"), STAT_FaceFXTick, STATGROUP_FACEFX);
-DECLARE_CYCLE_STAT(TEXT("Update FaceFX Transforms"), STAT_FaceFXUpdateTransforms, STATGROUP_FACEFX);
-DECLARE_CYCLE_STAT(TEXT("Load FaceFX Assets"), STAT_FaceFXLoad, STATGROUP_FACEFX);
-DECLARE_CYCLE_STAT(TEXT("Play FaceFX"), STAT_FaceFXPlay, STATGROUP_FACEFX);
-DECLARE_CYCLE_STAT(TEXT("FaceFX Events"), STAT_FaceFXEvents, STATGROUP_FACEFX);
+DECLARE_CYCLE_STAT(TEXT("Tick Character"), STAT_FaceFXTick, STATGROUP_FACEFX);
+DECLARE_CYCLE_STAT(TEXT("Update Transforms"), STAT_FaceFXUpdateTransforms, STATGROUP_FACEFX);
+DECLARE_CYCLE_STAT(TEXT("Load Assets"), STAT_FaceFXLoad, STATGROUP_FACEFX);
+DECLARE_CYCLE_STAT(TEXT("Play"), STAT_FaceFXPlay, STATGROUP_FACEFX);
+DECLARE_CYCLE_STAT(TEXT("Broadcast Events"), STAT_FaceFXEvents, STATGROUP_FACEFX);
+DECLARE_CYCLE_STAT(TEXT("Process Morph Targets"), STAT_FaceFXProcessMorphTargets, STATGROUP_FACEFX);
+DECLARE_CYCLE_STAT(TEXT("Process Material Parameters"), STAT_FaceFXProcessMaterialParameters, STATGROUP_FACEFX);
 
 /**
 * Checks the FaceFX runtime execution result and the errno for errors
@@ -58,7 +60,8 @@ UFaceFXCharacter::UFaceFXCharacter(const class FObjectInitializer& PCIP) : Super
 	bIsDirty(true),
 	bIsLooping(false),
 	bCanPlay(true),
-	bDisabledMorphTargets(false)
+	bDisabledMorphTargets(false),
+	bDisabledMaterialParameters(false)
 #if WITH_EDITOR
 	,LastFrameNumber(0)
 #endif
@@ -121,6 +124,7 @@ bool UFaceFXCharacter::TickUntil(float Duration, bool& OutAudioStarted)
 	bIsDirty = true;
 
 	ProcessMorphTargets();
+	ProcessMaterialParameters();
 
 	return true;
 }
@@ -164,6 +168,7 @@ void UFaceFXCharacter::Tick(float DeltaTime)
 		else
 		{
 			Stop();
+			return;
 		}
 	}
 
@@ -184,6 +189,7 @@ void UFaceFXCharacter::Tick(float DeltaTime)
 	}
 
 	ProcessMorphTargets();
+	ProcessMaterialParameters();
 
 	bIsDirty = true;
 }
@@ -516,6 +522,8 @@ bool UFaceFXCharacter::Stop(bool enforceStop)
 
 	UnloadCurrentAnim();
 
+	ResetMaterialParametersToDefaults();
+
 	if(WasPlayingOrPaused)
 	{
 		SCOPE_CYCLE_COUNTER(STAT_FaceFXEvents);
@@ -616,8 +624,8 @@ void UFaceFXCharacter::Reset()
 	BoneTransforms.Empty();
 	BoneIds.Empty();
 
-	MorphTargetNames.Empty();
-	MorphTargetTrackValues.Empty();
+	ResetMorphTargets();
+	ResetMaterialParameters();
 
 	FaceFXActor = nullptr;
 
@@ -634,7 +642,7 @@ bool UFaceFXCharacter::IsPlayingOrPaused(const UFaceFXAnim* Animation) const
 	return Animation && IsPlayingOrPaused(Animation->GetId());
 }
 
-bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset, bool IsDisabledMorphTargets)
+bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset, bool IsDisabledMorphTargets, bool IsDisableMaterialParameters)
 {
 	SCOPE_CYCLE_COUNTER(STAT_FaceFXLoad);
 
@@ -737,7 +745,15 @@ bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset, bool IsDisabledMorphTar
     }
 
 	bDisabledMorphTargets = IsDisabledMorphTargets;
-	if(!bDisabledMorphTargets && !SetupMorphTargets(Dataset))
+	bDisabledMaterialParameters = IsDisableMaterialParameters;
+
+	ResetMorphTargets();
+	ResetMaterialParameters();
+	ResetMaterialParametersToDefaults();
+
+	//SetupMaterialParameters after SetupMorphTargets as we ignore the morph target tracks as material parameters
+	if( (!bDisabledMorphTargets && !SetupMorphTargets(Dataset)) ||
+		(!IsDisableMaterialParameters && !SetupMaterialParameters(Dataset, MorphTargetNames)) )
 	{
 		Reset();
 		return false;
@@ -756,6 +772,8 @@ void UFaceFXCharacter::ProcessMorphTargets()
 		//no morph target to process
 		return;
 	}
+
+	SCOPE_CYCLE_COUNTER(STAT_FaceFXProcessMorphTargets);
 
 	//read track values
 	if(!Check(ffx_read_frame_track_values(FrameState, &MorphTargetTrackValues[0], MorphTargetsToProcess)))
@@ -783,10 +801,6 @@ bool UFaceFXCharacter::SetupMorphTargets(const UFaceFXActor* Dataset)
 {
 	check(IsLoaded());
 	check(Dataset);
-
-	//reset morph target data
-	MorphTargetNames.Reset();
-	MorphTargetTrackValues.Reset();
 
 	if(USkeletalMeshComponent* SkelMeshComp = GetOwningSkelMeshComponent())
 	{
@@ -863,8 +877,140 @@ bool UFaceFXCharacter::SetupMorphTargets(const UFaceFXActor* Dataset)
 		}
 	}
 
-	checkf(MorphTargetNames.Num() == MorphTargetTrackValues.Num(), TEXT("Morph target names indices must match the track values buffer"));
+	checkf(MorphTargetNames.Num() == MorphTargetTrackValues.Num(), TEXT("Morph target names indices must match the track values buffer size"));
 	return true;
+}
+
+bool UFaceFXCharacter::SetupMaterialParameters(const UFaceFXActor* Dataset, const TArray<FName>& IgnoredTracks)
+{
+	check(IsLoaded());
+	check(Dataset);
+
+	USkeletalMeshComponent* SkelMeshComp = GetOwningSkelMeshComponent();
+	if (!SkelMeshComp || SkelMeshComp->GetNumMaterials() <= 0)
+	{
+		return false;
+	}
+
+	const TArray<FFaceFXIdData>& AssetTrackIds = Dataset->GetData().Ids;
+	TArray<ffx_id_index_t> TrackIndices;
+	
+	for (const FFaceFXIdData& AssetTrackId : AssetTrackIds)
+	{
+		//check if this track shall be ignored
+		if (IgnoredTracks.Contains(AssetTrackId.Name))
+		{
+			continue;
+		}
+
+		//Indicator if a material parameter with that name was found
+		bool bMaterialFound = false;
+
+		//for each FaceFX track we try to look them up as a material parameter
+		for (int32 MaterialIndex = 0; MaterialIndex < SkelMeshComp->GetNumMaterials(); ++MaterialIndex)
+		{
+			if (UMaterialInterface* Material = SkelMeshComp->GetMaterial(MaterialIndex))
+			{
+				float ParamterValue;
+				if (Material->GetScalarParameterValue(AssetTrackId.Name, ParamterValue))
+				{
+					bMaterialFound = true;
+					break;
+				}
+			}
+		}
+
+		if (!bMaterialFound)
+		{
+			UE_LOG(LogFaceFX, Verbose, TEXT("UFaceFXCharacter::SetupMaterialParameters. No material parameter found for FaceFX track. Track: %s. Asset: %s"), *AssetTrackId.Name.ToString(), *GetNameSafe(FaceFXActor));
+			continue;
+		}
+
+		//fill id/index buffer for later lookup
+		ffx_id_index_t IdIndex;
+		IdIndex.id = AssetTrackId.Id;
+		TrackIndices.Add(IdIndex);
+
+		MaterialParameterNames.Add(AssetTrackId.Name);
+	}
+
+	if (TrackIndices.Num() <= 0)
+	{
+		//no materials with parameters
+		return true;
+	}
+
+	//fetch the track indices by their facefx ids generated for the morph target names
+	if (!Check(ffx_find_tracks_in_actor_by_id(ActorHandle, &TrackIndices[0], TrackIndices.Num())))
+	{
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::SetupMaterialParameters. Unable to fetch FaceFX track indices. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
+		MaterialParameterNames.Reset();
+		return false;
+	}
+
+	//map back track indices with material parameter names
+	for (const ffx_id_index_t& TrackIndex : TrackIndices)
+	{
+		//prepare the track value buffer
+		ffx_track_value_t NewTrackValue;
+		NewTrackValue.index = TrackIndex.index;
+		MaterialParameterTrackValues.Add(NewTrackValue);
+	}
+
+	checkf(MaterialParameterTrackValues.Num() == MaterialParameterNames.Num(), TEXT("Material parameter lookup must match the track values buffer size"));
+	return true;
+}
+
+void UFaceFXCharacter::ProcessMaterialParameters()
+{
+	checkf(MaterialParameterTrackValues.Num() == MaterialParameterNames.Num(), TEXT("Material parameter lookup must match the track values buffer size"));
+
+	const int32 MaterialParametersToProcess = MaterialParameterTrackValues.Num();
+	if (MaterialParametersToProcess == 0)
+	{
+		//no material parameter to process
+		return;
+	}
+
+	SCOPE_CYCLE_COUNTER(STAT_FaceFXProcessMaterialParameters);
+
+	//read track values
+	if (!Check(ffx_read_frame_track_values(FrameState, &MaterialParameterTrackValues[0], MaterialParametersToProcess)))
+	{
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::ProcessMaterialParameters. Unable to process material parameters. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
+		return;
+	}
+
+	//apply morph target track values
+	if (USkeletalMeshComponent* SkelMeshComp = GetOwningSkelMeshComponent())
+	{
+		for (int32 Idx = 0; Idx < MaterialParametersToProcess; ++Idx)
+		{
+			SkelMeshComp->SetScalarParameterValueOnMaterials(MaterialParameterNames[Idx], MaterialParameterTrackValues[Idx].value);
+		}
+	}
+	else
+	{
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::ProcessMaterialParameters. Unable to find owners skel mesh component. Actor: %s. Asset: %s"), *GetNameSafe(GetOwningActor()), *GetNameSafe(FaceFXActor));
+		return;
+	}
+}
+
+void UFaceFXCharacter::ResetMaterialParametersToDefaults()
+{
+	checkf(MaterialParameterTrackValues.Num() == MaterialParameterNames.Num(), TEXT("Material parameter lookup must match the track values buffer size"));
+
+	//reset material parameters to their defaults if anything was active
+	if (USkeletalMeshComponent* SkelMeshComp = GetOwningSkelMeshComponent())
+	{
+		for (int32 Idx = 0; Idx < MaterialParameterNames.Num(); ++Idx)
+		{
+			const FName& ParameterName = MaterialParameterNames[Idx];
+
+			const float DefaultValue = SkelMeshComp->GetScalarParameterDefaultValue(ParameterName);
+			SkelMeshComp->SetScalarParameterValueOnMaterials(ParameterName, DefaultValue);
+		}
+	}
 }
 
 bool UFaceFXCharacter::IsCanPlay(const UFaceFXAnim* Animation) const
@@ -977,7 +1123,7 @@ USkeletalMeshComponent* UFaceFXCharacter::GetOwningSkelMeshComponent() const
 
 UFaceFXComponent* UFaceFXCharacter::GetOwningFaceFXComponent() const
 {
-	return Cast<UFaceFXComponent>(GetOuter());
+	return IsPendingKill() ? nullptr : Cast<UFaceFXComponent>(GetOuter());
 }
 
 void UFaceFXCharacter::UpdateTransforms()
@@ -1040,7 +1186,7 @@ void UFaceFXCharacter::OnFaceFXAssetChanged(UFaceFXAsset* Asset)
 		if(UFaceFXActor* ActorAsset = Cast<UFaceFXActor>(Asset))
 		{
 			//actor asset changed -> reload whole actor
-			Load(ActorAsset, bDisabledMorphTargets);
+			Load(ActorAsset, bDisabledMorphTargets, bDisabledMaterialParameters);
 		}
 		else
 		{

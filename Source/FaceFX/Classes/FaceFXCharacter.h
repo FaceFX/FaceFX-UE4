@@ -136,9 +136,10 @@ public:
 	* Loads the character data from the given data set
 	* @param Dataset The data set to load from
 	* @param IsDisabledMorphTargets Indicator if the use of available morph targets shall be disabled
+	* @param IsDisableMaterialParameters Indicator if the use of material parameters shall be disabled
 	* @returns True if succeeded, else false
 	*/
-	bool Load(const UFaceFXActor* Dataset, bool IsDisabledMorphTargets);
+	bool Load(const UFaceFXActor* Dataset, bool IsDisabledMorphTargets, bool IsDisableMaterialParameters);
 
 	/**
 	* Gets the indicator if this character have been loaded
@@ -466,9 +467,37 @@ private:
 	* @returns True if setup succeeded, else false
 	*/
 	bool SetupMorphTargets(const UFaceFXActor* Dataset);
-
+	
 	/** Processes the morph targets for the current frame state */
 	void ProcessMorphTargets();
+
+	/** Resets the current morph target data */
+	inline void ResetMorphTargets()
+	{
+		MorphTargetNames.Empty();
+		MorphTargetTrackValues.Empty();
+	}
+
+	/**
+	* Retrieves the material parameters for skel mesh materials and creates FaceFX indices for the names
+	* @param Dataset The asset to fetch the ids from
+	* @param IgnoredTracks The list of tracks to ignore
+	* @returns True if setup succeeded, else false
+	*/
+	bool SetupMaterialParameters(const UFaceFXActor* Dataset, const TArray<FName>& IgnoredTracks);
+
+	/** Processes the material parameters for the current frame state */
+	void ProcessMaterialParameters();
+
+	/** Resets the current material parameter data */
+	inline void ResetMaterialParameters()
+	{
+		MaterialParameterNames.Empty();
+		MaterialParameterTrackValues.Empty();
+	}
+
+	/** Sets the material parameters of the owners skel mesh to their defaults */
+	void ResetMaterialParametersToDefaults();
 
 	/**
 	* Gets the latest internal facefx error message
@@ -520,6 +549,12 @@ private:
 	/** The track values buffer for the morph target processing */
 	TArray<ffx_track_value_t> MorphTargetTrackValues;
 
+	/** The list of material parameter names retrieved from the skel mesh during asset loading. The indices match the morph target track values: MaterialParameterTrackValues */
+	TArray<FName> MaterialParameterNames;
+
+	/** The track values buffer for the material parameter processing */
+	TArray<ffx_track_value_t> MaterialParameterTrackValues;
+
 	/** The overall time progression */
 	float CurrentTime;
 
@@ -550,6 +585,9 @@ private:
 
 	/** Indicator if the use of available morph targets shall be disabled */
 	uint8 bDisabledMorphTargets : 1;
+
+	/** Indicator if the use of available material parameters shall be disabled */
+	uint8 bDisabledMaterialParameters : 1;
 
 #if WITH_EDITOR
 	uint32 LastFrameNumber;
