@@ -75,14 +75,13 @@ public class FaceFXLib : ModuleRules
             return false;
         }
 
-        //default static lib file
-        if (Target.Platform == UnrealTargetPlatform.Mac)
+        FaceFXLib = "libfacefx.lib";
+
+        if (Target.Platform == UnrealTargetPlatform.Mac
+         || Target.Platform == UnrealTargetPlatform.PS4
+         || Target.Platform == UnrealTargetPlatform.Switch)
         {
             FaceFXLib = "libfacefx.a";
-        }
-        else
-        {
-            FaceFXLib = "libfacefx.lib";
         }
 
         string CompilerFolder = "vs14";
@@ -114,7 +113,7 @@ public class FaceFXLib : ModuleRules
             //    break;
             //case UnrealTargetPlatform.Switch:
             //    FaceFXLib = "facefx";
-            //    PlatformFolder = Path.Combine(new[] { "nx", CompilerFolder });
+            //    PlatformFolder = Path.Combine(new[] { "nx", CompilerFolder, "NX64" });
             //    break;
             default:
                 System.Console.WriteLine(System.String.Format("FaceFX disabled. Unsupported target platform: {0}", Target.Platform));
