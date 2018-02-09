@@ -21,6 +21,7 @@
 #include "FaceFXStyle.h"
 #include "FaceFXConfig.h"
 #include "FaceFXEditor.h"
+#include "SlateBrush.h"
 #include "SlateStyle.h"
 #include "ClassIconFinder.h"
 #include "SlateStyleRegistry.h"

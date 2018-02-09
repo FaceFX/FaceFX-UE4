@@ -30,6 +30,7 @@
 #include "Matinee/MatineeActor.h"
 #include "InterpolationHitProxy.h"
 #include "CanvasTypes.h"
+#include "Components/SkeletalMeshComponent.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 
