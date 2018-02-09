@@ -26,6 +26,7 @@ SOFTWARE.
 
 #include "MovieSceneSequence.h"
 #include "MovieScenePossessable.h"
+#include "GameFramework/Actor.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 
