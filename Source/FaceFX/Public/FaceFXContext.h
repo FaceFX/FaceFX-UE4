@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "HAL/UnrealMemory.h"
+
 struct FFaceFXContext
 {
 	/**
