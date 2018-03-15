@@ -176,19 +176,6 @@ void FAnimNode_BlendFaceFXAnimation::Evaluate_AnyThread(FPoseContext& Output)
 #endif
 }
 
-bool ContainsNaN(const TArray<FBoneTransform> & BoneTransforms)
-{
-	for (int32 i = 0; i < BoneTransforms.Num(); ++i)
-	{
-		if (BoneTransforms[i].Transform.ContainsNaN())
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
 void FAnimNode_BlendFaceFXAnimation::EvaluateComponentSpace_AnyThread(FComponentSpacePoseContext& Output)
 {
 	SCOPE_CYCLE_COUNTER(STAT_FaceFXBlend);
