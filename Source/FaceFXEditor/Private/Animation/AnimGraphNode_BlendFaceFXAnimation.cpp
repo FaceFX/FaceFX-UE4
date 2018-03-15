@@ -50,7 +50,7 @@ FString UAnimGraphNode_BlendFaceFXAnimation::GetNodeCategory() const
 
 void UAnimGraphNode_BlendFaceFXAnimation::CreateOutputPins()
 {
-	CreatePin(EGPD_Output, GetDefault<UAnimationGraphSchema>()->PC_Struct, TEXT(""), FComponentSpacePoseLink::StaticStruct(), false, false, TEXT("Pose"));
+	CreatePin(EGPD_Output, GetDefault<UAnimationGraphSchema>()->PC_Struct, TEXT(""), FComponentSpacePoseLink::StaticStruct(), TEXT("Pose"));
 }
 
 #undef LOCTEXT_NAMESPACE

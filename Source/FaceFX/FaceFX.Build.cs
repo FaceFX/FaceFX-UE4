@@ -56,6 +56,7 @@ public class FaceFX : ModuleRules
         {
             PrivateDependencyModuleNames.Add("AkAudio");
         }
-        Definitions.Add(string.Format("WITH_WWISE={0}", bCompileWithWwise ? "1" : "0"));
+
+        PublicDefinitions.Add(string.Format("WITH_WWISE={0}", bCompileWithWwise ? "1" : "0"));
     }
 }
