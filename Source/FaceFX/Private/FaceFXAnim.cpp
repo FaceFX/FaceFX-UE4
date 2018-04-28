@@ -21,11 +21,22 @@
 #include "FaceFXAnim.h"
 #include "FaceFX.h"
 #include "Sound/SoundWave.h"
+#include "Misc/Paths.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 
 UFaceFXAnim::UFaceFXAnim(const class FObjectInitializer& PCIP) : Super(PCIP)
 {
+}
+
+bool UFaceFXAnim::GetAbsoluteAudioPath(FString& OutResult) const
+{
+	if (!AudioPath.IsEmpty())
+	{
+		OutResult = FPaths::IsRelative(AudioPath) ? GetAssetFolder() / AudioPath : AudioPath;
+		return true;
+	}
+	return false;
 }
 
 void UFaceFXAnim::GetResourceSizeEx(FResourceSizeEx& CumulativeResourceSize)

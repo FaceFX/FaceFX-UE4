@@ -74,15 +74,7 @@ public:
 	* @param OutResult The absolute path when the function returns true. Unchanged if it returns false
 	* @returns True if the path is set and OutResult was updated, else false
 	*/
-	inline bool GetAbsoluteAudioPath(FString& OutResult) const
-	{
-		if(!AudioPath.IsEmpty())
-		{
-			OutResult = GetAssetFolder() / AudioPath;
-			return true;
-		}
-		return false;
-	}
+	bool GetAbsoluteAudioPath(FString& OutResult) const;
 
 	/**
 	* Gets the relative audio path that is currently set
