@@ -135,11 +135,12 @@ public:
 	/**
 	* Loads the character data from the given data set
 	* @param Dataset The data set to load from
+	* @param IsCompensateForForceFrontXAxis Indicator that compensates for the Force Front XAxis setting when importing FBX files
 	* @param IsDisabledMorphTargets Indicator if the use of available morph targets shall be disabled
 	* @param IsDisableMaterialParameters Indicator if the use of material parameters shall be disabled
 	* @returns True if succeeded, else false
 	*/
-	bool Load(const UFaceFXActor* Dataset, bool IsDisabledMorphTargets, bool IsDisableMaterialParameters);
+	bool Load(const UFaceFXActor* Dataset, bool IsCompensateForForceFrontXAxis, bool IsDisabledMorphTargets, bool IsDisableMaterialParameters);
 
 	/**
 	* Gets the indicator if this character have been loaded
@@ -582,6 +583,9 @@ private:
 
 	/** Indicator if this character is allowed to play */
 	uint8 bCanPlay : 1;
+
+	/** Indicator if compensate for force front x axis was used. */
+	uint8 bCompensatedForForceFrontXAxis;
 
 	/** Indicator if the use of available morph targets shall be disabled */
 	uint8 bDisabledMorphTargets : 1;

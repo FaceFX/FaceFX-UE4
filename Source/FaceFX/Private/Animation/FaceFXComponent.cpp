@@ -35,7 +35,7 @@ void UFaceFXComponent::OnRegister()
 	CreateAllCharacters();
 }
 
-bool UFaceFXComponent::Setup(USkeletalMeshComponent* SkelMeshComp, UActorComponent* AudioComponent, const UFaceFXActor* Asset, bool IsAutoPlaySound, bool IsDisableMorphTargets, bool IsDisableMaterialParameters, const UObject* Caller)
+bool UFaceFXComponent::Setup(USkeletalMeshComponent* SkelMeshComp, UActorComponent* AudioComponent, const UFaceFXActor* Asset, bool IsCompensateForForceFrontXAxsis, bool IsAutoPlaySound, bool IsDisableMorphTargets, bool IsDisableMaterialParameters, const UObject* Caller)
 {
 	if(!SkelMeshComp)
 	{
@@ -53,7 +53,7 @@ bool UFaceFXComponent::Setup(USkeletalMeshComponent* SkelMeshComp, UActorCompone
 	if(Idx == INDEX_NONE)
 	{
 		//add new entry
-		Idx = Entries.Add(FFaceFXEntry(SkelMeshComp, AudioComponent, Asset, IsAutoPlaySound, IsDisableMorphTargets, IsDisableMaterialParameters));
+		Idx = Entries.Add(FFaceFXEntry(SkelMeshComp, AudioComponent, Asset, IsCompensateForForceFrontXAxsis, IsAutoPlaySound, IsDisableMorphTargets, IsDisableMaterialParameters));
 	}
 	checkf(Idx != INDEX_NONE, TEXT("Internal Error: Unable to add new FaceFX entry."));
 
@@ -309,7 +309,7 @@ void UFaceFXComponent::CreateCharacter(FFaceFXEntry& Entry)
 			Entry.Character = NewObject<UFaceFXCharacter>(this);
 			checkf(Entry.Character, TEXT("Unable to instantiate a FaceFX character. Possibly Out of Memory."));
 
-			if(!Entry.Character->Load(FaceFXActor, Entry.bIsDisableMorphTargets, Entry.bIsDisableMaterialParameters))
+			if(!Entry.Character->Load(FaceFXActor, Entry.bIsCompensateForForceFrontXAxis, Entry.bIsDisableMorphTargets, Entry.bIsDisableMaterialParameters))
 			{
 				UE_LOG(LogFaceFX, Error, TEXT("SkeletalMesh Component FaceFX failed to get initialized. Loading failed. Component=%s. Asset=%s"), *GetName(), *Entry.Asset.ToSoftObjectPath().ToString());
 				Entry.Character = nullptr;

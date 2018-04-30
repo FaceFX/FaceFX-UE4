@@ -60,6 +60,7 @@ UFaceFXCharacter::UFaceFXCharacter(const class FObjectInitializer& PCIP) : Super
 	bIsDirty(true),
 	bIsLooping(false),
 	bCanPlay(true),
+	bCompensatedForForceFrontXAxis(false),
 	bDisabledMorphTargets(false),
 	bDisabledMaterialParameters(false)
 #if WITH_EDITOR
@@ -642,7 +643,7 @@ bool UFaceFXCharacter::IsPlayingOrPaused(const UFaceFXAnim* Animation) const
 	return Animation && IsPlayingOrPaused(Animation->GetId());
 }
 
-bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset, bool IsDisabledMorphTargets, bool IsDisableMaterialParameters)
+bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset, bool IsCompensateForForceFrontXAxis, bool IsDisabledMorphTargets, bool IsDisableMaterialParameters)
 {
 	SCOPE_CYCLE_COUNTER(STAT_FaceFXLoad);
 
@@ -669,7 +670,14 @@ bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset, bool IsDisabledMorphTar
     //only create the bone set handle if there is bone set data
     if(ActorData.BonesRawData.Num() > 0)
     {
-	    if (!Check(ffx_create_bone_set_handle((char*)(&ActorData.BonesRawData[0]), ActorData.BonesRawData.Num(), FFX_RUN_INTEGRITY_CHECK, FFX_USE_FULL_XFORMS, &BoneSetHandle, &Context)))
+		unsigned int BoneSetCreationFlags = FFX_USE_FULL_XFORMS;
+
+		if (IsCompensateForForceFrontXAxis)
+		{
+			BoneSetCreationFlags |= 0x80000000;
+		}
+
+	    if (!Check(ffx_create_bone_set_handle((char*)(&ActorData.BonesRawData[0]), ActorData.BonesRawData.Num(), FFX_RUN_INTEGRITY_CHECK, BoneSetCreationFlags, &BoneSetHandle, &Context)))
 	    {
 		    UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Unable to create FaceFX bone handle. %s. Asset: %s"), *GetFaceFXError(), *GetNameSafe(FaceFXActor));
 		    Reset();
@@ -744,6 +752,7 @@ bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset, bool IsDisabledMorphTar
 	    }
     }
 
+	bCompensatedForForceFrontXAxis = IsCompensateForForceFrontXAxis;
 	bDisabledMorphTargets = IsDisabledMorphTargets;
 	bDisabledMaterialParameters = IsDisableMaterialParameters;
 
@@ -1186,7 +1195,7 @@ void UFaceFXCharacter::OnFaceFXAssetChanged(UFaceFXAsset* Asset)
 		if(UFaceFXActor* ActorAsset = Cast<UFaceFXActor>(Asset))
 		{
 			//actor asset changed -> reload whole actor
-			Load(ActorAsset, bDisabledMorphTargets, bDisabledMaterialParameters);
+			Load(ActorAsset, bCompensatedForForceFrontXAxis, bDisabledMorphTargets, bDisabledMaterialParameters);
 		}
 		else
 		{
