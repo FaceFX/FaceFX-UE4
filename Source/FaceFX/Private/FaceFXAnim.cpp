@@ -29,6 +29,8 @@ UFaceFXAnim::UFaceFXAnim(const class FObjectInitializer& PCIP) : Super(PCIP)
 {
 }
 
+#if WITH_EDITORONLY_DATA
+
 bool UFaceFXAnim::GetAbsoluteAudioPath(FString& OutResult) const
 {
 	if (!AudioPath.IsEmpty())
@@ -38,6 +40,8 @@ bool UFaceFXAnim::GetAbsoluteAudioPath(FString& OutResult) const
 	}
 	return false;
 }
+
+#endif //WITH_EDITORONLY_DATA
 
 void UFaceFXAnim::GetResourceSizeEx(FResourceSizeEx& CumulativeResourceSize)
 {
