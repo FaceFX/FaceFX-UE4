@@ -585,7 +585,7 @@ private:
 	uint8 bCanPlay : 1;
 
 	/** Indicator if compensate for force front x axis was used. */
-	uint8 bCompensatedForForceFrontXAxis;
+	uint8 bCompensatedForForceFrontXAxis : 1;
 
 	/** Indicator if the use of available morph targets shall be disabled */
 	uint8 bDisabledMorphTargets : 1;
