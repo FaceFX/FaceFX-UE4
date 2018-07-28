@@ -36,13 +36,13 @@
 #include "ContentBrowserModule.h"
 #include "Sound/SoundWave.h"
 #include "Editor.h"
-#include "SNotificationList.h"
-#include "NotificationManager.h"
+#include "Widgets/Notifications/SNotificationList.h"
+#include "Framework/Notifications/NotificationManager.h"
 #include "EditorFramework/AssetImportData.h"
-#include "FileHelper.h"
-#include "FeedbackContext.h"
+#include "Misc/FileHelper.h"
+#include "Misc/FeedbackContext.h"
 #include "Misc/ConfigCacheIni.h"
-#include "Paths.h"
+#include "Misc/Paths.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 

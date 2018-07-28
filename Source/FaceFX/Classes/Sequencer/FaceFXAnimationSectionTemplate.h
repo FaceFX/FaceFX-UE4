@@ -20,9 +20,10 @@ SOFTWARE.
 
 #pragma once
 
-#include "MovieSceneEvalTemplate.h"
+#include "Evaluation/MovieSceneEvalTemplate.h"
 #include "MovieSceneExecutionToken.h"
-#include "ObjectKey.h"
+#include "UObject/ObjectKey.h"
+#include "FrameNumber.h"
 
 #include "FaceFXData.h"
 #include "FaceFXAnimationSectionTemplate.generated.h"
@@ -96,25 +97,25 @@ struct FFaceFXAnimationSectionData
 
 	/** The starting time of the animation */
 	UPROPERTY()
-	float StartTime;
+	FFrameNumber StartTime;
 
 	/** The ending time of the animation */
 	UPROPERTY()
-	float EndTime;
+	FFrameNumber EndTime;
 
 	inline bool IsValid() const
 	{
 		return TrackId.IsValid() && RowIndex != INDEX_NONE;
 	}
 
-	FFaceFXAnimationSectionData() : RowIndex(INDEX_NONE), AnimDuration(0.F), StartOffset(0.F), EndOffset(0.F), StartTime(0.F), EndTime(0.F) {}
+	FFaceFXAnimationSectionData() : RowIndex(INDEX_NONE), AnimDuration(0.F), StartOffset(0.F), EndOffset(0.F) {}
 };
 
 /** Execution token for Sequencer FaceFX animation section playback */
 struct FFaceFXAnimationExecutionToken : public IMovieSceneSharedExecutionToken
 {
 	FFaceFXAnimationExecutionToken(const FFaceFXAnimationSectionData& InSectionData = FFaceFXAnimationSectionData(), const FMovieSceneEvaluationOperand& InOperand = FMovieSceneEvaluationOperand(), 
-		const FMovieSceneContext& InContext = FMovieSceneContext(FMovieSceneEvaluationRange(-1.F))) : SectionData(InSectionData), Operand(InOperand), Context(InContext) {}
+		const FMovieSceneContext& InContext = FMovieSceneContext(FMovieSceneEvaluationRange(0, FFrameRate()))) : SectionData(InSectionData), Operand(InOperand), Context(InContext) {}
 
 	virtual void Execute(FPersistentEvaluationData& PersistentData, IMovieScenePlayer& Player) override;
 

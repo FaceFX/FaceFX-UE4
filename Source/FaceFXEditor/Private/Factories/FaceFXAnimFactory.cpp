@@ -20,6 +20,7 @@
 
 #include "Factories/FaceFXAnimFactory.h"
 #include "FaceFXEditor.h"
+#include "Include/Slate/FaceFXStyle.h"
 #include "Factories/FaceFXActorFactory.h"
 #include "FaceFXAnim.h"
 
@@ -39,6 +40,10 @@ uint32 UFaceFXAnimFactory::GetMenuCategories() const
 
 UObject* UFaceFXAnimFactory::FactoryCreateNew(UClass* Class, UObject* InParent, FName Name, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn)
 {
-
 	return NewObject<UFaceFXAsset>(InParent, Class, Name, Flags);
+}
+
+FName UFaceFXAnimFactory::GetNewAssetThumbnailOverride() const
+{
+	return FFaceFXStyle::GetBrushIdFxAnim();
 }
