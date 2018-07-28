@@ -21,10 +21,10 @@
 #include "FaceFXStyle.h"
 #include "FaceFXConfig.h"
 #include "FaceFXEditor.h"
-#include "SlateBrush.h"
-#include "SlateStyle.h"
+#include "Styling/SlateBrush.h"
+#include "Styling/SlateStyle.h"
+#include "Styling/SlateStyleRegistry.h"
 #include "ClassIconFinder.h"
-#include "SlateStyleRegistry.h"
 
 #define FACEFX_IMAGE_PLUGIN_BRUSH( RelativePath, ... ) FSlateImageBrush( FFaceFXStyle::GetResourcePath(RelativePath, ".png"), __VA_ARGS__ )
 

@@ -19,13 +19,12 @@
 *******************************************************************************/
 #include "FaceFXComboChoiceWidget.h"
 #include "FaceFXEditor.h"
-
 #include "Editor.h"
 #include "EditorStyleSet.h"
-#include "SScrollBox.h"
-#include "SBorder.h"
-#include "SBoxPanel.h"
-#include "SComboBox.h"
+#include "Widgets/Layout/SScrollBox.h"
+#include "Widgets/Layout/SBorder.h"
+#include "Widgets/SBoxPanel.h"
+#include "Widgets/Input/SComboBox.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 

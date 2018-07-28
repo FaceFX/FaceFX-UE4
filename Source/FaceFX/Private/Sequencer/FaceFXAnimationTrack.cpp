@@ -34,17 +34,17 @@ UFaceFXAnimationTrack::UFaceFXAnimationTrack(const FObjectInitializer& ObjectIni
 #endif
 }
 
-void UFaceFXAnimationTrack::AddSection(float KeyTime, const FFaceFXAnimComponentSet& AnimCompSet)
+void UFaceFXAnimationTrack::AddSection(const FFrameNumber& KeyTime, const FFaceFXAnimComponentSet& AnimCompSet)
 {
 	UFaceFXAnimationSection* NewSection = Cast<UFaceFXAnimationSection>(CreateNewSection());
 	{
 		NewSection->SetData(AnimCompSet);
-		NewSection->InitialPlacement(AnimationSections, KeyTime, KeyTime + NewSection->GetAnimationDuration(), SupportsMultipleRows());
+		NewSection->InitialPlacement(AnimationSections, KeyTime, NewSection->GetAnimationDuration(), SupportsMultipleRows());
 	}
 	AddSection(*NewSection);
 }
 
-UMovieSceneSection* UFaceFXAnimationTrack::GetSectionAtTime(float Time) const
+UMovieSceneSection* UFaceFXAnimationTrack::GetSectionAtTime(const FFrameNumber& Time) const
 {
 	for (UMovieSceneSection* Section : AnimationSections)
 	{
@@ -94,18 +94,6 @@ void UFaceFXAnimationTrack::RemoveSection(UMovieSceneSection& Section)
 bool UFaceFXAnimationTrack::IsEmpty() const
 {
 	return AnimationSections.Num() == 0;
-}
-
-TRange<float> UFaceFXAnimationTrack::GetSectionBoundaries() const
-{
-	TArray<TRange<float>> Bounds;
-
-	for (UMovieSceneSection* Section : AnimationSections)
-	{
-		Bounds.Add(Section->GetRange());
-	}
-
-	return TRange<float>::Hull(Bounds);
 }
 
 #if WITH_EDITORONLY_DATA

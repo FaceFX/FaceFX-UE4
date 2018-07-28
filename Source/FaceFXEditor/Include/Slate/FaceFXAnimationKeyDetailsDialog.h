@@ -27,7 +27,7 @@ class UFaceFXComponent;
 #include "FaceFXData.h"
 #include "FaceFXAnim.h"
 
-#include "SComboBox.h"
+#include "Widgets/Input/SComboBox.h"
 #include "ContentBrowserDelegates.h"
 
 /** A generic slate dialog showing options on how to define keys for animation systems */

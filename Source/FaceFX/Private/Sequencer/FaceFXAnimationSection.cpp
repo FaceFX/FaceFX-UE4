@@ -41,7 +41,7 @@ UFaceFXAnimationSection::UFaceFXAnimationSection(const FObjectInitializer& Objec
 	AnimationDuration = 0.F;
 }
 
-void UFaceFXAnimationSection::TrimSection(float TrimTime, bool bTrimLeft)
+void UFaceFXAnimationSection::TrimSection(FFrameNumber TrimTime, bool bTrimLeft)
 {
 	if (IsTimeWithinSection(TrimTime))
 	{
@@ -50,22 +50,42 @@ void UFaceFXAnimationSection::TrimSection(float TrimTime, bool bTrimLeft)
 		{
 			if (bTrimLeft)
 			{
-				StartOffset = TrimTime - GetStartTime();
-				SetStartTime(TrimTime);
+				if (HasStartFrame())
+				{
+					if (const UMovieScene* MovieScene = GetTypedOuter<UMovieScene>())
+					{
+						const FFrameRate FrameResolution = MovieScene->GetFrameResolution();
+						StartOffset = FrameResolution.AsSeconds(TrimTime - GetInclusiveStartFrame());
+						SetStartFrame(TrimTime);
+					}
+				}
 			}
 			else
 			{
-				SetEndTime(TrimTime);
+				SetEndFrame(TrimTime);
 			}
 		}
 	}
 }
 
-UMovieSceneSection* UFaceFXAnimationSection::SplitSection(float SplitTime)
+UMovieSceneSection* UFaceFXAnimationSection::SplitSection(FFrameNumber SplitTime)
 {
-	const float AnimPosition = SplitTime - GetStartTime();
-	const float AnimLength = GetAnimationDuration() - GetStartOffset() + GetEndOffset();
-	const float NewOffset = FMath::Fmod(AnimPosition, AnimLength) + GetStartOffset();
+	const UMovieScene* MovieScene = GetTypedOuter<UMovieScene>();
+	if (!MovieScene)
+	{
+		return nullptr;
+	}
+
+	const FFrameRate FrameResolution = MovieScene->GetFrameResolution();
+
+	const FFrameNumber StartFrame = GetInclusiveStartFrame();
+	const FFrameNumber AnimPosition = SplitTime - StartFrame;
+	const FFrameNumber AnimLength = FrameResolution.AsFrameNumber(GetAnimationDuration() - (GetStartOffset() + GetEndOffset()));
+
+	const float AnimPositionSec = FrameResolution.AsSeconds(AnimPosition);
+	const float AnimLengthSec = FrameResolution.AsSeconds(AnimLength);
+	
+	const float NewOffset = FMath::Fmod(AnimPositionSec, AnimLengthSec) + GetStartOffset();
 
 	UMovieSceneSection* NewSection = Super::SplitSection(SplitTime);
 	if (UFaceFXAnimationSection* NewAnimSection = Cast<UFaceFXAnimationSection>(NewSection))
@@ -75,7 +95,7 @@ UMovieSceneSection* UFaceFXAnimationSection::SplitSection(float SplitTime)
 	return NewSection;
 }
 
-void UFaceFXAnimationSection::GetSnapTimes(TArray<float>& OutSnapTimes, bool bGetSectionBorders) const
+void UFaceFXAnimationSection::GetSnapTimes(TArray<FFrameNumber>& OutSnapTimes, bool bGetSectionBorders) const
 {
 	Super::GetSnapTimes(OutSnapTimes, bGetSectionBorders);
 
@@ -86,17 +106,36 @@ void UFaceFXAnimationSection::GetSnapTimes(TArray<float>& OutSnapTimes, bool bGe
 		return;
 	}
 
-	float CurrentTime = GetStartTime();
-	const float AnimLength = (CurrentDuration - (GetStartOffset() + GetEndOffset()));
+	//Don't consider any infinite sections
+	if(!HasStartFrame() || !HasEndFrame())
+	{
+		return;
+	}
+
+	const UMovieScene* MovieScene = GetTypedOuter<UMovieScene>();
+	if (!MovieScene)
+	{
+		return;
+	}
+
+	const FFrameRate FrameResolution = MovieScene->GetFrameResolution();
+
+	const FFrameNumber StartFrame = GetInclusiveStartFrame();
+	const FFrameNumber EndFrame = GetExclusiveEndFrame();
+
+	const FFrameNumber AnimLength = FrameResolution.AsFrameNumber(CurrentDuration - (GetStartOffset() + GetEndOffset()));
+	if (AnimLength <= 0)
+	{
+		return;
+	}
+
+	FFrameNumber CurrentFrame = StartFrame;
 
 	// Snap to the repeat times
-	while (CurrentTime <= GetEndTime() && AnimLength > 0)
+	while (CurrentFrame <= EndFrame)
 	{
-		if (CurrentTime >= GetStartTime())
-		{
-			OutSnapTimes.Add(CurrentTime);
-		}
-		CurrentTime += AnimLength;
+		OutSnapTimes.Add(CurrentFrame);
+		CurrentFrame += AnimLength;
 	}
 }
 

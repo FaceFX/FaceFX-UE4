@@ -22,18 +22,18 @@
 #include "FaceFXEditor.h"
 #include "FaceFX.h"
 #include "Factories/FaceFXAnimFactory.h"
+#include "Include/Slate/FaceFXStyle.h"
 #include "Include/Slate/FaceFXResultWidget.h"
 #include "FaceFXEditorTools.h"
 #include "AssetToolsModule.h"
 #include "EditorStyleSet.h"
-#include "IMainFrameModule.h"
+#include "Interfaces/IMainFrameModule.h"
 #include "IDesktopPlatform.h"
 #include "DesktopPlatformModule.h"
 #include "ObjectTools.h"
 #include "ISourceControlModule.h"
 #include "Editor.h"
-#include "FeedbackContext.h"
-#include "MessageDialog.h"
+#include "Misc/MessageDialog.h"
 
 
 #define LOCTEXT_NAMESPACE "FaceFX"
@@ -47,6 +47,11 @@ UFaceFXActorFactory::UFaceFXActorFactory(const class FObjectInitializer& PCIP)
 	bText = false;
 
 	Formats.Add(TEXT("facefx;FaceFX Asset"));
+}
+
+FName UFaceFXActorFactory::GetNewAssetThumbnailOverride() const
+{
+	return FFaceFXStyle::GetBrushIdFxActor();
 }
 
 UObject* UFaceFXActorFactory::FactoryCreateNew(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn)

@@ -20,8 +20,8 @@
 
 #pragma once
 
-#include "SCompoundWidget.h"
-#include "SComboBox.h"
+#include "Widgets/SCompoundWidget.h"
+#include "Widgets/Input/SComboBox.h"
 
 /** A widget that shows a drop down selection box of different strings the user can select from */
 class FFaceFXComboChoiceWidget : public SCompoundWidget

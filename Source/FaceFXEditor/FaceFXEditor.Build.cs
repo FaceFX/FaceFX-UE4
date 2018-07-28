@@ -48,8 +48,11 @@ public class FaceFXEditor : ModuleRules
                 "Sequencer",
                 "MovieScene",
                 "MovieSceneTools",
-                "FaceFX"
+                "TimeManagement",
+                "FaceFX",
             }
         );
+
+        PublicIncludePaths.Add(ModuleDirectory);
     }
 }
