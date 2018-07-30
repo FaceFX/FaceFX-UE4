@@ -41,9 +41,9 @@ UFaceFXAnimationSection::UFaceFXAnimationSection(const FObjectInitializer& Objec
 	AnimationDuration = 0.F;
 }
 
-void UFaceFXAnimationSection::TrimSection(FFrameNumber TrimTime, bool bTrimLeft)
+void UFaceFXAnimationSection::TrimSection(FQualifiedFrameTime TrimTime, bool bTrimLeft)
 {
-	if (IsTimeWithinSection(TrimTime))
+	if (IsTimeWithinSection(TrimTime.Time.GetFrame()))
 	{
 		SetFlags(RF_Transactional);
 		if (TryModify())
@@ -54,21 +54,21 @@ void UFaceFXAnimationSection::TrimSection(FFrameNumber TrimTime, bool bTrimLeft)
 				{
 					if (const UMovieScene* MovieScene = GetTypedOuter<UMovieScene>())
 					{
-						const FFrameRate FrameResolution = MovieScene->GetFrameResolution();
-						StartOffset = FrameResolution.AsSeconds(TrimTime - GetInclusiveStartFrame());
-						SetStartFrame(TrimTime);
+						const FFrameRate FrameResolution = MovieScene->GetTickResolution();
+						StartOffset = FrameResolution.AsSeconds(TrimTime.Time.GetFrame() - GetInclusiveStartFrame());
+						SetStartFrame(TrimTime.Time.GetFrame());
 					}
 				}
 			}
 			else
 			{
-				SetEndFrame(TrimTime);
+				SetEndFrame(TrimTime.Time.GetFrame());
 			}
 		}
 	}
 }
 
-UMovieSceneSection* UFaceFXAnimationSection::SplitSection(FFrameNumber SplitTime)
+UMovieSceneSection* UFaceFXAnimationSection::SplitSection(FQualifiedFrameTime SplitTime)
 {
 	const UMovieScene* MovieScene = GetTypedOuter<UMovieScene>();
 	if (!MovieScene)
@@ -76,10 +76,10 @@ UMovieSceneSection* UFaceFXAnimationSection::SplitSection(FFrameNumber SplitTime
 		return nullptr;
 	}
 
-	const FFrameRate FrameResolution = MovieScene->GetFrameResolution();
+	const FFrameRate FrameResolution = MovieScene->GetTickResolution();
 
 	const FFrameNumber StartFrame = GetInclusiveStartFrame();
-	const FFrameNumber AnimPosition = SplitTime - StartFrame;
+	const FFrameNumber AnimPosition = SplitTime.Time.GetFrame() - StartFrame;
 	const FFrameNumber AnimLength = FrameResolution.AsFrameNumber(GetAnimationDuration() - (GetStartOffset() + GetEndOffset()));
 
 	const float AnimPositionSec = FrameResolution.AsSeconds(AnimPosition);
@@ -118,7 +118,7 @@ void UFaceFXAnimationSection::GetSnapTimes(TArray<FFrameNumber>& OutSnapTimes, b
 		return;
 	}
 
-	const FFrameRate FrameResolution = MovieScene->GetFrameResolution();
+	const FFrameRate FrameResolution = MovieScene->GetTickResolution();
 
 	const FFrameNumber StartFrame = GetInclusiveStartFrame();
 	const FFrameNumber EndFrame = GetExclusiveEndFrame();

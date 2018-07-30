@@ -21,7 +21,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Modules/ModuleVersion.h"
+#include "Runtime/Launch/Resources/Version.h"
 #include "FaceFXLib/facefx-runtime-1.3.0/facefx/facefx.h"
 
 // The number of total FaceFX channels. One channel per animation we want to be

@@ -23,7 +23,7 @@
 #include "FaceFXEditorTools.h"
 #include "FaceFX.h"
 #include "Factories/FaceFXActorFactory.h"
-#include "Include/´Slate/FaceFXResultWidget.h"
+#include "Include/Slate/FaceFXResultWidget.h"
 #include "Interfaces/IMainFrameModule.h"
 #include "Modules/ModuleManager.h"
 #include "DesktopPlatformModule.h"
@@ -226,7 +226,7 @@ void FAssetTypeActions_FaceFXBase::ExecuteOpenFolder(TArray<TWeakObjectPtr<UObje
 				}
 				else
 				{
-					Errors += FString::Printf(*LOCTEXT("OpenFolderMissing", "Asset does not exist: %s\n").ToString(), *PathAbs);
+					Errors += FText::Format(LOCTEXT("OpenFolderMissing", "Asset does not exist: {0}"), FText::FromString(PathAbs)).ToString();
 				}
 			}
 		}

@@ -167,8 +167,8 @@ public:
 	FACEFX_API class UFaceFXAnimationTrack* GetTrack() const;
 
 	//UMovieSceneSection
-	virtual void TrimSection(FFrameNumber TrimTime, bool bTrimLeft) override;
-	virtual UMovieSceneSection* SplitSection(FFrameNumber SplitTime) override;
+	virtual void TrimSection(FQualifiedFrameTime TrimTime, bool bTrimLeft) override;
+	virtual UMovieSceneSection* SplitSection(FQualifiedFrameTime SplitTime) override;
 	virtual void GetSnapTimes(TArray<FFrameNumber>& OutSnapTimes, bool bGetSectionBorders) const override;
 	//~UMovieSceneSection
 

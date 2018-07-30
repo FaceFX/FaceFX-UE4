@@ -90,7 +90,7 @@ int32 FFaceFXAnimationSection::OnPaintSection(FSequencerSectionPainter& Painter)
 	const FFrameNumber EndFrame = AnimSection->HasEndFrame() ? AnimSection->GetExclusiveEndFrame() : FFrameNumber(TNumericLimits<FFrameNumber>::Max());
 
 	//get the animation length in frames
-	const FFrameRate FrameResolution = TrackMovieScene->GetFrameResolution();
+	const FFrameRate FrameResolution = TrackMovieScene->GetTickResolution();
 	const float AnimLength = AnimSectionDuration - AnimSection->GetStartOffset() + AnimSection->GetEndOffset();
 	const FFrameNumber AnimLengthFrames = FrameResolution.AsFrameNumber(AnimLength);
 

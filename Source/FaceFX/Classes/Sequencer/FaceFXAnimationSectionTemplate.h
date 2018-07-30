@@ -23,7 +23,7 @@ SOFTWARE.
 #include "Evaluation/MovieSceneEvalTemplate.h"
 #include "MovieSceneExecutionToken.h"
 #include "UObject/ObjectKey.h"
-#include "FrameNumber.h"
+#include "Misc/FrameNumber.h"
 
 #include "FaceFXData.h"
 #include "FaceFXAnimationSectionTemplate.generated.h"
