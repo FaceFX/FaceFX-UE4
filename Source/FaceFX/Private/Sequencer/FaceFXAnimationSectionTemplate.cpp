@@ -62,7 +62,7 @@ FFaceFXAnimationSectionTemplate::FFaceFXAnimationSectionTemplate(const UFaceFXAn
 		SectionData.AnimationId = Section->GetAnimationId();
 		SectionData.Animation = Section->GetAnimationAsset();
 		SectionData.ComponentId = Section->GetComponent();
-		SectionData.AnimDuration = Section->GetAnimationDuration();
+		SectionData.AnimDuration = Section->GetAnimationDurationInSeconds();
 		SectionData.StartOffset = Section->GetStartOffset();
 		SectionData.EndOffset = Section->GetEndOffset();
 		SectionData.StartTime = Section->HasStartFrame() ? Section->GetInclusiveStartFrame() : TNumericLimits<FFrameNumber>::Min();

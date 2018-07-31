@@ -96,11 +96,19 @@ public:
 	static UFaceFXAnim* GetAnimation(const TSoftObjectPtr<UFaceFXAnim>& Asset, UObject* Owner = nullptr);
 
 	/**
-	* Gets the duration of the assigned animation
+	* Gets the duration of the assigned animation in seconds
 	* @param Actor The contextual actor to fetch the animation id from if needed
-	* @returns The animation duration
+	* @returns The animation duration in seconds
 	*/
-	float FACEFX_API GetAnimationDuration(const AActor* Actor = nullptr) const;
+	float FACEFX_API GetAnimationDurationInSeconds(const AActor* Actor = nullptr) const;
+
+	/**
+	* Gets the duration of the assigned animation in frames
+	* @param Actor The contextual actor to fetch the animation id from if needed
+	* @returns The animation duration in frames
+	*/
+	FFrameNumber FACEFX_API GetAnimationDurationInFrames(const AActor* Actor = nullptr) const;
+
 
 #if WITH_EDITOR
 	/** Gets the indicator if the animation duration is cached already */

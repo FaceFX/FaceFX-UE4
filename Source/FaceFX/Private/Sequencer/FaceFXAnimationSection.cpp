@@ -36,9 +36,9 @@ UFaceFXAnimationSection::UFaceFXAnimationSection(const FObjectInitializer& Objec
 	StartOffset = 0.f;
 	EndOffset = 0.f;
 
-	Time = 0.F;
+	Time = 0.f;
 	bIsAnimationDurationLoaded = false;
-	AnimationDuration = 0.F;
+	AnimationDuration = 0.f;
 }
 
 void UFaceFXAnimationSection::TrimSection(FQualifiedFrameTime TrimTime, bool bTrimLeft)
@@ -80,11 +80,11 @@ UMovieSceneSection* UFaceFXAnimationSection::SplitSection(FQualifiedFrameTime Sp
 
 	const FFrameNumber StartFrame = GetInclusiveStartFrame();
 	const FFrameNumber AnimPosition = SplitTime.Time.GetFrame() - StartFrame;
-	const FFrameNumber AnimLength = FrameResolution.AsFrameNumber(GetAnimationDuration() - (GetStartOffset() + GetEndOffset()));
+	const FFrameNumber AnimLength = FrameResolution.AsFrameNumber(GetAnimationDurationInSeconds() - (GetStartOffset() + GetEndOffset()));
 
 	const float AnimPositionSec = FrameResolution.AsSeconds(AnimPosition);
 	const float AnimLengthSec = FrameResolution.AsSeconds(AnimLength);
-	
+
 	const float NewOffset = FMath::Fmod(AnimPositionSec, AnimLengthSec) + GetStartOffset();
 
 	UMovieSceneSection* NewSection = Super::SplitSection(SplitTime);
@@ -99,7 +99,7 @@ void UFaceFXAnimationSection::GetSnapTimes(TArray<FFrameNumber>& OutSnapTimes, b
 {
 	Super::GetSnapTimes(OutSnapTimes, bGetSectionBorders);
 
-	const float CurrentDuration = GetAnimationDuration();
+	const float CurrentDuration = GetAnimationDurationInSeconds();
 	if (FMath::IsNearlyZero(CurrentDuration))
 	{
 		//nothing to snap
@@ -149,7 +149,7 @@ UFaceFXAnim* UFaceFXAnimationSection::GetAnimation(const TSoftObjectPtr<UFaceFXA
 	return NewAnim;
 }
 
-float UFaceFXAnimationSection::GetAnimationDuration(const AActor* Actor) const
+float UFaceFXAnimationSection::GetAnimationDurationInSeconds(const AActor* Actor) const
 {
 	if (!bIsAnimationDurationLoaded)
 	{
@@ -184,6 +184,42 @@ float UFaceFXAnimationSection::GetAnimationDuration(const AActor* Actor) const
 		bIsAnimationDurationLoaded = true;
 	}
 	return AnimationDuration;
+}
+
+FFrameNumber UFaceFXAnimationSection::GetAnimationDurationInFrames(const AActor* Actor) const
+{
+	const float CurrentDuration = GetAnimationDurationInSeconds();
+
+	if (FMath::IsNearlyZero(CurrentDuration))
+	{
+		return 0;
+	}
+
+	if(!HasStartFrame() || !HasEndFrame())
+	{
+		return 0;
+	}
+
+	const UMovieScene* MovieScene = GetTypedOuter<UMovieScene>();
+
+	if (!MovieScene)
+	{
+		return 0;
+	}
+
+	const FFrameRate FrameResolution = MovieScene->GetTickResolution();
+
+	const FFrameNumber StartFrame = GetInclusiveStartFrame();
+	const FFrameNumber EndFrame = GetExclusiveEndFrame();
+
+	const FFrameNumber AnimLength = FrameResolution.AsFrameNumber(CurrentDuration - (GetStartOffset() + GetEndOffset()));
+
+	if (AnimLength <= 0)
+	{
+		return 0;
+	}
+
+	return AnimLength;
 }
 
 UFaceFXAnimationTrack* UFaceFXAnimationSection::GetTrack() const

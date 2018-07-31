@@ -39,7 +39,7 @@ void UFaceFXAnimationTrack::AddSection(const FFrameNumber& KeyTime, const FFaceF
 	UFaceFXAnimationSection* NewSection = Cast<UFaceFXAnimationSection>(CreateNewSection());
 	{
 		NewSection->SetData(AnimCompSet);
-		NewSection->InitialPlacement(AnimationSections, KeyTime, NewSection->GetAnimationDuration(), SupportsMultipleRows());
+		NewSection->InitialPlacement(AnimationSections, KeyTime, NewSection->GetAnimationDurationInFrames().Value, SupportsMultipleRows());
 	}
 	AddSection(*NewSection);
 }

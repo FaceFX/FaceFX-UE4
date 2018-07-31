@@ -81,7 +81,7 @@ int32 FFaceFXAnimationSection::OnPaintSection(FSequencerSectionPainter& Painter)
 	}
 
 	const ESlateDrawEffect DrawEffects = Painter.bParentEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
-	const float AnimSectionDuration = AnimSection->GetAnimationDuration();
+	const float AnimSectionDuration = AnimSection->GetAnimationDurationInSeconds();
 
 	const FTimeToPixel& TimeToPixelConverter = Painter.GetTimeConverter();
 
