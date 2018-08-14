@@ -34,6 +34,8 @@ public class FaceFX : ModuleRules
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
         bEnforceIWYU = true;
 
+        PublicDependencyModuleNames.Add("TimeManagement");
+
         PrivateDependencyModuleNames.AddRange(
             new string[] {
                 "Core",

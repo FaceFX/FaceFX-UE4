@@ -22,7 +22,7 @@ SOFTWARE.
 #include "FaceFX.h"
 
 #if WITH_EDITOR
-#include "ConfigCacheIni.h"
+#include "Misc/ConfigCacheIni.h"
 
 const FFaceFXConfig& FFaceFXConfig::Get()
 {

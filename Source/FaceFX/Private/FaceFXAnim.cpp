@@ -21,7 +21,6 @@
 #include "FaceFXAnim.h"
 #include "FaceFX.h"
 #include "Sound/SoundWave.h"
-#include "Misc/Paths.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 

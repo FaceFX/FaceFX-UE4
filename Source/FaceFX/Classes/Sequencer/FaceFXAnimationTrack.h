@@ -39,10 +39,10 @@ class UFaceFXAnimationTrack : public UMovieSceneNameableTrack
 public:
 
 	/** Adds a new section to this track */
-	virtual void AddSection(float KeyTime, const FFaceFXAnimComponentSet& AnimCompSet);
+	virtual void AddSection(const FFrameNumber& KeyTime, const FFaceFXAnimComponentSet& AnimCompSet);
 
 	/** Gets the animation section at a certain time, or nullptr if there is none */
-	UMovieSceneSection* GetSectionAtTime(float Time) const;
+	UMovieSceneSection* GetSectionAtTime(const FFrameNumber& Time) const;
 
 	//UMovieSceneTrack
 	virtual FMovieSceneEvalTemplatePtr CreateTemplateForSection(const UMovieSceneSection& InSection) const override;
@@ -51,7 +51,6 @@ public:
 	virtual void AddSection(UMovieSceneSection& Section) override;
 	virtual void RemoveSection(UMovieSceneSection& Section) override;
 	virtual bool IsEmpty() const override;
-	virtual TRange<float> GetSectionBoundaries() const override;
 	virtual bool SupportsMultipleRows() const override { return true; }
 	virtual const TArray<UMovieSceneSection*>& GetAllSections() const override;
 	virtual UMovieSceneSection* CreateNewSection() override;

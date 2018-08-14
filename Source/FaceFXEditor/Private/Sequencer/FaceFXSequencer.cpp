@@ -23,7 +23,7 @@ SOFTWARE.
 #include "FaceFXConfig.h"
 #include "Sequencer/FaceFXAnimationTrackEditor.h"
 #include "ISequencerModule.h"
-#include "ModuleManager.h"
+#include "Modules/ModuleManager.h"
 
 void FFaceFXSequencer::Initialize()
 {

@@ -28,7 +28,7 @@ SOFTWARE.
 #include "MovieScene.h"
 #include "MovieSceneSection.h"
 #include "MovieSceneTrack.h"
-#include "MultiBoxBuilder.h"
+#include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "ISequencerSection.h"
 #include "SequencerUtilities.h"
 #include "SequencerSectionPainter.h"
@@ -60,23 +60,47 @@ float FFaceFXAnimationSection::GetSectionHeight() const
 
 int32 FFaceFXAnimationSection::OnPaintSection(FSequencerSectionPainter& Painter) const
 {
-	const ESlateDrawEffect DrawEffects = Painter.bParentEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
+	const UFaceFXAnimationSection* AnimSection = CastChecked<UFaceFXAnimationSection>(&Section);
+	int32 LayerId = Painter.PaintSectionBackground();
 
-	UFaceFXAnimationSection* AnimSection = CastChecked<UFaceFXAnimationSection>(&Section);
-	const float AnimSectionDuration = AnimSection->GetAnimationDuration();
+	if (!AnimSection->HasStartFrame())
+	{
+		return LayerId;
+	}
+
+	const UFaceFXAnimationTrack* AnimTrack = AnimSection->GetTrack();
+	if (!AnimTrack)
+	{
+		return LayerId;
+	}
+
+	const UMovieScene* TrackMovieScene = AnimTrack->GetTypedOuter<UMovieScene>();
+	if (!TrackMovieScene)
+	{
+		return LayerId;
+	}
+
+	const ESlateDrawEffect DrawEffects = Painter.bParentEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
+	const float AnimSectionDuration = AnimSection->GetAnimationDurationInSeconds();
 
 	const FTimeToPixel& TimeToPixelConverter = Painter.GetTimeConverter();
 
-	int32 LayerId = Painter.PaintSectionBackground();
-
 	// Add lines where the animation starts and ends/loops
-	float CurrentTime = AnimSection->GetStartTime();
+	const FFrameNumber StartFrame = AnimSection->GetInclusiveStartFrame();
+	const FFrameNumber EndFrame = AnimSection->HasEndFrame() ? AnimSection->GetExclusiveEndFrame() : FFrameNumber(TNumericLimits<FFrameNumber>::Max());
+
+	//get the animation length in frames
+	const FFrameRate FrameResolution = TrackMovieScene->GetTickResolution();
 	const float AnimLength = AnimSectionDuration - AnimSection->GetStartOffset() + AnimSection->GetEndOffset();
-	while (CurrentTime < AnimSection->GetEndTime() && !FMath::IsNearlyZero(AnimSectionDuration) && AnimLength > 0)
+	const FFrameNumber AnimLengthFrames = FrameResolution.AsFrameNumber(AnimLength);
+
+	//go over all full loops of the animation and draw the markers between each of them
+	FFrameNumber CurrentFrame = StartFrame;
+	while (CurrentFrame < EndFrame && !FMath::IsNearlyZero(AnimSectionDuration) && AnimLength > 0)
 	{
-		if (CurrentTime > AnimSection->GetStartTime())
+		if (CurrentFrame > StartFrame)
 		{
-			const float CurrentPixels = TimeToPixelConverter.TimeToPixel(CurrentTime);
+			const float CurrentPixels = TimeToPixelConverter.FrameToPixel(CurrentFrame);
 
 			TArray<FVector2D> Points;
 			Points.Add(FVector2D(CurrentPixels, 0));
@@ -84,7 +108,7 @@ int32 FFaceFXAnimationSection::OnPaintSection(FSequencerSectionPainter& Painter)
 
 			FSlateDrawElement::MakeLines(Painter.DrawElements, ++LayerId, Painter.SectionGeometry.ToPaintGeometry(), Points, DrawEffects);
 		}
-		CurrentTime += AnimLength;
+		CurrentFrame += AnimLengthFrames;
 	}
 	return LayerId;
 }
@@ -153,7 +177,7 @@ TSharedRef<SWidget> FFaceFXAnimationTrackEditor::CreateOutlinerWidget(FGuid Obje
 	return SNew(STextBlock).Text(LOCTEXT("SequencerAddSectionMissingComp", "Missing FaceFX component."));
 }
 
-FKeyPropertyResult FFaceFXAnimationTrackEditor::AddFaceFXSection(float KeyTime, UObject* Object, FFaceFXAnimComponentSet AnimCompSet)
+FKeyPropertyResult FFaceFXAnimationTrackEditor::AddFaceFXSection(FFrameNumber KeyTime, UObject* Object, FFaceFXAnimComponentSet AnimCompSet)
 {
 	FKeyPropertyResult result;
 

@@ -96,11 +96,19 @@ public:
 	static UFaceFXAnim* GetAnimation(const TSoftObjectPtr<UFaceFXAnim>& Asset, UObject* Owner = nullptr);
 
 	/**
-	* Gets the duration of the assigned animation
+	* Gets the duration of the assigned animation in seconds
 	* @param Actor The contextual actor to fetch the animation id from if needed
-	* @returns The animation duration
+	* @returns The animation duration in seconds
 	*/
-	float FACEFX_API GetAnimationDuration(const AActor* Actor = nullptr) const;
+	float FACEFX_API GetAnimationDurationInSeconds(const AActor* Actor = nullptr) const;
+
+	/**
+	* Gets the duration of the assigned animation in frames
+	* @param Actor The contextual actor to fetch the animation id from if needed
+	* @returns The animation duration in frames
+	*/
+	FFrameNumber FACEFX_API GetAnimationDurationInFrames(const AActor* Actor = nullptr) const;
+
 
 #if WITH_EDITOR
 	/** Gets the indicator if the animation duration is cached already */
@@ -143,16 +151,6 @@ public:
 	/**
 	* Gets the section playback location for a giving sequencer playback location
 	* @param Position The position on the sequencer timeline
-	* @returns The playback location for the given section
-	*/
-	inline float GetPlaybackLocation(float Position) const
-	{
-		return GetPlaybackLocation(Position, GetAnimationDuration(), GetStartOffset(), GetEndOffset(), GetStartTime(), GetEndTime());
-	}
-
-	/**
-	* Gets the section playback location for a giving sequencer playback location
-	* @param Position The position on the sequencer timeline
 	* @param AnimDuration The total duration of the animation
 	* @param StartOffset The offset the the beginning of the animation
 	* @param EndOffset The offset the the end of the animation
@@ -174,18 +172,17 @@ public:
 	AActor* GetActor() const;
 
 	/** Gets the owning track */
-	class UFaceFXAnimationTrack* GetTrack() const;
+	FACEFX_API class UFaceFXAnimationTrack* GetTrack() const;
 
 	//UMovieSceneSection
-	virtual void TrimSection(float TrimTime, bool bTrimLeft) override;
-	virtual UMovieSceneSection* SplitSection(float SplitTime) override;
-	virtual void GetKeyHandles(TSet<FKeyHandle>& OutKeyHandles, TRange<float> TimeRange) const override { }
-	virtual void GetSnapTimes(TArray<float>& OutSnapTimes, bool bGetSectionBorders) const override;
-	virtual TOptional<float> GetKeyTime(FKeyHandle KeyHandle) const override { return TOptional<float>(); }
-	virtual void SetKeyTime(FKeyHandle KeyHandle, float KeyTime) override { }
+	virtual void TrimSection(FQualifiedFrameTime TrimTime, bool bTrimLeft) override;
+	virtual UMovieSceneSection* SplitSection(FQualifiedFrameTime SplitTime) override;
+	virtual void GetSnapTimes(TArray<FFrameNumber>& OutSnapTimes, bool bGetSectionBorders) const override;
 	//~UMovieSceneSection
 
 private:
+
+
 
 	/** The if of the skel mesh component where this key is working on */
 	UPROPERTY(EditAnywhere, Category = FaceFX)

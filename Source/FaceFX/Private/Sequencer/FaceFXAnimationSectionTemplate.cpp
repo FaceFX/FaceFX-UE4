@@ -62,11 +62,11 @@ FFaceFXAnimationSectionTemplate::FFaceFXAnimationSectionTemplate(const UFaceFXAn
 		SectionData.AnimationId = Section->GetAnimationId();
 		SectionData.Animation = Section->GetAnimationAsset();
 		SectionData.ComponentId = Section->GetComponent();
-		SectionData.AnimDuration = Section->GetAnimationDuration();
+		SectionData.AnimDuration = Section->GetAnimationDurationInSeconds();
 		SectionData.StartOffset = Section->GetStartOffset();
 		SectionData.EndOffset = Section->GetEndOffset();
-		SectionData.StartTime = Section->GetStartTime();
-		SectionData.EndTime = Section->GetEndTime();
+		SectionData.StartTime = Section->HasStartFrame() ? Section->GetInclusiveStartFrame() : TNumericLimits<FFrameNumber>::Min();
+		SectionData.EndTime = Section->HasEndFrame() ? Section->GetExclusiveEndFrame() : TNumericLimits<FFrameNumber>::Max();
 	}
 }
 
@@ -199,9 +199,15 @@ void FFaceFXAnimationExecutionToken::Execute(FPersistentEvaluationData& Persiste
 
 	const EMovieScenePlayerStatus::Type State = Player.GetPlaybackStatus();
 
-	const float Position = Context.GetTime();
-	const float LastPosition = Context.GetPreviousTime();
-	const float PlaybackLocation = UFaceFXAnimationSection::GetPlaybackLocation(Position, SectionData.AnimDuration, SectionData.StartOffset, SectionData.EndOffset, SectionData.StartTime, SectionData.EndTime);
+	const FFrameRate FrameRate = Context.GetFrameRate();
+
+	const FFrameTime Position = Context.GetTime();
+	const FFrameTime LastPosition = Context.GetPreviousTime();
+
+	const float PositionSec = static_cast<float>(FrameRate.AsSeconds(Position));
+	const float StartTimeSec = static_cast<float>(FrameRate.AsSeconds(SectionData.StartTime));
+	const float EndTimeSec = static_cast<float>(FrameRate.AsSeconds(SectionData.EndTime));
+	const float PlaybackLocation = UFaceFXAnimationSection::GetPlaybackLocation(PositionSec, SectionData.AnimDuration, SectionData.StartOffset, SectionData.EndOffset, StartTimeSec, EndTimeSec);
 
 	//during reverse playback we use scrubbing instead, as reverse playback on audio component/FaceFX is not supported
 	const bool bIsReversePlayback = Context.GetDirection() == EPlayDirection::Backwards;
