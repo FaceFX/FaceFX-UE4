@@ -53,9 +53,9 @@ UFaceFXCharacter::UFaceFXCharacter(const class FObjectInitializer& PCIP) : Super
 	FrameState(nullptr),
 	BoneSetHandle(nullptr),
 	CurrentAnimHandle(nullptr),
-	CurrentTime(.0F),
-	CurrentAnimProgress(0.F),
-	CurrentAnimDuration(.0F),
+	CurrentTime(0.f),
+	CurrentAnimProgress(0.f),
+	CurrentAnimDuration(0.f),
 	AnimPlaybackState(EPlaybackState::Stopped),
 	bIsDirty(true),
 	bIsLooping(false),
@@ -1097,6 +1097,8 @@ void UFaceFXCharacter::UnloadCurrentAnim()
 		ffx_destroy_anim_handle(&CurrentAnimHandle, nullptr, nullptr);
 		CurrentAnimHandle = nullptr;
 	}
+
+	CurrentAnim = nullptr;
 }
 
 ffx_anim_handle_t* UFaceFXCharacter::LoadAnimation(const FFaceFXAnimData& AnimData)
