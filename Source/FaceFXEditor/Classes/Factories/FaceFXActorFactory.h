@@ -22,11 +22,11 @@
 
 #include "FaceFXAsset.h"
 #include "FaceFXEditorTools.h"
-#include "Include/Slate/FaceFXStyle.h"
-
 #include "IAssetTypeActions.h"
 #include "Factories/Factory.h"
 #include "FaceFXActorFactory.generated.h"
+
+class FFeedbackContext;
 
 UCLASS(hidecategories=Object)
 class UFaceFXActorFactory : public UFactory
@@ -34,16 +34,12 @@ class UFaceFXActorFactory : public UFactory
 	GENERATED_UCLASS_BODY()
 
 	//UFactory
-	virtual UObject* FactoryCreateNew(UClass* InClass,UObject* InParent,FName InName,EObjectFlags Flags,UObject* Context,FFeedbackContext* Warn) override;
+	virtual UObject* FactoryCreateNew(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn) override;
 	virtual uint32 GetMenuCategories() const override
 	{
 		return FFaceFXEditorTools::AssetCategory;
 	}
-
-	virtual FName GetNewAssetThumbnailOverride() const override
-	{
-		return FFaceFXStyle::GetBrushIdFxActor();
-	}
+	virtual FName GetNewAssetThumbnailOverride() const override;
 	//~UFactory
 
 	/**

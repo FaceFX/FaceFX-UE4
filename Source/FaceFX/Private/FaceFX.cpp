@@ -19,9 +19,9 @@
 *******************************************************************************/
 
 #include "FaceFX.h"
-#include "ModuleManager.h"
+#include "Modules/ModuleManager.h"
 #include "Engine/StreamableManager.h"
-#include "Paths.h"
+#include "Misc/Paths.h"
 
 DEFINE_LOG_CATEGORY(LogFaceFX);
 

@@ -20,9 +20,9 @@
 #include "AssetTypeActions_FaceFXAnim.h"
 #include "FaceFXEditor.h"
 #include "FaceFX.h"
-#include "IMainFrameModule.h"
-#include "ModuleManager.h"
-#include "MultiBoxBuilder.h"
+#include "Interfaces/IMainFrameModule.h"
+#include "Modules/ModuleManager.h"
+#include "Framework/MultiBox/MultiBoxBuilder.h"
 #include "IContentBrowserSingleton.h"
 #include "ContentBrowserModule.h"
 

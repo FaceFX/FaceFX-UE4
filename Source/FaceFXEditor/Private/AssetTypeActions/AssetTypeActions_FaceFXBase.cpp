@@ -24,13 +24,13 @@
 #include "FaceFX.h"
 #include "Factories/FaceFXActorFactory.h"
 #include "Include/Slate/FaceFXResultWidget.h"
-#include "IMainFrameModule.h"
-#include "ModuleManager.h"
+#include "Interfaces/IMainFrameModule.h"
+#include "Modules/ModuleManager.h"
 #include "DesktopPlatformModule.h"
 #include "ContentBrowserModule.h"
-#include "Dialogs.h"
+#include "Dialogs/Dialogs.h"
 #include "Editor.h"
-#include "FeedbackContext.h"
+#include "Misc/FeedbackContext.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 
@@ -226,7 +226,7 @@ void FAssetTypeActions_FaceFXBase::ExecuteOpenFolder(TArray<TWeakObjectPtr<UObje
 				}
 				else
 				{
-					Errors += FString::Printf(*LOCTEXT("OpenFolderMissing", "Asset does not exist: %s\n").ToString(), *PathAbs);
+					Errors += FText::Format(LOCTEXT("OpenFolderMissing", "Asset does not exist: {0}"), FText::FromString(PathAbs)).ToString();
 				}
 			}
 		}

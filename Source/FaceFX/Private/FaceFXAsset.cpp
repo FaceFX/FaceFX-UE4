@@ -23,8 +23,8 @@
 
 #if WITH_EDITORONLY_DATA
 #include "FaceFXData.h"
-#include "Paths.h"
-#include "ITargetPlatform.h"
+#include "Misc/Paths.h"
+#include "Interfaces/ITargetPlatform.h"
 #endif
 
 UFaceFXAsset::UFaceFXAsset(const class FObjectInitializer& PCIP) : Super(PCIP)

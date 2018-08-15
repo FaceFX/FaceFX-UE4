@@ -21,20 +21,17 @@
 #pragma once
 
 #include "IAssetTypeActions.h"
-#include "Include/Slate/FaceFXStyle.h"
 #include "Factories/Factory.h"
-#include "FeedbackContext.h"
 #include "FaceFXAnimFactory.generated.h"
+
+class FFeedbackContext;
 
 UCLASS(hidecategories=Object)
 class UFaceFXAnimFactory : public UFactory
 {
 	GENERATED_UCLASS_BODY()
 
-	virtual UObject* FactoryCreateNew(UClass* Class,UObject* InParent,FName Name,EObjectFlags Flags,UObject* Context,FFeedbackContext* Warn) override;
+	virtual UObject* FactoryCreateNew(UClass* Class, UObject* InParent, FName Name, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn) override;
 	virtual uint32 GetMenuCategories() const override;
-	virtual FName GetNewAssetThumbnailOverride() const override
-	{
-		return FFaceFXStyle::GetBrushIdFxAnim();
-	}
+	virtual FName GetNewAssetThumbnailOverride() const override;
 };

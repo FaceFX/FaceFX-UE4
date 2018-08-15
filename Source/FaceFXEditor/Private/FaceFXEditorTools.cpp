@@ -36,13 +36,13 @@
 #include "ContentBrowserModule.h"
 #include "Sound/SoundWave.h"
 #include "Editor.h"
-#include "SNotificationList.h"
-#include "NotificationManager.h"
+#include "Widgets/Notifications/SNotificationList.h"
+#include "Framework/Notifications/NotificationManager.h"
 #include "EditorFramework/AssetImportData.h"
-#include "FileHelper.h"
-#include "FeedbackContext.h"
+#include "Misc/FileHelper.h"
+#include "Misc/FeedbackContext.h"
 #include "Misc/ConfigCacheIni.h"
-#include "Paths.h"
+#include "Misc/Paths.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 
@@ -320,7 +320,7 @@ bool FFaceFXEditorTools::OpenFaceFXStudio(UFaceFXActor* Asset, FString* OutError
 		//asset does not exist
 		if(OutErrorMessage)
 		{
-			*OutErrorMessage = FString::Printf(*LOCTEXT("StartFailStudioMissing", "FaceFX start failed: FaceFX Studio was not found: '%s'.").ToString(), *StudioPath);
+			*OutErrorMessage = FText::Format(LOCTEXT("StartFailStudioMissing", "FaceFX start failed: FaceFX Studio was not found: '{0}'."), FText::FromString(StudioPath)).ToString();
 		}
 		return false;
 	}
@@ -340,7 +340,7 @@ bool FFaceFXEditorTools::OpenFaceFXStudio(UFaceFXActor* Asset, FString* OutError
 		//asset does not exist
 		if(OutErrorMessage)
 		{
-			*OutErrorMessage = FString::Printf(*LOCTEXT("StartFailMissing", "FaceFX start failed: Asset source file does not exist: '%s'.").ToString(), *AssetPath);
+			*OutErrorMessage = FText::Format(LOCTEXT("StartFailMissing", "FaceFX start failed: Asset source file does not exist: '{0}'."), FText::FromString(AssetPath)).ToString();
 		}
 		return false;
 	}
