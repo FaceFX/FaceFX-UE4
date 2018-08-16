@@ -92,8 +92,11 @@ template <typename T> bool UFaceFXAsset::ClearPlatformData(const FArchive& Ar, T
 
 	PlatformData.Swap(0, TargetIdx);
 
-	//remove anything but the first position
-	PlatformData.RemoveAt(1, PlatformData.Num() - 1, false);
+	if (PlatformData.Num() > 1)
+	{
+		//remove anything but the first position
+		PlatformData.RemoveAt(1, PlatformData.Num() - 1, false);
+	}
 
 	return true;
 }
