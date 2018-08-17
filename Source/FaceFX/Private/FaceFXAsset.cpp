@@ -46,7 +46,7 @@ FString UFaceFXAsset::GetAssetFolderAbsolute() const
 template <typename T> bool UFaceFXAsset::ClearPlatformData(const FArchive& Ar, T& PlatformData)
 {
 	//check if we actually have platform specific data to store
-	//The list of available platforms are: WindowsNoEditor, WindowsServer, LinuxServer, PS4, XboxOne, Switch, IOS, and Android.
+	//The list of available platforms are: WindowsNoEditor, WindowsServer, MacNoEditor, LinuxServer, PS4, XboxOne, Switch, IOS, and Android.
 	const FString Platform = Ar.CookingTarget()->PlatformName();
 
 	EFaceFXTargetPlatform::Type TargetPlatform = EFaceFXTargetPlatform::PC;
@@ -74,7 +74,9 @@ template <typename T> bool UFaceFXAsset::ClearPlatformData(const FArchive& Ar, T
 	}
 	else
 #endif //FACEFX_SUPPORT_SWITCH
-	if(!Platform.Equals(TEXT("WindowsNoEditor"), ESearchCase::IgnoreCase) && !Platform.Equals(TEXT("WindowsServer"), ESearchCase::IgnoreCase))
+	if(!Platform.Equals(TEXT("WindowsNoEditor"), ESearchCase::IgnoreCase)
+	&& !Platform.Equals(TEXT("WindowsServer"), ESearchCase::IgnoreCase)
+	&& !Platform.Equals(TEXT("MacNoEditor"), ESearchCase::IgnoreCase))
 	{
 		//Unknown target platform
 		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXAsset::ClearPlatformData. The cooking platform %s is not supported by FaceFX. Asset: %s"), *Platform, *GetNameSafe(this));
