@@ -49,10 +49,12 @@ public class FaceFXEditor : ModuleRules
                 "MovieScene",
                 "MovieSceneTools",
                 "TimeManagement",
+                "Settings",
                 "FaceFX",
             }
         );
 
         PublicIncludePaths.Add(ModuleDirectory);
+        PrivateIncludePaths.Add("FaceFX/Private");
     }
 }

@@ -25,11 +25,14 @@
 #include "FaceFXAnim.h"
 #include "FaceFXCharacter.h"
 #include "FaceFXEditorTools.h"
+#include "FaceFXEditorConfig.h"
 #include "Sequencer/FaceFXSequencer.h"
 #include "Sequencer/FaceFXAnimationTrackEditor.h"
 #include "Matinee/MatineeActor.h"
 #include "EngineUtils.h"
 #include "Editor.h"
+#include "Modules/ModuleManager.h"
+#include "ISettingsModule.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 
@@ -52,13 +55,15 @@ class FFaceFXEditorModule : public FDefaultModuleImpl
 		FFaceFXStyle::Initialize();
 		FFaceFXSequencer::Get().Initialize();
 
-		if(GIsEditor && FFaceFXConfig::Get().IsShowToasterMessageOnIncompatibleAnim())
+		if(GIsEditor && UFaceFXEditorConfig::Get().IsShowToasterMessageOnIncompatibleAnim())
 		{
 			OnFaceFXCharacterPlayAssetIncompatibleHandle = UFaceFXCharacter::OnFaceFXCharacterPlayAssetIncompatible.AddRaw(this, &FFaceFXEditorModule::OnFaceFXCharacterPlayAssetIncompatible);
 		}
 
 		OnEndPieHandle = FEditorDelegates::EndPIE.AddStatic(&FFaceFXEditorModule::OnEndPie);
 		OnPreSaveWorldHandle = FEditorDelegates::PreSaveWorld.AddStatic(&FFaceFXEditorModule::PreSaveWorld);
+
+		RegisterSettings();
 	}
 
 	virtual void ShutdownModule() override
@@ -84,6 +89,8 @@ class FFaceFXEditorModule : public FDefaultModuleImpl
 
 		FFaceFXStyle::Shutdown();
 		FFaceFXSequencer::Get().Shutdown();
+
+		UnregisterSettings();
 	}
 
 private:
@@ -192,6 +199,25 @@ private:
 			{
 				CastChecked<UFaceFXCharacter>(CharacterInstance)->Stop(true);
 			}
+		}
+	}
+
+	void RegisterSettings()
+	{
+		if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
+		{
+			SettingsModule->RegisterSettings("Project", "Plugins", "FaceFX",
+				LOCTEXT("FaceFXSettingsName", "FaceFX"),
+				LOCTEXT("FaceFXSettingsDescription", "Configure FaceFX editor settings"),
+				GetMutableDefault<UFaceFXEditorConfig>());
+		}
+	}
+
+	void UnregisterSettings()
+	{
+		if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
+		{
+			SettingsModule->UnregisterSettings("Project", "Plugins", "FaceFX");
 		}
 	}
 

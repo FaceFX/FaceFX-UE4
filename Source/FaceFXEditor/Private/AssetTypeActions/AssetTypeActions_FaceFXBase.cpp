@@ -24,6 +24,7 @@
 #include "FaceFX.h"
 #include "Factories/FaceFXActorFactory.h"
 #include "Include/Slate/FaceFXResultWidget.h"
+#include "FaceFXEditorConfig.h"
 #include "Interfaces/IMainFrameModule.h"
 #include "Modules/ModuleManager.h"
 #include "DesktopPlatformModule.h"
@@ -114,7 +115,7 @@ void FAssetTypeActions_FaceFXBase::ExecuteSetSource(TArray<TWeakObjectPtr<UObjec
 		FFaceFXImportResultSet ResultSet;
 
         FCompilationBeforeDeletionDelegate DeletionDelegate;
-        if(FaceFXAsset->IsA(UFaceFXActor::StaticClass()) && FFaceFXConfig::Get().IsImportAnimationOnActorImport())
+        if(FaceFXAsset->IsA(UFaceFXActor::StaticClass()) && UFaceFXEditorConfig::Get().IsImportAnimationOnActorImport())
         {
             //actor assets may lead to changed animation sets
             DeletionDelegate = FCompilationBeforeDeletionDelegate::CreateStatic(&UFaceFXActorFactory::OnFxActorCompilationBeforeDelete);
@@ -149,7 +150,7 @@ void FAssetTypeActions_FaceFXBase::ExecuteReimport(TArray<TWeakObjectPtr<UObject
 			FFaceFXImportResult& Result = ResultSet.GetOrAdd(FaceFXAsset);
 
 			FCompilationBeforeDeletionDelegate DeletionDelegate;
-			if(FaceFXAsset->IsA(UFaceFXActor::StaticClass()) && FFaceFXConfig::Get().IsImportAnimationOnActorImport())
+			if(FaceFXAsset->IsA(UFaceFXActor::StaticClass()) && UFaceFXEditorConfig::Get().IsImportAnimationOnActorImport())
 			{
 				//actor assets may lead to changed animation sets
 				DeletionDelegate = FCompilationBeforeDeletionDelegate::CreateRaw(this, &FAssetTypeActions_FaceFXBase::OnReimportBeforeDelete);

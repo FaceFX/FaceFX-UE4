@@ -21,8 +21,10 @@
 #include "FaceFXEditorTools.h"
 #include "FaceFXEditor.h"
 #include "FaceFX.h"
+#include "Audio/FaceFXAudio.h"
 #include "EditorStyleSet.h"
 #include "Include/Slate/FaceFXComboChoiceWidget.h"
+#include "FaceFXEditorConfig.h"
 #include "AssetToolsModule.h"
 #include "ObjectTools.h"
 #include "Factories/Factory.h"
@@ -300,7 +302,7 @@ bool FFaceFXImportActionResult::Rollback()
 
 bool FFaceFXEditorTools::IsFaceFXStudioInstalled()
 {
-	return FPaths::FileExists(FFaceFXConfig::Get().GetFaceFXStudioPath());
+	return FPaths::FileExists(UFaceFXEditorConfig::Get().GetFaceFXStudioPath());
 }
 
 bool FFaceFXEditorTools::OpenFaceFXStudio(UFaceFXActor* Asset, FString* OutErrorMessage)
@@ -314,7 +316,7 @@ bool FFaceFXEditorTools::OpenFaceFXStudio(UFaceFXActor* Asset, FString* OutError
 		return false;
 	}
 
-	const FString StudioPath = FFaceFXConfig::Get().GetFaceFXStudioPath();
+	const FString StudioPath = UFaceFXEditorConfig::Get().GetFaceFXStudioPath();
 	if(!FPaths::FileExists(StudioPath))
 	{
 		//asset does not exist
@@ -618,7 +620,7 @@ UFaceFXAnim* FFaceFXEditorTools::ReimportOrCreateAnimAsset(const FString& Compil
 	//First try to find an existing Animation Asset that links to the same animation file
 	const FString Filename = GetAnimAssetFileName(CompilationFolder, AnimGroup, AnimFile);
 
-	if(FFaceFXConfig::Get().IsImportLookupAnimation())
+	if(UFaceFXEditorConfig::Get().IsImportLookupAnimation())
 	{
 		//Try to find an existing UFaceFXAnim asset that is using the same source .ffxanim file which we could reuse
 		if(UFaceFXAnim* ExistingAnim = FindAnimationAsset(FaceFXActor->GetAssetFolder(), FaceFXActor->GetAssetName(), AnimGroupName, AnimIdName))
@@ -944,7 +946,7 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAnim* Asset, const FSt
 	}
 
 	//as a last step load the audio asset if desired (settings) and supported by the selected audio system
-	return !FFaceFXConfig::Get().IsImportAudio() || !FFaceFXConfig::IsAudioUsingSoundWaveAssets() || LoadAudio(Asset, Folder, OutResultMessages);
+	return !UFaceFXEditorConfig::Get().IsImportAudio() || !FFaceFXAudio::IsUsingSoundWaveAssets() || LoadAudio(Asset, Folder, OutResultMessages);
 }
 
 bool FFaceFXEditorTools::LoadAudio(UFaceFXAnim* Asset, const FString& Folder, FFaceFXImportResult& OutResultMessages)
@@ -986,7 +988,7 @@ bool FFaceFXEditorTools::LoadAudio(UFaceFXAnim* Asset, const FString& Folder, FF
 				if(Asset->GetAbsoluteAudioPath(AudioFile) && FPaths::FileExists(AudioFile))
 				{
 					//try to find sound asset
-					if(FFaceFXConfig::Get().IsImportLookupAudio())
+					if(UFaceFXEditorConfig::Get().IsImportLookupAudio())
 					{
 						//try to lookup audio
 						Asset->Audio = LocateAudio(AudioFile);

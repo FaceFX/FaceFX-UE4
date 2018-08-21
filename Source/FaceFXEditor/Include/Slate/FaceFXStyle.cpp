@@ -19,8 +19,8 @@
 *******************************************************************************/
 
 #include "FaceFXStyle.h"
-#include "FaceFXConfig.h"
 #include "FaceFXEditor.h"
+#include "FaceFXEditorConfig.h"
 #include "Styling/SlateBrush.h"
 #include "Styling/SlateStyle.h"
 #include "Styling/SlateStyleRegistry.h"
@@ -43,7 +43,7 @@ TSharedPtr<FSlateStyleSet> FFaceFXStyle::StyleSet;
 */
 FString FFaceFXStyle::GetResourcePath(const FString& RelativePath, const ANSICHAR* Extension)
 {
-	static FString ResourceDir = FFaceFXConfig::GetFaceFXPluginFolder() / TEXT("Resources");
+	static FString ResourceDir = UFaceFXEditorConfig::Get().GetFaceFXPluginFolder() / TEXT("Resources");
 	return (ResourceDir / RelativePath) + Extension;
 }
 
