@@ -186,7 +186,7 @@ struct FFaceFXAudio
 	* Gets the indicator if the active audio system is using sound wave assets
 	* @returns True if sound wave assets are used, else false
 	*/
-	static bool IsUsingSoundWaveAssets();
+	static FACEFX_API bool IsUsingSoundWaveAssets();
 
 private:
 

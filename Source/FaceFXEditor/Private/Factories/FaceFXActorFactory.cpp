@@ -25,6 +25,7 @@
 #include "Include/Slate/FaceFXStyle.h"
 #include "Include/Slate/FaceFXResultWidget.h"
 #include "FaceFXEditorTools.h"
+#include "FaceFXEditorConfig.h"
 #include "AssetToolsModule.h"
 #include "EditorStyleSet.h"
 #include "Interfaces/IMainFrameModule.h"
@@ -61,7 +62,7 @@ UObject* UFaceFXActorFactory::FactoryCreateNew(UClass* InClass, UObject* InParen
 
 void UFaceFXActorFactory::OnFxActorCompilationBeforeDelete(UObject* Asset, const FString& CompilationFolder, bool LoadResult, FFaceFXImportResult& OutResultMessages)
 {
-	if(LoadResult && FFaceFXConfig::Get().IsImportAnimationOnActorImport())
+	if(LoadResult && UFaceFXEditorConfig::Get().IsImportAnimationOnActorImport())
 	{
 		//generate proper factory
 		UFaceFXAnimFactory* Factory = NewObject<UFaceFXAnimFactory>(UFaceFXAnimFactory::StaticClass());
@@ -78,7 +79,7 @@ void UFaceFXActorFactory::HandleFaceFXActorCreated(UFaceFXActor* Asset, const FS
 {
 	check(Asset);
 
-	if(!FFaceFXConfig::Get().IsImportAnimationOnActorImport())
+	if(!UFaceFXEditorConfig::Get().IsImportAnimationOnActorImport())
 	{
 		//animation import disabled
 		return;

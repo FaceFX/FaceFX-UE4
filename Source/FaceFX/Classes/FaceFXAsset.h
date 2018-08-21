@@ -29,7 +29,7 @@
 UCLASS(Abstract, hideCategories=Object)
 class FACEFX_API UFaceFXAsset : public UObject
 {
-	GENERATED_UCLASS_BODY()
+	GENERATED_BODY()
 
 public:
 

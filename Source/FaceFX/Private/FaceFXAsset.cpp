@@ -27,10 +27,6 @@
 #include "Interfaces/ITargetPlatform.h"
 #endif
 
-UFaceFXAsset::UFaceFXAsset(const class FObjectInitializer& PCIP) : Super(PCIP)
-{
-}
-
 #if WITH_EDITORONLY_DATA
 
 FString UFaceFXAsset::GetAssetPathAbsolute() const
