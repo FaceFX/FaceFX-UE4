@@ -376,15 +376,6 @@ public:
 	bool GetAllLinkedAnimationIds(TArray<FFaceFXAnimId>& OutAnimIds) const;
 #endif //FACEFX_USEANIMATIONLINKAGE
 
-	/**
-	* Gets the start and end time of a given animation
-	* @param Animation The animation to fetch the bounds for
-	* @param OutStart The start time if call succeeded
-	* @param OutEnd The end time if call succeeded
-	* @returns True if succeeded, else false
-	*/
-	static bool GetAnimationBounds(const UFaceFXAnim* Animation, float& OutStart, float& OutEnd);
-
 	/** Event that triggers whenever an asset was tried to get played which is incompatible to the FaceFX actor handle */
 	static FOnFaceFXCharacterPlayAssetIncompatibleSignature OnFaceFXCharacterPlayAssetIncompatible;
 
@@ -498,19 +489,6 @@ private:
 
 	/** Sets the material parameters of the owners skel mesh to their defaults */
 	void ResetMaterialParametersToDefaults();
-
-	/**
-	* Gets the latest internal facefx error message
-	* @returns The last error message
-	*/
-	static FString GetFaceFXError();
-
-	/**
-	* Loads a set of animation data
-	* @param AnimData The data to load the animation with
-	* @returns The FaceFX handle if succeeded, else nullptr
-	*/
-	static struct ffx_anim_handle_t* LoadAnimation(const struct FFaceFXAnimData& AnimData);
 
 	/** The data set from where this character was loaded from */
 	UPROPERTY(Transient)
