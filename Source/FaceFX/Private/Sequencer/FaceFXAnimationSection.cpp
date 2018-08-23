@@ -175,7 +175,7 @@ float UFaceFXAnimationSection::GetAnimationDurationInSeconds(const AActor* Actor
 		{
 			//resolve by animation asset
 			float AnimStart, AnimEnd;
-			if (UFaceFXCharacter::GetAnimationBounds(TargetAnimation, AnimStart, AnimEnd))
+			if (FaceFX::GetAnimationBounds(TargetAnimation, AnimStart, AnimEnd))
 			{
 				AnimationDuration = AnimEnd - AnimStart;
 			}
