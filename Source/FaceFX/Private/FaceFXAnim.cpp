@@ -22,6 +22,10 @@
 #include "FaceFX.h"
 #include "Sound/SoundWave.h"
 
+#if WITH_EDITORONLY_DATA
+#include "FaceFXBlueprintLibrary.h"
+#endif //WITH_EDITORONLY_DATA
+
 #define LOCTEXT_NAMESPACE "FaceFX"
 
 UFaceFXAnim::UFaceFXAnim(const class FObjectInitializer& PCIP) : Super(PCIP)
@@ -81,6 +85,14 @@ void UFaceFXAnim::GetDetails(FString& OutDetails) const
 	OutDetails += LOCTEXT("DetailsSource", "Source: ").ToString() + AssetName + TEXT("\n");
 	OutDetails += LOCTEXT("DetailsAnimGroup", "Group: ").ToString() + Id.Group.GetPlainNameString() + TEXT("\n");
 	OutDetails += LOCTEXT("DetailsAnimId", "Animation: ").ToString() + Id.Name.GetPlainNameString() + TEXT("\n");
+
+	float Start, End, Duration;
+	if (UFaceFXBlueprintLibrary::GetAnimationBounds(this, Start, End, Duration))
+	{
+		OutDetails += LOCTEXT("DetailsAnimTimeStart", "StartTime: ").ToString() + FString::Printf(TEXT("%0.5fs\n"), Start);
+		OutDetails += LOCTEXT("DetailsAnimTimeEnd", "EndTime: ").ToString() + FString::Printf(TEXT("%0.5fs\n"), End);
+		OutDetails += LOCTEXT("DetailsAnimTimeDuration", "Duration: ").ToString() + FString::Printf(TEXT("%0.5fs\n"), Duration);
+	}
 
 	if(!IsValid())
 	{

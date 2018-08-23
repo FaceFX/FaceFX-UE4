@@ -19,6 +19,8 @@
 *******************************************************************************/
 
 #include "FaceFX.h"
+#include "FaceFXContext.h"
+#include "FaceFXAnim.h"
 #include "Modules/ModuleManager.h"
 #include "Engine/StreamableManager.h"
 #include "Misc/Paths.h"
@@ -49,6 +51,65 @@ FStreamableManager& FaceFX::GetStreamer()
 	/** the global streamer for FaceFX assets */
 	static FStreamableManager s_streamer;
 	return s_streamer;
+}
+
+bool FaceFX::Check(int32 Value)
+{
+	return Value != 0 && (ffx_errno() == EOK);
+}
+
+FString FaceFX::GetFaceFXError()
+{
+	char Msg[128] = { 0 };
+	if (ffx_strerror(ffx_errno(), Msg, 128))
+	{
+		return FString(Msg);
+	}
+	else
+	{
+		return TEXT("Unable to retrieve additional FaceFX error message.");
+	}
+}
+
+ffx_anim_handle_t* FaceFX::LoadAnimation(const FFaceFXAnimData& AnimData)
+{
+	//load animations
+	if (AnimData.RawData.Num() == 0)
+	{
+		UE_LOG(LogFaceFX, Warning, TEXT("FaceFX::LoadAnimation. Missing facefx animation data."));
+		return nullptr;
+	}
+
+	ffx_context_t Context = FFaceFXContext::CreateContext();
+
+	ffx_anim_handle_t* NewHandle = nullptr;
+	if (!FaceFX::Check(ffx_create_anim_handle((char*)(&AnimData.RawData[0]), AnimData.RawData.Num(), FFX_RUN_INTEGRITY_CHECK, &NewHandle, &Context)) || !NewHandle)
+	{
+		UE_LOG(LogFaceFX, Error, TEXT("FaceFX::LoadAnimation. Unable to create animation FaceFX handle. %s"), *FaceFX::GetFaceFXError());
+	}
+
+	return NewHandle;
+}
+
+bool FaceFX::GetAnimationBounds(const UFaceFXAnim* Animation, float& OutStart, float& OutEnd)
+{
+	ffx_anim_handle_t* AnimHandle = FaceFX::LoadAnimation(Animation->GetData());
+	if (!AnimHandle)
+	{
+		return false;
+	}
+
+	bool Result = true;
+	if (!FaceFX::Check(ffx_get_anim_bounds(AnimHandle, &OutStart, &OutEnd)))
+	{
+		UE_LOG(LogFaceFX, Error, TEXT("FaceFX::GetAnimationBounds. FaceFX call <ffx_get_anim_bounds> failed. %s. Asset: %s"), *FaceFX::GetFaceFXError(), *GetNameSafe(Animation));
+		Result = false;
+	}
+
+	ffx_destroy_anim_handle(&AnimHandle, nullptr, nullptr);
+	AnimHandle = nullptr;
+
+	return Result;
 }
 
 #if WITH_EDITOR
