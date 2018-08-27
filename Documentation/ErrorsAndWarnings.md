@@ -16,7 +16,7 @@ Make sure you only analyze **.wav** files from FaceFX Studio. UE4 can not import
 
 ##### Audio file does not exist
 
-The audio associated with the animation can not be found. The path to the audio comes from the **.ffxamap** file in the **.ffxc** folder. Paths are relative to the **.facefx** file path, and the **.facefx** file's path is relative to the path listed in the **Documents\FaceFX Studio 2017\facefx.clientspec** file. If your audio file does actually exist (check that first), this could be due to an error in your **facefx.clientspec** file if it has been modified by hand. Make sure the capitalization is correct (drive letters should be capitalized for example).
+The audio associated with the animation can not be found. The path to the audio comes from the **.ffxamap** file in the **.ffxc** folder. Paths are relative to the **.facefx** file path, and the **.facefx** file's path is relative to the path listed in the **Documents\FaceFX Studio 2018\facefx.clientspec** file. If your audio file does actually exist (check that first), this could be due to an error in your **facefx.clientspec** file if it has been modified by hand. Make sure the capitalization is correct (drive letters should be capitalized for example).
 
 Animation Import Warnings
 -------------------------
