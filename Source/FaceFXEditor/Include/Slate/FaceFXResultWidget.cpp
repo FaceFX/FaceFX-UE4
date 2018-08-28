@@ -280,6 +280,12 @@ EAppReturnType::Type FFaceFXResultWidget::OpenDialog(const FText& InTitle, bool 
 
 EAppReturnType::Type FFaceFXResultWidget::Create(const FText& InTitle, const FFaceFXImportResultSet& ResultSet, bool ShowAsModal, bool MergeWithOpenWindow)
 {
+	if (!FSlateApplication::IsInitialized())
+	{
+		//slate less mode (i.e. importasset commandlet)
+		return EAppReturnType::Ok;
+	}
+
 	if(ResultSet.GetEntries().Num() == 0)
 	{
 		//nothing to display
