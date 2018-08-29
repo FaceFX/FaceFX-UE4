@@ -30,7 +30,7 @@ class FACEFXEDITOR_API UFaceFXEditorConfig : public UObject
 
 public:
 
-	/** 
+	/**
 	* Gets the config instance
 	* @returns The config instance
 	*/
@@ -39,7 +39,7 @@ public:
 		const UFaceFXEditorConfig* Instance = GetDefault<UFaceFXEditorConfig>();
 		check(Instance);
 		return *Instance;
-	}	
+	}
 
 	/**
 	* Gets the path to the FaceFX plugin
@@ -109,7 +109,7 @@ private:
 
 	/** The absolute path to the FaceFX Studio installation. */
 	UPROPERTY(config, EditAnywhere, Category = FaceFX)
-	FString StudioPath = "C:/Program Files (x86)/FaceFX/FaceFX Studio Professional 2018/facefx-studio.exe";
+	FString StudioPath = "C:/Program Files/FaceFX/FaceFX Studio Professional 2018/facefx-studio.exe";
 
 	/* Indicates if the audio data(.wav files only) should be automatically imported during the FaceFX Animation import process. */
 	UPROPERTY(config, EditAnywhere, Category = FaceFX)
