@@ -79,9 +79,9 @@ void UFaceFXActorFactory::HandleFaceFXActorCreated(UFaceFXActor* Asset, const FS
 {
 	check(Asset);
 
-	if(!UFaceFXEditorConfig::Get().IsImportAnimationOnActorImport())
+	if(!UFaceFXEditorConfig::Get().IsImportAnimationOnActorImport() || !FSlateApplication::IsInitialized())
 	{
-		//animation import disabled
+		//animation import disabled or slate less mode (i.e. importasset commandlet). In that case we only import the target asset
 		return;
 	}
 
