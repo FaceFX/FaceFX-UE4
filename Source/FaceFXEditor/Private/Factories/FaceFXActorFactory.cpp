@@ -79,48 +79,25 @@ void UFaceFXActorFactory::HandleFaceFXActorCreated(UFaceFXActor* Asset, const FS
 {
 	check(Asset);
 
-	if(!UFaceFXEditorConfig::Get().IsImportAnimationOnActorImport() || !FSlateApplication::IsInitialized())
+	if(!UFaceFXEditorConfig::Get().IsImportAnimationOnActorImport())
 	{
-		//animation import disabled or slate less mode (i.e. importasset commandlet). In that case we only import the target asset
+		//animation import disabled
 		return;
 	}
 
 	//asset successfully loaded -> ask for importing Animations as well or not
 	TArray<FString> AnimGroups;
-	if(FFaceFXEditorTools::GetAnimationGroupsInFolder(CompilationFolder, EFaceFXTargetPlatform::PC, &AnimGroups))
+	if(FFaceFXEditorTools::GetAnimationGroupsInFolder(CompilationFolder, EFaceFXTargetPlatform::PC, &AnimGroups) && AnimGroups.Num() > 0)
 	{
-		if(AnimGroups.Num() > 0)
+		IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
+
+		FString PackageName;
+		Asset->GetOutermost()->GetName(PackageName);
+
+		//import additional animations
+		for(const FString& Group : AnimGroups)
 		{
-			const FText Title = FText::Format(LOCTEXT("AutoImportAnimationTitle", "Import Animation Data [{0}]"), FText::FromString(Asset->GetName()));
-
-			//collect all groups
-			FString Groups;
-			for(auto& Group : AnimGroups)
-			{
-				Groups += Group + TEXT("\n");
-			}
-
-			FFormatNamedArguments Args;
-			Args.Add(TEXT("Groups"), FText::FromString(Groups));
-
-			//we have animations -> ask user if he wants to import and link those into new assets. One per group
-			const EAppReturnType::Type Result = FMessageDialog::Open(EAppMsgType::YesNo,
-				FText::Format(LOCTEXT("AutoImportAnimationMessage", "Do you want to automatically (re)import the existing animations for the following groups ?\n\nGroups:\n{Groups}"), Args),
-				&Title);
-
-			if(Result == EAppReturnType::Yes)
-			{
-				IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
-
-				FString PackageName;
-				Asset->GetOutermost()->GetName(PackageName);
-
-				//import additional animations
-				for(const FString& Group : AnimGroups)
-				{
-					FFaceFXEditorTools::ReimportOrCreateAnimAssets(CompilationFolder, Group, PackageName, Asset, AssetTools, OutResultMessages, Factory);
-				}
-			}
+			FFaceFXEditorTools::ReimportOrCreateAnimAssets(CompilationFolder, Group, PackageName, Asset, AssetTools, OutResultMessages, Factory);
 		}
 	}
 }
