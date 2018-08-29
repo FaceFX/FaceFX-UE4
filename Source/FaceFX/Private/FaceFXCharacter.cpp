@@ -88,18 +88,16 @@ bool UFaceFXCharacter::TickUntil(float Duration, bool& OutAudioStarted)
 		return false;
 	}
 
-	CurrentTime = 0.F;
+	CurrentTime = Duration;
 	CurrentAnimProgress = 0.F;
 
 	/** The steps to perform */
 	static const float TickSteps = 0.1F;
 
-	CurrentTime = Duration;
-
-	const bool ProcessZeroSuccess = FaceFX::Check(ffx_process_frame(ActorHandle, FrameState, 0.F));
+	const bool bProcessZeroSuccess = FaceFX::Check(ffx_process_frame(ActorHandle, FrameState, 0.F));
 	const bool bIsAudioStartedAtZero = IsAudioStarted();
 
-	if (!ProcessZeroSuccess || !FaceFX::Check(ffx_process_frame(ActorHandle, FrameState, CurrentTime)))
+	if (!bProcessZeroSuccess || !FaceFX::Check(ffx_process_frame(ActorHandle, FrameState, CurrentTime)))
 	{
 		//update failed
 		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::TickUntil. FaceFX call <ffx_process_frame> failed. %s. Asset: %s"), *FaceFX::GetFaceFXError(), *GetNameSafe(FaceFXActor));
@@ -111,7 +109,7 @@ bool UFaceFXCharacter::TickUntil(float Duration, bool& OutAudioStarted)
 		OutAudioStarted = true;
 	}
 
-	CurrentAnimProgress = CurrentTime - CurrentAnimStart;
+	CurrentAnimProgress = CurrentTime;
 	bIsDirty = true;
 
 	ProcessMorphTargets();
