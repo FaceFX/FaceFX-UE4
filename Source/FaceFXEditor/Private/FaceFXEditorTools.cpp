@@ -242,6 +242,7 @@ bool LoadAudioMapData(UFaceFXAsset* Asset, const FString& Folder, EFaceFXTargetP
 */
 bool IsAnimationExistInAudioMap(const UFaceFXAnim* Asset, const TArray<FFaceFXAudioMapEntry>& AudioMapData)
 {
+	check(Asset);
 	for(const FFaceFXAudioMapEntry& AudioMapEntry : AudioMapData)
 	{
 		if(AudioMapEntry.AnimationId.Equals(Asset->GetName().ToString(), ESearchCase::IgnoreCase) &&
@@ -760,7 +761,7 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXActor* Asset, const FS
 		{
 			for(const UFaceFXAnim* Animation : Asset->Animations)
 			{
-				if(!IsAnimationExistInAudioMap(Animation, AudioMapData))
+				if(Animation && !IsAnimationExistInAudioMap(Animation, AudioMapData))
 				{
 					//not listed in audio map file -> animation not part of .facefx asset anymore
 					OutResultMessages.AddModifyWarning(LOCTEXT("LoadingCompiledActorAnimRemoved", "Linked animation asset does not contain an audio map entry. It may have been moved or deleted. Consider to delete that animation asset."), Animation);
@@ -1007,7 +1008,7 @@ bool FFaceFXEditorTools::LoadAudio(UFaceFXAnim* Asset, const FString& Folder, FF
 
 						//Rather hacky workaround for the fact that importer process is creating the target package name itself and potentially clash with existing files
 						//So we import the assets into temp sub folders, rename them to the actual target package and clear the temp folder again
-						TArray<UObject*> ImportedAssets = AssetTools.ImportAssets(ImportAssetPath, NewPackageName);
+						TArray<UObject*> ImportedAssets = AssetTools.ImportAssets(ImportAssetPath, NewPackageName, nullptr, false);
 						USoundWave* ImportedAsset = ImportedAssets.Num() > 0 ? Cast<USoundWave>(ImportedAssets[0]) : nullptr;
 
 						if(ImportedAsset)
@@ -1030,9 +1031,12 @@ bool FFaceFXEditorTools::LoadAudio(UFaceFXAnim* Asset, const FString& Folder, FF
 								IFileManager::Get().DeleteDirectory(*FolderPath);
 							}
 
-							//sync back to the original asset
-							IContentBrowserSingleton& ContentBrowser = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser").Get();
-							ContentBrowser.SyncBrowserToAssets(ImportedAssets);
+							if (FSlateApplication::IsInitialized())
+							{
+								//sync back to the original asset
+								IContentBrowserSingleton& ContentBrowser = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser").Get();
+								ContentBrowser.SyncBrowserToAssets(ImportedAssets);
+							}
 
 							//finally assign new audio
 							Asset->Audio = ImportedAsset;
