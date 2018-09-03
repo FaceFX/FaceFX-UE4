@@ -36,7 +36,6 @@ UFaceFXAnimationSection::UFaceFXAnimationSection(const FObjectInitializer& Objec
 	StartOffset = 0.f;
 	EndOffset = 0.f;
 
-	Time = 0.f;
 	bIsAnimationDurationLoaded = false;
 	AnimationDuration = 0.f;
 }

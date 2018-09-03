@@ -204,10 +204,6 @@ private:
 	UPROPERTY(EditAnywhere, Category = FaceFX)
 	float EndOffset;
 
-	/** The time of the key along the track time line */
-	UPROPERTY(Transient)
-	float Time;
-
 	/** Indicator if the facial animation duration was loaded and cached already */
 	UPROPERTY(Transient)
 	mutable uint8 bIsAnimationDurationLoaded : 1;
