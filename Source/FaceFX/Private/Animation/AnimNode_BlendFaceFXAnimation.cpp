@@ -176,6 +176,19 @@ void FAnimNode_BlendFaceFXAnimation::Evaluate_AnyThread(FPoseContext& Output)
 #endif
 }
 
+bool FaceFXContainsNaN(const TArray<FBoneTransform>& BoneTransforms)
+{
+	for (int32 i = 0; i < BoneTransforms.Num(); ++i)
+	{
+		if (BoneTransforms[i].Transform.ContainsNaN())
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void FAnimNode_BlendFaceFXAnimation::EvaluateComponentSpace_AnyThread(FComponentSpacePoseContext& Output)
 {
 	SCOPE_CYCLE_COUNTER(STAT_FaceFXBlend);
@@ -294,7 +307,7 @@ void FAnimNode_BlendFaceFXAnimation::EvaluateComponentSpace_AnyThread(FComponent
 					FAnimationRuntime::ConvertBoneSpaceTransformToCS(FTransform::Identity, Output.Pose, BoneTM, CompactPoseBoneIndex, EBoneControlSpace::BCS_ParentBoneSpace);
 
 					//sanity check
-					checkSlow(!ContainsNaN(TargetBlendTransform));
+					checkSlow(!FaceFXContainsNaN(TargetBlendTransform));
 
 					//apply to pose after each bone transform update in order to have proper parent transforms when update childs
 					Output.Pose.LocalBlendCSBoneTransforms(TargetBlendTransform, BlendWeight);
