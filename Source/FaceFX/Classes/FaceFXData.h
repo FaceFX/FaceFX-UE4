@@ -33,96 +33,6 @@ enum class EPlaybackState : uint8
 	Stopped
 };
 
-/** The target platform for FaceFX platform specific compilation data */
-UENUM()
-namespace EFaceFXTargetPlatform
-{
-	enum Type
-	{
-		PC = 0,
-		PS4,
-		XBoxOne,
-		Switch,
-		MAX UMETA(Hidden)
-	};
-}
-
-/** Helper stuff for the enum EFaceFXTargetPlatform */
-namespace EFaceFXTargetPlatformHelper
-{
-	/** 
-	* Gets the indicator if the given platform type is supported by the plugin build. 
-	* Controlled via FaceFXConfig.h preprocessor defines (FACEFX_SUPPORT_PS4, FACEFX_SUPPORT_XBONE,
-	* FACEFX_SUPPORT_SWITCH)
-	* @param Platform The platform type to check
-	* @returns True if supported, else false
-	*/
-	static inline bool IsSupported(EFaceFXTargetPlatform::Type Platform)
-	{
-		switch (Platform)
-		{
-		case EFaceFXTargetPlatform::PC:
-		{
-			return true;
-		}
-#if FACEFX_SUPPORT_PS4
-		case EFaceFXTargetPlatform::PS4:
-		{
-			return true;
-		}
-#endif //FACEFX_SUPPORT_PS4
-#if FACEFX_SUPPORT_XBONE
-		case EFaceFXTargetPlatform::XBoxOne:
-		{
-			return true;
-		}
-#endif //FACEFX_SUPPORT_XBONE
-#if FACEFX_SUPPORT_SWITCH
-		case EFaceFXTargetPlatform::Switch:
-		{
-			return true;
-		}
-#endif //FACEFX_SUPPORT_SWITCH
-		}
-		return false;
-	}
-
-	/**
-	* Converts the given platform type to a string representation
-	* @param Platform The platform type
-	* @returns The string representation
-	*/
-	static inline const FString& ToString(EFaceFXTargetPlatform::Type Platform)
-	{
-		switch(Platform)
-		{
-		case EFaceFXTargetPlatform::PC:
-			{
-				static FString s_PC = TEXT("PC");
-				return s_PC;
-			}
-		case EFaceFXTargetPlatform::PS4:
-			{
-				static FString s_PS4 = TEXT("PS4");
-				return s_PS4;
-			}
-		case EFaceFXTargetPlatform::XBoxOne:
-			{
-				static FString s_XBONE = TEXT("XBONE");
-				return s_XBONE;
-			}
-		case EFaceFXTargetPlatform::Switch:
-			{
-				static FString s_SWITCH = TEXT("SWITCH");
-				return s_SWITCH;
-			}
-		}
-
-		static FString s_UNKNOWN = TEXT("<Unknown>");
-		return s_UNKNOWN;
-	}
-}
-
 /** The struct represents a FaceFX animation identifier */
 USTRUCT(BlueprintType)
 struct FFaceFXAnimId
@@ -139,18 +49,11 @@ struct FFaceFXAnimId
 	UPROPERTY(EditInstanceOnly, Category=FaceFX)
 	FName Name;
 
-	/**
-	* Gets the indicator if this animation ID is valid
-	* @returns True if valid, else false
-	*/
 	inline bool IsValid() const
 	{
 		return Name != NAME_None;
 	}
 
-	/**
-	* Resets this animation id
-	*/
 	inline void Reset()
 	{
 		Group = NAME_None;
@@ -213,38 +116,23 @@ struct FFaceFXAnimData
 {
 	GENERATED_USTRUCT_BODY()
 
-	/** The asset file binary data */
+	/** The asset file binary data for the .ffxanim file */
 	UPROPERTY()
 	TArray<uint8> RawData;
 
-	/**
-	* Gets the indicator if this animation ID is valid
-	* @returns True if valid, else false
-	*/
 	inline bool IsValid() const
 	{
 		return RawData.Num() > 0;
 	}
 
-	/**
-	* Resets this animation id
-	*/
 	inline void Reset()
 	{
 		RawData.Empty();
 	}
 
 #if WITH_EDITORONLY_DATA
-	FFaceFXAnimData(EFaceFXTargetPlatform::Type InPlatform = EFaceFXTargetPlatform::PC) : Platform(InPlatform) {}
-
-	/** The platform where this data belongs to */
-	UPROPERTY(EditInstanceOnly, Category=FaceFX)
-	TEnumAsByte<EFaceFXTargetPlatform::Type> Platform;
-
-	FORCEINLINE bool operator==(EFaceFXTargetPlatform::Type InPlatform) const
-	{
-		return Platform == InPlatform;
-	}
+	UPROPERTY()
+	uint8 Platform_DEPRECATED;
 #endif //WITH_EDITORONLY_DATA
 };
 
@@ -309,7 +197,13 @@ struct FFaceFXActorData
 	UPROPERTY(EditInstanceOnly, Category=FaceFX)
 	TArray<FFaceFXIdData> Ids;
 
-	/** Resets the asset data */
+	inline bool IsValid() const
+	{
+		// Note: for a morph-only character there may not be any bones data, but there
+		// must be actor data and ids for the data to be considered valid.
+		return ActorRawData.Num() > 0 && Ids.Num() > 0;
+	}
+
 	inline void Reset()
 	{
 		ActorRawData.Empty();
@@ -318,16 +212,8 @@ struct FFaceFXActorData
 	}
 
 #if WITH_EDITORONLY_DATA
-	FFaceFXActorData(EFaceFXTargetPlatform::Type InPlatform = EFaceFXTargetPlatform::PC) : Platform(InPlatform) {}
-
-	/** The platform where this data belongs to */
-	UPROPERTY(EditInstanceOnly, Category=FaceFX)
-	TEnumAsByte<EFaceFXTargetPlatform::Type> Platform;
-
-	FORCEINLINE bool operator==(EFaceFXTargetPlatform::Type InPlatform) const
-	{
-		return Platform == InPlatform;
-	}
+	UPROPERTY()
+	uint8 Platform_DEPRECATED;
 #endif //WITH_EDITORONLY_DATA
 };
 
@@ -347,16 +233,11 @@ struct FFaceFXSkelMeshComponentId
 	UPROPERTY()
 	FName Name;
 
-	/**
-	* Gets the indicator if this is a valid id
-	* @returns True if valid, else false
-	*/
 	inline bool IsValid() const
 	{
 		return Index != INDEX_NONE && !Name.IsNone();
 	}
 
-	/** Reset the id */
 	inline void Reset()
 	{
 		Index = INDEX_NONE;

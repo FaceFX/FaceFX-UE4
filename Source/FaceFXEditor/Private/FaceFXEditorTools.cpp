@@ -90,11 +90,10 @@ bool IsFolderEmpty(const FString& RelativeFolder)
 * @param Folder The compilation folder
 * @param Group The animation group id
 * @param AnimationId The animation id
-* @param Target The platform target
 */
-FString GetAnimAssetFileName(const FString& Folder, const FString& Group, const FString& AnimationId, EFaceFXTargetPlatform::Type Target = EFaceFXTargetPlatform::PC)
+FString GetAnimAssetFileName(const FString& Folder, const FString& Group, const FString& AnimationId)
 {
-	return FFaceFXEditorTools::GetPlatformFolder(Folder, Target) / Group / (AnimationId + FACEFX_FILEEXT_ANIM);
+	return Folder / Group / (AnimationId + FACEFX_FILEEXT_ANIM);
 }
 
 /**
@@ -169,15 +168,14 @@ struct FFaceFXAudioMapEntry
 * Loads an audio map file
 * @param Asset The asset to load the audio map for
 * @param Folder The compilation root folder
-* @param Platform The platform which audio map to load
 * @param OutResult The resulting audio map data
 * @param The message container to push error messages into
 * @returns True if file was loaded and parsed, else false if any file access error occurred
 */
-bool LoadAudioMapData(UFaceFXAsset* Asset, const FString& Folder, EFaceFXTargetPlatform::Type Platform, TArray<FFaceFXAudioMapEntry>& OutResult, FFaceFXImportResult& OutResultMessages)
+bool LoadAudioMapData(UFaceFXAsset* Asset, const FString& Folder, TArray<FFaceFXAudioMapEntry>& OutResult, FFaceFXImportResult& OutResultMessages)
 {
 	//link with audio data base on the PC mapping (all platforms use the same audio data)
-	const FString AudioMapFile = FFaceFXEditorTools::GetPlatformFolder(Folder, Platform) / (Asset->GetAssetName() + FACEFX_FILEEXT_AUDIO);
+	const FString AudioMapFile = Folder / (Asset->GetAssetName() + FACEFX_FILEEXT_AUDIO);
 	if(FPaths::FileExists(AudioMapFile))
 	{
 		TArray<FString> Lines;
@@ -409,138 +407,88 @@ bool FFaceFXEditorTools::ImportFaceFXAsset(UFaceFXAsset* Asset, const FString& A
 	return ImportResult;
 }
 
-bool FFaceFXEditorTools::LoadCompiledPlatformActorData(UFaceFXActor* Asset, const FString& Folder, FFaceFXImportResult& OutResultMessages)
+bool FFaceFXEditorTools::LoadCompiledActorData(UFaceFXActor* Asset, const FString& Folder, FFaceFXImportResult& OutResultMessages)
 {
-    const FString& AssetName = Asset->AssetName;
+	const FString& AssetName = Asset->AssetName;
 
-    bool allPresent = true;
+	bool allPresent = true;
 
-    //check that all required files and folders are present
-    for(int8 i = 0; i<EFaceFXTargetPlatform::MAX; ++i)
-    {
-        const EFaceFXTargetPlatform::Type Target = EFaceFXTargetPlatform::Type(i);
-		if (!EFaceFXTargetPlatformHelper::IsSupported(Target))
+	const FString AssetPathActor = FPaths::Combine(*Folder, *(AssetName + FACEFX_FILEEXT_ACTOR));
+	if(!FPaths::FileExists(AssetPathActor))
+	{
+		OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetFailed", "Loading compiled data failed. File doesn't exist: {0}"),
+		                                               FText::FromString(AssetPathActor)), Asset);
+		allPresent = false;
+	}
+
+	//bones are optional, so don't include the file in the checks here.
+
+	const FString AssetPathIds = FPaths::Combine(*Folder, *(AssetName + FACEFX_FILEEXT_ANIMID));
+	if(!FPaths::FileExists(AssetPathIds))
+	{
+		OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetFailed", "Loading compiled data failed. File doesn't exist: {0}"),
+		                                               FText::FromString(AssetPathIds)), Asset);
+		allPresent = false;
+	}
+
+	if(!allPresent)
+	{
+		return false;
+	}
+
+	//load the data (we know all the files exist at this point)
+
+	FFaceFXActorData& Data = Asset->GetData();
+
+	bool DataPreviouslyHadBones = Data.BonesRawData.Num() > 0;
+
+	Asset->Reset();
+
+	Data.Reset();
+
+	FFileHelper::LoadFileToArray(Data.ActorRawData, *AssetPathActor);
+
+	//bones are optional
+	const FString AssetPathBones = FPaths::Combine(*Folder, *(AssetName + FACEFX_FILEEXT_BONES));
+	if(FPaths::FileExists(AssetPathBones))
+	{
+		FFileHelper::LoadFileToArray(Data.BonesRawData, *AssetPathBones);
+	}
+	else
+	{
+	    //if the data previously had bones but now it doesn't, issue a warning
+	    if(DataPreviouslyHadBones)
+	    {
+		OutResultMessages.AddModifyWarning(FText::Format(LOCTEXT("LoadingCompiledAsset", "The asset previously contained bones data, but now it does not (the file doesn't exist: {0})"),
+		                                                 FText::FromString(AssetPathBones)), Asset);
+	    }
+	}
+
+	TArray<FString> Lines;
+	if (FFileHelper::LoadANSITextFileToStrings(*AssetPathIds, nullptr, Lines))
+	{
+		for (const FString& Line : Lines)
 		{
-			//unsupported target type - ignore
-			continue;
+			FString Ids, Name;
+			if (Line.Split(":", &Ids, &Name))
+			{
+				if (Ids.Len() <= 16)
+				{
+					//accept only max 8 hex values as input
+					uint64 Id = 0;
+					while (Ids.Len() > 0)
+					{
+						Id = Id << 8;
+						Id |= FParse::HexNumber(*(Ids.Left(2)));
+						Ids = Ids.RightChop(2);
+					}
+					Data.Ids.Add(FFaceFXIdData(Id, FName(*Name)));
+				}
+			}
 		}
+	}
 
-        const FString PlatformFolder = GetPlatformFolder(Folder, Target);
-
-        if(!IFileManager::Get().DirectoryExists(*PlatformFolder))
-        {
-            OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetFailed", "Loading compiled data for platform {0} failed. Folder doesn't exist: {1}"),
-                FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target)), FText::FromString(PlatformFolder)), Asset);
-            allPresent = false;
-        }
-        else //if the folder doesn't exist there's no point checking for the files
-        {
-            const FString AssetPathActor = FPaths::Combine(*PlatformFolder, *(AssetName + FACEFX_FILEEXT_ACTOR));
-            if(!FPaths::FileExists(AssetPathActor))
-            {
-                OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetFailed", "Loading compiled data for platform {0} failed. File doesn't exist: {1}"),
-                    FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target)), FText::FromString(AssetPathActor)), Asset);
-                allPresent = false;
-            }
-
-            //bones are optional, so don't include the file in the checks here.
-
-            const FString AssetPathIds = FPaths::Combine(*PlatformFolder, *(AssetName + FACEFX_FILEEXT_ANIMID));
-            if(!FPaths::FileExists(AssetPathIds))
-            {
-                OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetFailed", "Loading compiled data for platform {0} failed. File doesn't exist: {1}"),
-                    FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target)), FText::FromString(AssetPathIds)), Asset);
-                allPresent = false;
-            }
-        }
-    }
-
-    if(!allPresent)
-    {
-        return false;
-    }
-
-    //load the data (we know all the folders and files exist at this point)
-
-    bool PlatformDataPreviouslyHadBones[EFaceFXTargetPlatform::MAX];
-
-    for(int8 i = 0; i<EFaceFXTargetPlatform::MAX; ++i)
-    {
-        const EFaceFXTargetPlatform::Type Target = EFaceFXTargetPlatform::Type(i);
-		if (!EFaceFXTargetPlatformHelper::IsSupported(Target))
-		{
-			//unsupported target type - ignore
-			continue;
-		}
-
-        FFaceFXActorData& TargetData = Asset->GetOrCreatePlatformData(Target);
-
-        PlatformDataPreviouslyHadBones[i] = TargetData.BonesRawData.Num() > 0;
-    }
-
-    Asset->Reset();
-
-    for(int8 i = 0; i<EFaceFXTargetPlatform::MAX; ++i)
-    {
-        const EFaceFXTargetPlatform::Type Target = EFaceFXTargetPlatform::Type(i);
-		if (!EFaceFXTargetPlatformHelper::IsSupported(Target))
-		{
-			//unsupported target type - ignore
-			continue;
-		}
-
-        const FString PlatformFolder = GetPlatformFolder(Folder, Target);
-
-        FFaceFXActorData& TargetData = Asset->GetOrCreatePlatformData(Target);
-
-        TargetData.Reset();
-
-        const FString AssetPathActor = FPaths::Combine(*PlatformFolder, *(AssetName + FACEFX_FILEEXT_ACTOR));
-        FFileHelper::LoadFileToArray(TargetData.ActorRawData, *AssetPathActor);
-
-        //bones are optional
-        const FString AssetPathBones = FPaths::Combine(*PlatformFolder, *(AssetName + FACEFX_FILEEXT_BONES));
-        if(FPaths::FileExists(AssetPathBones))
-        {
-            FFileHelper::LoadFileToArray(TargetData.BonesRawData, *AssetPathBones);
-        }
-        else
-        {
-            //if the platform data previously had bones but now it doesn't, issue a warning
-            if(PlatformDataPreviouslyHadBones[i])
-            {
-                OutResultMessages.AddModifyWarning(FText::Format(LOCTEXT("LoadingCompiledAsset", "The asset previously contained bones data, but now it does not. On platform {0} the file doesn't exist: {1}"),
-                    FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target)), FText::FromString(AssetPathBones)), Asset);
-            }
-        }
-
-        const FString AssetPathIds = FPaths::Combine(*PlatformFolder, *(AssetName + FACEFX_FILEEXT_ANIMID));
-        TArray<FString> Lines;
-        if (FFileHelper::LoadANSITextFileToStrings(*AssetPathIds, nullptr, Lines))
-        {
-            for (const FString& Line : Lines)
-            {
-                FString Ids, Name;
-                if (Line.Split(":", &Ids, &Name))
-                {
-                    if (Ids.Len() <= 16)
-                    {
-                        //accept only max 8 hex values as input
-                        uint64 Id = 0;
-                        while (Ids.Len() > 0)
-                        {
-                            Id = Id << 8;
-                            Id |= FParse::HexNumber(*(Ids.Left(2)));
-                            Ids = Ids.RightChop(2);
-                        }
-                        TargetData.Ids.Add(FFaceFXIdData(Id, FName(*Name)));
-                    }
-                }
-            }
-        }
-    }
-
-    return true;
+	return true;
 }
 
 bool FFaceFXEditorTools::GetAnimationGroupsInFolder(const FString& Folder, TArray<FString>* OutGroups, TArray<FString>* OutAnimGroupIds)
@@ -583,9 +531,8 @@ bool FFaceFXEditorTools::GetAnimationGroupsInFolder(const FString& Folder, TArra
 
 bool FFaceFXEditorTools::ReimportOrCreateAnimAssets(const FString& CompilationFolder, const FString& AnimGroup, const FString& PackageName, UFaceFXActor* FaceFXActor, IAssetTools& AssetTools, FFaceFXImportResult& OutResultMessages, UFactory* Factory, TArray<UFaceFXAnim*>* OutResult)
 {
-	//find all animations within the x86 compilation output
 	TArray<FString> Filenames;
-	IFileManager::Get().FindFiles(Filenames, *(GetPlatformFolder(CompilationFolder, EFaceFXTargetPlatform::PC) / AnimGroup / FACEFX_FILEEXT_ANIMSEARCH), true, false);
+	IFileManager::Get().FindFiles(Filenames, *(CompilationFolder / AnimGroup / FACEFX_FILEEXT_ANIMSEARCH), true, false);
 
 	bool Result = true;
 
@@ -757,7 +704,7 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXActor* Asset, const FS
 	{
 		//check if linked animations are still part of the .ffxamap file. If not they were deleted and animations are stale
 		TArray<FFaceFXAudioMapEntry> AudioMapData;
-		if(LoadAudioMapData(Asset, Folder, EFaceFXTargetPlatform::PC, AudioMapData, OutResultMessages))
+		if(LoadAudioMapData(Asset, Folder, AudioMapData, OutResultMessages))
 		{
 			for(const UFaceFXAnim* Animation : Asset->Animations)
 			{
@@ -776,7 +723,7 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXActor* Asset, const FS
 	}
 #endif //FACEFX_USEANIMATIONLINKAGE
 
-    return LoadCompiledPlatformActorData(Asset, Folder, OutResultMessages);
+    return LoadCompiledActorData(Asset, Folder, OutResultMessages);
 }
 
 bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAnim* Asset, const FString& Folder, FFaceFXImportResult& OutResultMessages)
@@ -799,7 +746,7 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAnim* Asset, const FSt
 
 		//fetch all animation groups
 		TArray<FString> AnimGroupIds;
-		GetAnimationGroupsInFolder(Folder, EFaceFXTargetPlatform::PC, nullptr, &AnimGroupIds);
+		GetAnimationGroupsInFolder(Folder, nullptr, &AnimGroupIds);
 
 		if(AnimGroupIds.Num() > 0)
 		{
@@ -850,86 +797,62 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAnim* Asset, const FSt
 	Asset->Reset();
 #endif //FACEFX_DELETE_IMPORTED_ANIM
 
-	//indicator if import for all platforms succeeded
+	//indicator if import succeeded
 	bool allSuccess = true;
 
-	for(int8 i=0; i<EFaceFXTargetPlatform::MAX; ++i)
+	const FString File = GetAnimAssetFileName(Folder, Asset->GetGroup().ToString(), Asset->GetName().ToString());
+	const bool FileExists = FPaths::FileExists(File);
+
+#if FACEFX_DELETE_IMPORTED_ANIM
+	if(FileExists)
 	{
-		const EFaceFXTargetPlatform::Type Target = EFaceFXTargetPlatform::Type(i);
-		if (!EFaceFXTargetPlatformHelper::IsSupported(Target))
-		{
-			//unsupported target type - ignore
-			continue;
-		}
-
-		const FString File = GetAnimAssetFileName(Folder, Asset->GetGroup().ToString(), Asset->GetName().ToString(), Target);
-		const bool FileExists = FPaths::FileExists(File);
-
-#if FACEFX_DELETE_IMPORTED_ANIM
-		if(FileExists)
-		{
-			ImportedFiles.Add(File);
-		}
+		ImportedFiles.Add(File);
+	}
 #endif //FACEFX_DELETE_IMPORTED_ANIM
 
-		//check for existing amap entry
-		TArray<FFaceFXAudioMapEntry> AudioMapData;
-		if(!LoadAudioMapData(Asset, Folder, Target, AudioMapData, OutResultMessages))
-		{
-			//audio map file does not exist
-			OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetAmapMissing", "Audio map file is missing for platform {0}."),
-				FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target))), Asset);
-			allSuccess = false;
-			continue;
-		}
+	//check for existing amap entry
+	TArray<FFaceFXAudioMapEntry> AudioMapData;
+	if(!LoadAudioMapData(Asset, Folder, AudioMapData, OutResultMessages))
+	{
+		//audio map file does not exist
+		OutResultMessages.AddModifyError(LOCTEXT("LoadingCompiledAssetAmapMissing", "Audio map file is missing."));
+		allSuccess = false;
+	}
 
-		if(!IsAnimationExistInAudioMap(Asset, AudioMapData))
-		{
-			//not listed in audio map file -> animation not part of .facefx asset anymore
-			OutResultMessages.AddModifyWarning(FText::Format(LOCTEXT("LoadingCompiledAssetAnimRemoved", "Skipped .ffxanim file with no audio map entry. It may have been moved or deleted. Platform: {0}"),
-				FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target))), Asset);
+	if(!IsAnimationExistInAudioMap(Asset, AudioMapData))
+	{
+		//not listed in audio map file -> animation not part of .facefx asset anymore
+		OutResultMessages.AddModifyWarning(LOCTEXT("LoadingCompiledAssetAnimRemoved", "Skipped .ffxanim file with no audio map entry. It may have been moved or deleted."));
+		allSuccess = false;
+	}
 
-			//reset asset again
-			allSuccess = false;
-			continue;;
-		}
-
-		if(!FileExists)
-		{
+	if(!FileExists)
+	{
 #if FACEFX_DELETE_IMPORTED_ANIM
-			//source file does not exist -> we consider this asset as being up-to-date and keep it as long as the current data is valid and its listed inside the audio map file
-			FFaceFXAnimData* PlatformData = Asset->GetPlatformData(Target);
-			if(!PlatformData || !PlatformData->IsValid())
+		//source file does not exist -> we consider this asset as being up-to-date and keep it as long as the current data is valid and its listed inside the audio map file
+		const FFaceFXAnimData& Data = Asset->GetData();
+		if(!Data.IsValid())
 #endif //FACEFX_DELETE_IMPORTED_ANIM
-			{
-				//Platform data does not exist or is invalid so we actually miss the import data -> reset whole asset again
-				OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetFailedMissing", "Loading initial animation data failed. Source file for platform {0} does not exist: {0}"),
-					FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target)), FText::FromString(File)), Asset);
-				allSuccess = false;
-			}
-			continue;
-		}
-
-		if(!allSuccess)
 		{
-			//at least one failed already -> stop importing, asset will be reset afterwards
-			continue;
+			//Data does not exist or is invalid so we actually miss the import data -> reset whole asset again
+			OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetFailedMissing", "Loading initial animation data failed. Source does not exist: {0}"),
+			                                               FText::FromString(File)), Asset);
+			allSuccess = false;
 		}
+	}
 
-		//fetch target data container reset in case it existed already (reimport with new data)
-		FFaceFXAnimData& TargetData = Asset->GetOrCreatePlatformData(Target);
-		TargetData.Reset();
+	//fetch target data container reset in case it existed already (reimport with new data)
+	FFaceFXAnimData& Data = Asset->GetData();
+	Data.Reset();
 
-		if(!FFileHelper::LoadFileToArray(TargetData.RawData, *File))
-		{
-			//failed
-			OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetFailed", "Loading compiled data for platform {0} failed. File: {1}"),
-				FText::FromString(EFaceFXTargetPlatformHelper::ToString(Target)), FText::FromString(File)), Asset);
+	if(!FFileHelper::LoadFileToArray(Data.RawData, *File))
+	{
+		//failed
+		OutResultMessages.AddModifyError(FText::Format(LOCTEXT("LoadingCompiledAssetFailed", "Loading compiled data failed. File: {0}"),
+		                                               FText::FromString(File)));
 
-			//reset asset again
-			Asset->Reset();
-			return false;
-		}
+		Asset->Reset();
+		return false;
 	}
 
 #if FACEFX_DELETE_IMPORTED_ANIM
@@ -953,7 +876,7 @@ bool FFaceFXEditorTools::LoadFromCompilationFolder(UFaceFXAnim* Asset, const FSt
 bool FFaceFXEditorTools::LoadAudio(UFaceFXAnim* Asset, const FString& Folder, FFaceFXImportResult& OutResultMessages)
 {
 	TArray<FFaceFXAudioMapEntry> AudioMapData;
-	if(LoadAudioMapData(Asset, Folder, EFaceFXTargetPlatform::PC, AudioMapData, OutResultMessages))
+	if(LoadAudioMapData(Asset, Folder, AudioMapData, OutResultMessages))
 	{
 		const FString AnimGroup = Asset->GetGroup().ToString();
 		const FString AnimId = Asset->GetName().ToString();

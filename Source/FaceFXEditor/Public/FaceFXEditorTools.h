@@ -431,19 +431,6 @@ struct FACEFXEDITOR_API FFaceFXEditorTools
 	static bool ImportFaceFXAsset(class UFaceFXAsset* Asset, const FString& AssetPath, FFaceFXImportResult& OutResultMessages, const FCompilationBeforeDeletionDelegate& BeforeDeletionCallback = FCompilationBeforeDeletionDelegate());
 
 	/**
-	* Gets all animation groups found within a given FaceFX compilation folder and platform specific sub folder
-	* @param Folder The compilation folder to load from
-	* @param Platform The target platform to use the sub folder from
-	* @param OutGroups The optional resulting animation groups
-	* @param OutAnimGroupIds The optional <group.animation> id list
-	* @returns True if at least one group exist that contains .ffxanim files, else false
-	*/
-	inline static bool GetAnimationGroupsInFolder(const FString& Folder, EFaceFXTargetPlatform::Type Platform, TArray<FString>* OutGroups = nullptr, TArray<FString>* OutAnimGroupIds = nullptr)
-	{
-		return GetAnimationGroupsInFolder(GetPlatformFolder(Folder, Platform), OutGroups, OutAnimGroupIds);
-	}
-
-	/**
 	* Gets all animation groups found within a given FaceFX compilation folder
 	* @param Folder The compilation folder to load from
 	* @param OutGroups The optional resulting animation groups
@@ -451,27 +438,6 @@ struct FACEFXEDITOR_API FFaceFXEditorTools
 	* @returns True if at least one group exist that contains .ffxanim files, else false
 	*/
 	static bool GetAnimationGroupsInFolder(const FString& Folder, TArray<FString>* OutGroups = nullptr, TArray<FString>* OutAnimGroupIds = nullptr);
-
-	/**
-	* Gets the compilation sub folder for a given base folder and target platform
-	* @param Folder The base folder to generate the target folder for
-	* @param Platform The target platform
-	* @returns The target folder
-	*/
-	static inline FString GetPlatformFolder(const FString& Folder, EFaceFXTargetPlatform::Type Platform)
-	{
-		checkf(EFaceFXTargetPlatformHelper::IsSupported(Platform), TEXT("Unsupported target platform type"));
-
-		switch(Platform)
-		{
-		case EFaceFXTargetPlatform::PC: return Folder / TEXT("x86");
-		case EFaceFXTargetPlatform::PS4: return Folder / TEXT("ps4");
-		case EFaceFXTargetPlatform::XBoxOne: return Folder / TEXT("xboxone");
-		case EFaceFXTargetPlatform::Switch: return Folder / TEXT("switch");
-		default: checkf(false, TEXT("Unknown target platform type"));
-		}
-		return TEXT("");
-	}
 
 	/**
 	* Gets the FaceFX studio output folder for a given .facefx file
@@ -596,14 +562,14 @@ private:
 	*/
 	static bool LoadFromCompilationFolder(class UFaceFXAnim* Asset, const FName& Group, const FName& Animation, const FString& Folder, FFaceFXImportResult& OutResultMessages);
 
-    /**
-    * Loads all actor data from a given folder into the given asset
-    * @param Asset The target asset
-    * @param Folder The path to the folder to load the compiled data from
-    * @param OutResultMessages The result set
-    * @returns True if succeeded, else false
-    */
-    static bool LoadCompiledPlatformActorData(UFaceFXActor* Asset, const FString& Folder, FFaceFXImportResult& OutResultMessages);
+	/**
+	* Loads all actor data from a given folder into the given asset
+	* @param Asset The target asset
+	* @param Folder The path to the folder to load the compiled data from
+	* @param OutResultMessages The result set
+	* @returns True if succeeded, else false
+	*/
+	static bool LoadCompiledActorData(UFaceFXActor* Asset, const FString& Folder, FFaceFXImportResult& OutResultMessages);
 
 	/**
 	* Loads the audio file that is mapped to the given asset within the audio map file in the given folder and links to it. Creates a new USound asset if needed

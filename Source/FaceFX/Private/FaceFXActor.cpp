@@ -34,14 +34,9 @@ void UFaceFXActor::GetResourceSizeEx(FResourceSizeEx& CumulativeResourceSize)
 	//only count cooked data without any references
 	if(CumulativeResourceSize.GetResourceSizeMode() == EResourceSizeMode::Exclusive)
 	{
-		if(PlatformData.Num() > 0)
-		{
-			//take the first entry as an approximation
-			const FFaceFXActorData& Data = PlatformData[0];
-			CumulativeResourceSize.AddDedicatedSystemMemoryBytes(Data.ActorRawData.Num() * Data.ActorRawData.GetTypeSize());
-			CumulativeResourceSize.AddDedicatedSystemMemoryBytes(Data.BonesRawData.Num() * Data.BonesRawData.GetTypeSize());
-			CumulativeResourceSize.AddDedicatedSystemMemoryBytes(Data.Ids.Num() * Data.Ids.GetTypeSize());
-		}
+		CumulativeResourceSize.AddDedicatedSystemMemoryBytes(ActorData.ActorRawData.Num() * ActorData.ActorRawData.GetTypeSize());
+		CumulativeResourceSize.AddDedicatedSystemMemoryBytes(ActorData.BonesRawData.Num() * ActorData.BonesRawData.GetTypeSize());
+		CumulativeResourceSize.AddDedicatedSystemMemoryBytes(ActorData.Ids.Num() * ActorData.Ids.GetTypeSize());
 	}
 	else
 	{
@@ -61,8 +56,6 @@ void UFaceFXActor::GetResourceSizeEx(FResourceSizeEx& CumulativeResourceSize)
 
 void UFaceFXActor::Serialize(FArchive& Ar)
 {
-	FScopedPlatformDataCooking<TArray<FFaceFXActorData>> ScopedCooking(this, Ar, &PlatformData);
-
 	if(!IsTemplate() && Ar.IsSaving())
 	{
 #if FACEFX_USEANIMATIONLINKAGE
@@ -81,6 +74,33 @@ void UFaceFXActor::Serialize(FArchive& Ar)
 	}
 
 	Super::Serialize(Ar);
+
+	if (Ar.IsLoading() && PlatformData_DEPRECATED.Num() > 0)
+	{
+		checkf(!ActorData.IsValid(), TEXT("Asset in invalid state during load."));
+
+		ActorData = PlatformData_DEPRECATED[0];
+
+		PlatformData_DEPRECATED.Empty();
+
+		UE_LOG(LogFaceFX, Warning, TEXT("Upgraded FaceFXActor %s. Please re-save."), *AssetName);
+
+		// The editor does not allow you to mark a package as dirty during load, but in this case we need to
+		// bypass that enforcement and do it anyway. This is important because the above "upgrade" could
+		// potentially reclaim a lot of memory and if we didn't mark the package as dirty the user would have to
+		// a) see our warning from above (unlikely) and b) select each asset individually in the content browser
+		// and force save.
+		UPackage* Package = GetOutermost();
+
+		const bool bIsDirty = Package->IsDirty();
+
+		if(!bIsDirty)
+		{
+			Package->SetDirtyFlag(true);
+		}
+
+		Package->PackageMarkedDirtyEvent.Broadcast(Package, bIsDirty);
+	}
 }
 
 /**
@@ -132,7 +152,7 @@ void UFaceFXActor::GetDetails(FString& OutDetails) const
 	//Ids
 	if(bIsValid)
 	{
-		auto& Ids = PlatformData[0].Ids;
+		auto& Ids = ActorData.Ids;
 
 		TArray<FString> SortedBones;
 		SortedBones.Reserve(Ids.Num());
