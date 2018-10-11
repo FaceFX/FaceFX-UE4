@@ -129,11 +129,6 @@ struct FFaceFXAnimData
 	{
 		RawData.Empty();
 	}
-
-#if WITH_EDITORONLY_DATA
-	UPROPERTY()
-	uint8 Platform_DEPRECATED;
-#endif //WITH_EDITORONLY_DATA
 };
 
 /** The struct that holds the FaceFX id data which is a mapping from an numeric ID to a string */
@@ -210,11 +205,6 @@ struct FFaceFXActorData
 		BonesRawData.Empty();
 		Ids.Empty();
 	}
-
-#if WITH_EDITORONLY_DATA
-	UPROPERTY()
-	uint8 Platform_DEPRECATED;
-#endif //WITH_EDITORONLY_DATA
 };
 
 /** A struct that represents a skel mesh component on a FaceFX Component */
