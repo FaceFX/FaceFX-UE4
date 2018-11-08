@@ -131,51 +131,5 @@ protected:
 	UPROPERTY(EditInstanceOnly, Category=FaceFX)
 	FString AssetName;
 
-	/**
-	* Clear platform specific data based on the target Archive platform
-	* @param Ar The archive to use
-	* @param PlatformData The data to clear
-	* @returns True if succeeded, else false
-	*/
-	template <typename T> bool ClearPlatformData(const class FArchive& Ar, T& PlatformData);
-
-	/** 
-	* Clears the platform data for cooking assets and restores them after the cook is done. 
-	* Ensures the runtime asset contains all the data after cooking
-	*/
-	template <typename T> struct FScopedPlatformDataCooking
-	{
-		FScopedPlatformDataCooking(UFaceFXAsset* InAsset, const FArchive& Ar, T* InPlatformData) : PlatformData(InPlatformData)
-		{
-			bClearAndRestore = !InAsset->IsTemplate() && Ar.IsSaving() && Ar.IsCooking();
-			if (bClearAndRestore)
-			{
-				//create a copy and clear for later restoration
-				OriginalPlatformData = *PlatformData;
-				InAsset->ClearPlatformData(Ar, *PlatformData);
-			}
-		}
-
-		~FScopedPlatformDataCooking()
-		{
-			if (bClearAndRestore)
-			{
-				//restore platform data
-				*PlatformData = OriginalPlatformData;
-			}
-		}
-
-	private:
-
-		/** The original platform data */
-		T OriginalPlatformData;
-
-		/** The target platform data to operate on */
-		T* PlatformData;
-
-		/** Indicator if platform data got cleared and shall be restored when leaving the scope */
-		bool bClearAndRestore;
-	};
-
 #endif //WITH_EDITORONLY_DATA
 };

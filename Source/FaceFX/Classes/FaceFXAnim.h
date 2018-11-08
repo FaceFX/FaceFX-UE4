@@ -37,13 +37,9 @@ public:
 	virtual void GetResourceSizeEx(FResourceSizeEx& CumulativeResourceSize) override;
 	//~UObject
 
-	/**
-	* Checks if this FaceFX data asset it valid
-	* @returns True if valid, else false
-	*/
 	virtual bool IsValid() const override
 	{
-		return Super::IsValid() && PlatformData.Num() > 0;
+		return Super::IsValid() && AnimData.IsValid();
 	}
 
 #if WITH_EDITORONLY_DATA
@@ -60,78 +56,31 @@ public:
 	*/
 	virtual void GetDetails(FString& OutDetails) const override;
 
-	/**
-	* Gets the number of animations which are encapsulated in this asset
-	* @return The animation count
-	*/
 	virtual int32 GetAnimationCount() const override
 	{
-		return PlatformData.Num() > 0 ? 1 : 0;
+		return AnimData.IsValid() ? 1 : 0;
 	}
 
-	/**
-	* Gets the absolute path to the source audio file
-	* @param OutResult The absolute path when the function returns true. Unchanged if it returns false
-	* @returns True if the path is set and OutResult was updated, else false
-	*/
 	bool GetAbsoluteAudioPath(FString& OutResult) const;
 
-	/**
-	* Gets the relative audio path that is currently set
-	* @returns The relative audio path
-	*/
 	inline const FString& GetRelativeAudioPath() const
 	{
 		return AudioPath;
 	}
 
-	/**
-	* Gets the indicator if the audio path was set
-	* @returns True if set, else false
-	*/
 	inline bool IsAudioPathSet() const
 	{
 		return !AudioPath.IsEmpty();
 	}
 
-	/**
-	* Gets the indicator if the Audio asset is valid and points to something not matter if asset exist or not
-	* @returns True if valid and points to something, else false
-	*/
 	inline bool IsAudioAssetSet() const
 	{
 		return Audio.GetUniqueID().IsValid();
 	}
 
-	/**
-	* Gets the platform data for the given target platform
-	* @returns The data entry or nullptr if not found
-	*/
-	inline FFaceFXAnimData* GetPlatformData(EFaceFXTargetPlatform::Type Platform = EFaceFXTargetPlatform::PC)
-	{
-		return PlatformData.FindByKey(EFaceFXTargetPlatform::PC);
-	}
-
-	/**
-	* Gets the platform data for the given target platform or creates a new entry if missing
-	* @returns The data entry or nullptr if not found
-	*/
-	inline FFaceFXAnimData& GetOrCreatePlatformData(EFaceFXTargetPlatform::Type Platform = EFaceFXTargetPlatform::PC)
-	{
-		if(FFaceFXAnimData* ExistingEntry = PlatformData.FindByKey(Platform))
-		{
-			return *ExistingEntry;
-		}
-		return PlatformData[PlatformData.Add(FFaceFXAnimData(Platform))];
-	}
-
-	/**
-	* Resets the asset
-	* @param ResetAudio Indicator if the audio shall be resetted as well
-	*/
 	inline void Reset(bool ResetAudio = false)
 	{
-		PlatformData.Empty();
+		AnimData.Reset();
 
 		if(ResetAudio)
 		{
@@ -142,127 +91,61 @@ public:
 
 #endif //WITH_EDITORONLY_DATA
 
-	/**
-	* Gets the FaceFX data for the current target platform
-	* @returns The data for the current target platform
-	*/
 	inline FFaceFXAnimData& GetData()
 	{
-#if WITH_EDITORONLY_DATA
-		//non-cooked build - this will always be PC
-		FFaceFXAnimData* DataForPC = PlatformData.FindByKey(EFaceFXTargetPlatform::PC);
-		checkf(DataForPC, TEXT("Asset not initialized for PC."));
-		return *DataForPC;
-#else
-		//cooked build - this will always be the data from the target platform during cooking
-		checkf(PlatformData.Num(), TEXT("Asset not initialized yet."));
-		return PlatformData[0];
-#endif //WITH_EDITORONLY_DATA
+		return AnimData;
 	}
 
-	/**
-	* Gets the FaceFX data for the current target platform
-	* @returns The data for the current target platform
-	*/
 	inline const FFaceFXAnimData& GetData() const
 	{
-#if WITH_EDITORONLY_DATA
-		//non-cooked build - this will always be PC
-		const FFaceFXAnimData* DataForPC = PlatformData.FindByKey(EFaceFXTargetPlatform::PC);
-		checkf(DataForPC, TEXT("Asset not initialized for PC."));
-		return *DataForPC;
-#else
-		//cooked build - this will always be the data from the target platform during cooking
-		checkf(PlatformData.Num(), TEXT("Asset not initialized yet."));
-		return PlatformData[0];
-#endif //WITH_EDITORONLY_DATA
+		return AnimData;
 	}
 
-	/**
-	* Gets the name of the animation group
-	* @returns The name
-	*/
 	inline const FName& GetGroup() const
 	{
 		return Id.Group;
 	}
 
-	/**
-	* Gets the name of the animation
-	* @returns The name
-	*/
 	inline const FName& GetName() const
 	{
 		return Id.Name;
 	}
 
-	/**
-	* Gets the assigned audio asset
-	* @returns The audio asset
-	*/
 	inline const TSoftObjectPtr<USoundWave>& GetAudio() const
 	{
 		return Audio;
 	}
 
-	/**
-	* Gets the assigned AK audio asset for Play
-	* @returns The AK audio asset
-	*/
 	inline const TSoftObjectPtr<UObject>& GetAudioAkEvent() const
 	{
 		return AudioAkEvent;
 	}
 
-	/**
-	* Gets the assigned AK audio asset for Stop
-	* @returns The AK audio asset
-	*/
 	inline const TSoftObjectPtr<UObject>& GetAudioAkEventStop() const
 	{
 		return AudioAkEventStop;
 	}
 
-	/**
-	* Gets the assigned AK audio asset for Pause
-	* @returns The AK audio asset
-	*/
 	inline const TSoftObjectPtr<UObject>& GetAudioAkEventPause() const
 	{
 		return AudioAkEventPause;
 	}
 
-	/**
-	* Gets the assigned AK audio asset for Resume
-	* @returns The AK audio asset
-	*/
 	inline const TSoftObjectPtr<UObject>& GetAudioAkEventResume() const
 	{
 		return AudioAkEventResume;
 	}
 
-	/**
-	* Gets the indicator if the group and animation name are set
-	* @returns True if set, else false
-	*/
 	inline bool IsIdSet() const
 	{
 		return !Id.Group.IsNone() && !Id.Name.IsNone();
 	}
 
-	/**
-	* Gets the animation id
-	* @returns The animation id
-	*/
 	inline const FFaceFXAnimId& GetId() const
 	{
 		return Id;
 	}
 
-	/**
-	* Gets the animation id
-	* @returns The animation id
-	*/
 	inline FFaceFXAnimId& GetId()
 	{
 		return Id;
@@ -275,9 +158,12 @@ public:
 
 private:
 
-	/** The animation data. Its a list of data per platform. Will be cooked out to only the target platform. */
+	UPROPERTY()
+	TArray<FFaceFXAnimData> PlatformData_DEPRECATED;
+
+	/** The animation data. */
 	UPROPERTY(VisibleInstanceOnly, Category=FaceFX)
-	TArray<FFaceFXAnimData> PlatformData;
+	FFaceFXAnimData AnimData;
 
 	/** The animation Id */
 	UPROPERTY(EditInstanceOnly, Category=FaceFX)

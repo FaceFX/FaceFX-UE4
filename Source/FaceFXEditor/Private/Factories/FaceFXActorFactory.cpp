@@ -87,7 +87,7 @@ void UFaceFXActorFactory::HandleFaceFXActorCreated(UFaceFXActor* Asset, const FS
 
 	//asset successfully loaded -> ask for importing Animations as well or not
 	TArray<FString> AnimGroups;
-	if(FFaceFXEditorTools::GetAnimationGroupsInFolder(CompilationFolder, EFaceFXTargetPlatform::PC, &AnimGroups) && AnimGroups.Num() > 0)
+	if(FFaceFXEditorTools::GetAnimationGroupsInFolder(CompilationFolder, &AnimGroups) && AnimGroups.Num() > 0)
 	{
 		IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
 
