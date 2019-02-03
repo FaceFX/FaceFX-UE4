@@ -20,10 +20,17 @@
 
 #include "FaceFX.h"
 #include "FaceFXContext.h"
+#include "FaceFXConfig.h"
 #include "FaceFXAnim.h"
 #include "Modules/ModuleManager.h"
 #include "Engine/StreamableManager.h"
 #include "Misc/Paths.h"
+
+#if WITH_EDITOR
+#include "ISettingsModule.h"
+#endif //WITH_EDITOR
+
+#define LOCTEXT_NAMESPACE "FaceFX"
 
 DEFINE_LOG_CATEGORY(LogFaceFX);
 
@@ -113,6 +120,25 @@ bool FaceFX::GetAnimationBounds(const UFaceFXAnim* Animation, float& OutStart, f
 }
 
 #if WITH_EDITOR
+void RegisterSettings()
+{
+	if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
+	{
+		SettingsModule->RegisterSettings("Project", "Plugins", "FaceFX - Game",
+			LOCTEXT("FaceFXSettingsNameGame", "FaceFX - Game"),
+			LOCTEXT("FaceFXSettingsDescriptionGame", "Configure FaceFX game settings"),
+			GetMutableDefault<UFaceFXConfig>());
+	}
+}
+
+void UnregisterSettings()
+{
+	if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
+	{
+		SettingsModule->UnregisterSettings("Project", "Plugins", "FaceFX - Game");
+	}
+}
+
 class FFaceFXModule : public FDefaultModuleImpl
 {
 	virtual void StartupModule() override
@@ -124,9 +150,18 @@ class FFaceFXModule : public FDefaultModuleImpl
 			//That looks like an engine bug. See: https://udn.unrealengine.com/questions/247518/editor-only-plugin-modules.html
 			FModuleManager::LoadModuleChecked<FDefaultModuleImpl>("FaceFXEditor");
 		}
+
+		RegisterSettings();
+	}
+
+	virtual void ShutdownModule() override
+	{
+		UnregisterSettings();
 	}
 };
 IMPLEMENT_MODULE(FFaceFXModule, FaceFX);
 #else
 IMPLEMENT_MODULE(FDefaultModuleImpl, FaceFX);
 #endif
+
+#undef LOCTEXT_NAMESPACE

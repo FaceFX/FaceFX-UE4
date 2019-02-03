@@ -24,6 +24,8 @@
 #include "Runtime/Launch/Resources/Version.h"
 #include "FaceFXLib/facefx-runtime-1.5.0/facefx/facefx.h"
 
+#include "FaceFXConfig.generated.h"
+
 // The number of total FaceFX channels. One channel per animation we want to be
 // able to play at once per FaceFXCharacter. Default Value: 1
 #define FACEFX_CHANNELS 1
@@ -99,3 +101,46 @@
 #error                                                                         \
     "FaceFX Sequencer support requires Unreal Engine 4.12 or higher. Please update your engine or use a previous version of the plugin.";
 #endif
+
+
+/** Blend mode for FaceFX runtime */
+UENUM()
+enum class EFaceFXBlendMode : uint8
+{
+	/** Overwrite global settings with replace mode. The modifier replaces the existing translation, rotation, or scale. */
+	Replace UMETA(DisplayName = "Replace Existing"),
+
+	/** Overwrite global settings with additive mode. The modifier adds to the existing translation, rotation, or scale. */
+	Additive UMETA(DisplayName = "Add to Existing")
+};
+
+/** Settings for the game which are exposed to the project plugin config screen */
+UCLASS(config = Game, defaultconfig)
+class FACEFX_API UFaceFXConfig : public UObject
+{
+	GENERATED_BODY()
+
+public:
+
+	static const UFaceFXConfig& Get()
+	{
+		const UFaceFXConfig* Instance = GetDefault<UFaceFXConfig>();
+		check(Instance);
+		return *Instance;
+	}
+
+	inline EFaceFXBlendMode GetDefaultBlendMode() const
+	{
+		return DefaultBlendMode;
+	}
+
+private:
+
+	/* 
+	Default blend mode for the FaceFX runtime evaluation. 
+This setting determines if the runtime is using absolute (replace mode) or offset (additive mode) transforms
+Can be overridden directly via an FaceFXActor asset properties.
+	*/
+	UPROPERTY(config, EditAnywhere, Category = FaceFX)
+	EFaceFXBlendMode DefaultBlendMode = EFaceFXBlendMode::Replace;
+};

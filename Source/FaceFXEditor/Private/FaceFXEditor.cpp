@@ -206,8 +206,8 @@ private:
 	{
 		if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
 		{
-			SettingsModule->RegisterSettings("Project", "Plugins", "FaceFX",
-				LOCTEXT("FaceFXSettingsName", "FaceFX"),
+			SettingsModule->RegisterSettings("Project", "Plugins", "FaceFX - Editor",
+				LOCTEXT("FaceFXSettingsName", "FaceFX - Editor"),
 				LOCTEXT("FaceFXSettingsDescription", "Configure FaceFX editor settings"),
 				GetMutableDefault<UFaceFXEditorConfig>());
 		}
@@ -217,7 +217,7 @@ private:
 	{
 		if (ISettingsModule* SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings"))
 		{
-			SettingsModule->UnregisterSettings("Project", "Plugins", "FaceFX");
+			SettingsModule->UnregisterSettings("Project", "Plugins", "FaceFX - Editor");
 		}
 	}
 

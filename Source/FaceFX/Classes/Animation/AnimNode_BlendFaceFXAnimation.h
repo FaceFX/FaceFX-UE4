@@ -27,6 +27,7 @@
 #include "AnimNode_BlendFaceFXAnimation.generated.h"
 
 struct FAnimInstanceProxy;
+enum class EFaceFXBlendMode : uint8;
 
 /** Anim graph node that blends in facial animation bone transforms into the pose */
 USTRUCT(BlueprintType)
@@ -43,18 +44,6 @@ struct FACEFX_API FAnimNode_BlendFaceFXAnimation : public FAnimNode_Base
 	/** The strength of blending in the facial animation. Will be capped to .0F to 1.F */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=BlendMode, meta=(PinShownByDefault, UIMin=0.F, UIMax=1.F))
 	float Alpha;
-
-	/** Whether and how to modify the translation of this bone. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=BlendMode)
-	TEnumAsByte<EBoneModificationMode> TranslationMode;
-
-	/** Whether and how to modify the translation of this bone. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=BlendMode)
-	TEnumAsByte<EBoneModificationMode> RotationMode;
-
-	/** Whether and how to modify the translation of this bone. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=BlendMode)
-	TEnumAsByte<EBoneModificationMode> ScaleMode;
 
 	/** Indicator if stripped name space bone mapping shall be skipped during bone matching phase in case a bone name was not found */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=BoneMapping)
@@ -101,6 +90,8 @@ private:
 
 	/** Indicator if the async loading process of the FaceFX character has completed. */
 	uint8 bFaceFXCharacterLoadingCompleted : 1;
+
+	EFaceFXBlendMode BlendMode;
 
 #if !UE_BUILD_SHIPPING
 	/** TODO: Remove again once engine issue have been localized */

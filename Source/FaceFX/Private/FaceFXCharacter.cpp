@@ -37,6 +37,34 @@ DECLARE_CYCLE_STAT(TEXT("Broadcast Events"), STAT_FaceFXEvents, STATGROUP_FACEFX
 DECLARE_CYCLE_STAT(TEXT("Process Morph Targets"), STAT_FaceFXProcessMorphTargets, STATGROUP_FACEFX);
 DECLARE_CYCLE_STAT(TEXT("Process Material Parameters"), STAT_FaceFXProcessMaterialParameters, STATGROUP_FACEFX);
 
+namespace
+{
+	EFaceFXBlendMode GetBlendMode(const UFaceFXActor* Dataset)
+	{
+		check(Dataset);
+		EFaceFXBlendMode BlendMode = EFaceFXBlendMode::Replace;
+		switch (Dataset->GetBlendMode())
+		{
+		case EFaceFXActorBlendMode::Global: BlendMode = UFaceFXConfig::Get().GetDefaultBlendMode(); break;
+		case EFaceFXActorBlendMode::Additive: BlendMode = EFaceFXBlendMode::Additive; break;
+		default: break;
+		}
+
+		return BlendMode;
+	}
+
+	unsigned int GetBoneSetCreationFlags(EFaceFXBlendMode BlendMode, bool IsCompensateForForceFrontXAxis)
+	{
+		unsigned int BoneSetCreationFlags = BlendMode == EFaceFXBlendMode::Additive ? FFX_USE_OFFSET_XFORMS : FFX_USE_FULL_XFORMS;
+		if (IsCompensateForForceFrontXAxis)
+		{
+			BoneSetCreationFlags |= 0x80000000;
+		}
+
+		return BoneSetCreationFlags;
+	}
+}
+
 UFaceFXCharacter::FOnFaceFXCharacterPlayAssetIncompatibleSignature UFaceFXCharacter::OnFaceFXCharacterPlayAssetIncompatible;
 
 UFaceFXCharacter::UFaceFXCharacter(const class FObjectInitializer& PCIP) : Super(PCIP),
@@ -630,6 +658,7 @@ bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset, bool IsCompensateForFor
 	Reset();
 
 	FaceFXActor = Dataset;
+	BlendMode = ::GetBlendMode(Dataset);
 
 	const FFaceFXActorData& ActorData = FaceFXActor->GetData();
 
@@ -638,12 +667,7 @@ bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset, bool IsCompensateForFor
     //only create the bone set handle if there is bone set data
     if(ActorData.BonesRawData.Num() > 0)
     {
-		unsigned int BoneSetCreationFlags = FFX_USE_FULL_XFORMS;
-
-		if (IsCompensateForForceFrontXAxis)
-		{
-			BoneSetCreationFlags |= 0x80000000;
-		}
+		const unsigned int BoneSetCreationFlags = ::GetBoneSetCreationFlags(BlendMode, IsCompensateForForceFrontXAxis);
 
 	    if (!FaceFX::Check(ffx_create_bone_set_handle((char*)(&ActorData.BonesRawData[0]), ActorData.BonesRawData.Num(), FFX_RUN_INTEGRITY_CHECK, BoneSetCreationFlags, &BoneSetHandle, &Context)))
 	    {
