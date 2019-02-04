@@ -279,6 +279,11 @@ public:
 		return AudioPlayer.Get();
 	}
 
+	inline EFaceFXBlendMode GetBlendMode() const
+	{
+		return BlendMode;
+	}
+
 	/**
 	* Gets the list of bone names
 	* @returns The list of bone names
@@ -552,6 +557,9 @@ private:
 
 	/** The animation playback state */
 	EPlaybackState AnimPlaybackState;
+
+	/** Used blend mode. Either defined by global config or overriden via FaceFXActor */
+	EFaceFXBlendMode BlendMode;
 
 	/** Dirty indicator */
 	uint8 bIsDirty : 1;

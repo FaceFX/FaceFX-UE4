@@ -25,8 +25,22 @@
 #include "FaceFXData.h"
 #include "FaceFXActor.generated.h"
 
+/** Blend mode for FaceFX runtime that is set per actor asset */
+UENUM()
+enum class EFaceFXActorBlendMode : uint8
+{
+	/** The global settings are used as blend mode. See FaceFXConfig.h, FACEFX_DEFAULT_BLEND_MODE */
+	Global UMETA(DisplayName = "Use Global Config"),
+
+	/** Overwrite global settings with replace mode. The modifier replaces the existing translation, rotation, or scale. */
+	Replace UMETA(DisplayName = "Replace Existing"),
+
+	/** Overwrite global settings with additive mode. The modifier adds to the existing translation, rotation, or scale. */
+	Additive UMETA(DisplayName = "Add to Existing")
+};
+
 /** Asset that can be assigned to FaceFXComponents and which contain the FaceFX runtime data */
-UCLASS(hideCategories=Object)
+UCLASS(BlueprintType, hideCategories=Object)
 class FACEFX_API UFaceFXActor : public UFaceFXAsset
 {
 	GENERATED_UCLASS_BODY()
@@ -40,6 +54,11 @@ public:
 	virtual bool IsValid() const override
 	{
 		return Super::IsValid() && ActorData.IsValid();
+	}
+
+	inline EFaceFXActorBlendMode GetBlendMode() const
+	{
+		return BlendMode;
 	}
 
 #if WITH_EDITORONLY_DATA
@@ -114,4 +133,8 @@ private:
 	/** The linked animations where this set look up the animations in */
 	UPROPERTY(EditInstanceOnly, Category=FaceFX)
 	TArray<class UFaceFXAnim*> Animations;
+
+	/** The linked animations where this set look up the animations in */
+	UPROPERTY(EditAnywhere, Category = FaceFX)
+	EFaceFXActorBlendMode BlendMode = EFaceFXActorBlendMode::Global;
 };

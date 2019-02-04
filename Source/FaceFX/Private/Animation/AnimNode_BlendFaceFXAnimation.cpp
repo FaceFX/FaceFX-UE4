@@ -29,9 +29,6 @@ DECLARE_CYCLE_STAT(TEXT("Blend FaceFX Animation - Load"), STAT_FaceFXBlendLoad, 
 
 FAnimNode_BlendFaceFXAnimation::FAnimNode_BlendFaceFXAnimation() :
 	Alpha(1.F),
-	TranslationMode(BMM_Replace),
-	RotationMode(BMM_Replace),
-	ScaleMode(BMM_Replace),
 	bFaceFXCharacterLoadingCompleted(false)
 {
 #if !UE_BUILD_SHIPPING
@@ -90,6 +87,8 @@ void FAnimNode_BlendFaceFXAnimation::LoadFaceFXData(FAnimInstanceProxy* AnimInst
 		{
 			if(UFaceFXCharacter* FaceFXChar = FaceFXComp->GetCharacter(Component))
 			{
+				BlendMode = FaceFXChar->GetBlendMode();
+
 				const TArray<FName>& BoneNames = FaceFXChar->GetBoneNames();
 				const TArray<FTransform>& BoneRefPoses = Component->SkeletalMesh->RefSkeleton.GetRefBonePose();
 
@@ -236,71 +235,27 @@ void FAnimNode_BlendFaceFXAnimation::EvaluateComponentSpace_AnyThread(FComponent
 					FCompactPoseBoneIndex CompactPoseBoneIndex = Output.Pose.GetPose().GetBoneContainer().MakeCompactPoseIndex(FMeshPoseBoneIndex(BoneIdx));
 
 					//fill target transform
-					TargetBlendTransform[0].Transform = Output.Pose.GetComponentSpaceTransform(CompactPoseBoneIndex);
 					TargetBlendTransform[0].BoneIndex = CompactPoseBoneIndex;
 
 					//convenience alias
 					FTransform& BoneTM = TargetBlendTransform[0].Transform;
 
-					//convert to Bone Space
-					FAnimationRuntime::ConvertCSTransformToBoneSpace(FTransform::Identity, Output.Pose, BoneTM, CompactPoseBoneIndex, EBoneControlSpace::BCS_ParentBoneSpace);
-
 					//apply transformations in bone space
-					if(TranslationMode == EBoneModificationMode::BMM_Replace && RotationMode == EBoneModificationMode::BMM_Replace && ScaleMode == EBoneModificationMode::BMM_Replace)
+					if(BlendMode == EFaceFXBlendMode::Replace)
 					{
-						//full replace
 						BoneTM = FaceFXBoneTM;
 					}
 					else
 					{
-						//Blend by mode - scale first
-						switch(ScaleMode)
-						{
-						case EBoneModificationMode::BMM_Additive:
-						{
-							//determine offset
-							const FVector OffsetScale3D = Entry.BoneRefPoseScale - FaceFXBoneTM.GetScale3D();
-							BoneTM.SetScale3D(BoneTM.GetScale3D() - OffsetScale3D);
-						}
-						break;
-						case EBoneModificationMode::BMM_Replace:
-						{
-							BoneTM.SetScale3D(FaceFXBoneTM.GetScale3D());
-						}
-						break;
-						}
+						//additive mode
+						BoneTM = Output.Pose.GetComponentSpaceTransform(CompactPoseBoneIndex);
 
-						switch(RotationMode)
-						{
-						case EBoneModificationMode::BMM_Additive:
-						{
-							//determine offset
-							const FQuat OffsetRotation = FaceFXBoneTM.GetRotation() * Entry.BoneRefPoseRotationInv;
-							BoneTM.SetRotation(OffsetRotation * BoneTM.GetRotation());
-						}
-						break;
-						case EBoneModificationMode::BMM_Replace:
-						{							
-							BoneTM.SetRotation(FaceFXBoneTM.GetRotation());
-						}
-						break;
-						}
+						//convert to Bone Space
+						FAnimationRuntime::ConvertCSTransformToBoneSpace(FTransform::Identity, Output.Pose, BoneTM, CompactPoseBoneIndex, EBoneControlSpace::BCS_ParentBoneSpace);
 
-						switch(TranslationMode)
-						{
-						case EBoneModificationMode::BMM_Additive:
-						{
-							//determine offset
-							const FVector OffsetTranslation = FaceFXBoneTM.GetTranslation() - Entry.BoneRefPoseTranslation;
-							BoneTM.AddToTranslation(OffsetTranslation);
-						}
-						break;
-						case EBoneModificationMode::BMM_Replace:
-						{
-							BoneTM.SetTranslation(FaceFXBoneTM.GetTranslation());
-						}
-						break;
-						}
+						BoneTM.SetScale3D(BoneTM.GetScale3D() + FaceFXBoneTM.GetScale3D());
+						BoneTM.SetRotation(FaceFXBoneTM.GetRotation() * BoneTM.GetRotation());
+						BoneTM.AddToTranslation(FaceFXBoneTM.GetTranslation());
 					}
 
 					//convert back to Component Space
