@@ -81,21 +81,6 @@
 #define FACEFX_FILEFILTER_ASSET_ANIM                                           \
   TEXT("FaceFX Animation Asset (*.ffxanim)|*.ffxanim;")
 
-// The different platforms that are supported by the FaceFX integration. This
-// must correspond to the FaceFX compiler platform plugin export settings.
-// When enabling support for a platform all assets must be reimported in order
-// to have the new platform data available during cooking
-// Also remember to adjust the WhitelistPlatforms property within FaceFX.uplugin
-// accordingly to enable FaceFX on these target platforms
-// The module must also link to the PS4, XBoxOne, and Switch libs. To enable uncomment
-// the place within FaceFXLib.Build.cs.
-// Playstation 4
-#define FACEFX_SUPPORT_PS4 0
-// XBox One
-#define FACEFX_SUPPORT_XBONE 0
-// Nintendo Switch
-#define FACEFX_SUPPORT_SWITCH 0
-
 // Support for sequencer which was added with UE 4.12.
 #if ENGINE_MAJOR_VERSION < 4 && ENGINE_MINOR_VERSION < 13
 #error                                                                         \
@@ -107,40 +92,40 @@
 UENUM()
 enum class EFaceFXBlendMode : uint8
 {
-	/** Overwrite global settings with replace mode. The modifier replaces the existing translation, rotation, or scale. */
-	Replace UMETA(DisplayName = "Replace Existing"),
+    /** Overwrite global settings with replace mode. The modifier replaces the existing translation, rotation, or scale. */
+    Replace UMETA(DisplayName = "Replace Existing"),
 
-	/** Overwrite global settings with additive mode. The modifier adds to the existing translation, rotation, or scale. */
-	Additive UMETA(DisplayName = "Add to Existing")
+    /** Overwrite global settings with additive mode. The modifier adds to the existing translation, rotation, or scale. */
+    Additive UMETA(DisplayName = "Add to Existing")
 };
 
 /** Settings for the game which are exposed to the project plugin config screen */
 UCLASS(config = Game, defaultconfig)
 class FACEFX_API UFaceFXConfig : public UObject
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
 
-	static const UFaceFXConfig& Get()
-	{
-		const UFaceFXConfig* Instance = GetDefault<UFaceFXConfig>();
-		check(Instance);
-		return *Instance;
-	}
+    static const UFaceFXConfig& Get()
+    {
+        const UFaceFXConfig* Instance = GetDefault<UFaceFXConfig>();
+        check(Instance);
+        return *Instance;
+    }
 
-	inline EFaceFXBlendMode GetDefaultBlendMode() const
-	{
-		return DefaultBlendMode;
-	}
+    inline EFaceFXBlendMode GetDefaultBlendMode() const
+    {
+        return DefaultBlendMode;
+    }
 
 private:
 
-	/* 
-	Default blend mode for the FaceFX runtime evaluation. 
+    /*
+    Default blend mode for the FaceFX runtime evaluation.
 This setting determines if the runtime is using absolute (replace mode) or offset (additive mode) transforms
 Can be overridden directly via an FaceFXActor asset properties.
-	*/
-	UPROPERTY(config, EditAnywhere, Category = FaceFX)
-	EFaceFXBlendMode DefaultBlendMode = EFaceFXBlendMode::Replace;
+    */
+    UPROPERTY(config, EditAnywhere, Category = FaceFX)
+    EFaceFXBlendMode DefaultBlendMode = EFaceFXBlendMode::Replace;
 };
