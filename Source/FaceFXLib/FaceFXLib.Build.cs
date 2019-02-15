@@ -41,7 +41,17 @@ public class FaceFXLib : ModuleRules
         string FaceFXDirLib;
         if (GetLibs(Target, out FaceFXDir, out FaceFXDirLib, out FaceFXLib))
         {
-            PublicLibraryPaths.Add(FaceFXDirLib);
+            if (Target.Platform == UnrealTargetPlatform.Android)
+            {
+                PublicLibraryPaths.Add(FaceFXDirLib + "/x86_64");
+                PublicLibraryPaths.Add(FaceFXDirLib + "/x86");
+                PublicLibraryPaths.Add(FaceFXDirLib + "/arm64-v8a");
+                PublicLibraryPaths.Add(FaceFXDirLib + "/armeabi-v7a");
+            }
+            else
+            {
+                PublicLibraryPaths.Add(FaceFXDirLib);
+            }
 
             if (Target.Platform == UnrealTargetPlatform.Mac)
             {
@@ -75,21 +85,6 @@ public class FaceFXLib : ModuleRules
             return false;
         }
 
-        FaceFXLib = "libfacefx.lib";
-
-        if (Target.Platform == UnrealTargetPlatform.Mac
-         || Target.Platform == UnrealTargetPlatform.PS4
-         || Target.Platform == UnrealTargetPlatform.Switch)
-        {
-            FaceFXLib = "libfacefx.a";
-        }
-
-        if (Target.Platform == UnrealTargetPlatform.IOS)
-        {
-            // Clang on iOS uses the -l<lib> convention, and -lfacefx will link libfacefx.a.
-            FaceFXLib = "facefx";
-        }
-
         string CompilerFolder = "vs14";
 
         if (Target.WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2017)
@@ -102,18 +97,27 @@ public class FaceFXLib : ModuleRules
         switch (Target.Platform)
         {
             case UnrealTargetPlatform.Win32:
+                FaceFXLib = "libfacefx.lib";
                 PlatformFolder = Path.Combine(new[] { "windows", CompilerFolder, "Win32" });
                 break;
             case UnrealTargetPlatform.Win64:
+                FaceFXLib = "libfacefx.lib";
                 PlatformFolder = Path.Combine(new[] { "windows", CompilerFolder, "x64" });
                 break;
             case UnrealTargetPlatform.Mac:
+                FaceFXLib = "libfacefx.a";
                 PlatformFolder = Path.Combine(new[] { "osx" });
                 break;
             case UnrealTargetPlatform.IOS:
+                FaceFXLib = "facefx";
                 PlatformFolder = Path.Combine(new[] { "ios" });
                 break;
+            case UnrealTargetPlatform.Android:
+                FaceFXLib = "facefx";
+                PlatformFolder = Path.Combine(new[] { "android/gnustl_shared" });
+                break;
             case UnrealTargetPlatform.XboxOne:
+                FaceFXLib = "libfacefx.lib";
                 PlatformFolder = Path.Combine(new[] { "xboxone", CompilerFolder });
                 break;
             case UnrealTargetPlatform.PS4:
