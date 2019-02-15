@@ -84,6 +84,12 @@ public class FaceFXLib : ModuleRules
             FaceFXLib = "libfacefx.a";
         }
 
+        if (Target.Platform == UnrealTargetPlatform.IOS)
+        {
+            // Clang on iOS uses the -l<lib> convention, and -lfacefx will link libfacefx.a.
+            FaceFXLib = "facefx";
+        }
+
         string CompilerFolder = "vs14";
 
         if (Target.WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2017)
@@ -104,6 +110,9 @@ public class FaceFXLib : ModuleRules
             case UnrealTargetPlatform.Mac:
                 PlatformFolder = Path.Combine(new[] { "osx" });
                 break;
+            case UnrealTargetPlatform.IOS:
+                PlatformFolder = Path.Combine(new[] { "ios" });
+                break;
             //case UnrealTargetPlatform.XboxOne:
             //    PlatformFolder = Path.Combine(new[] { "xboxone", CompilerFolder });
             //    break;
@@ -122,6 +131,12 @@ public class FaceFXLib : ModuleRules
 
         string ConfigFolder = "Release";
 
+        if (Target.Platform == UnrealTargetPlatform.IOS)
+        {
+            // Simulator not supported.
+            ConfigFolder = "Release-iphoneos";
+        }
+
         switch (Target.Configuration)
         {
             case UnrealTargetConfiguration.Debug:
@@ -129,6 +144,13 @@ public class FaceFXLib : ModuleRules
                 if (Target.bDebugBuildsActuallyUseDebugCRT)
                 {
                     ConfigFolder = "Debug";
+
+                    if (Target.Platform == UnrealTargetPlatform.IOS)
+                    {
+                        // Simulator not supported.
+                        ConfigFolder = "Debug-iphoneos";
+                    }
+
                     if (DebugLibsWarningDisplayed == false)
                     {
                         System.Console.WriteLine("Using debug libs for FaceFX");

@@ -19,7 +19,7 @@
 		{
 			"Name" : "FaceFX",
 			"Type" : "Runtime",
-			"WhitelistPlatforms" : [ "Win64", "Win32", "Mac" ]
+			"WhitelistPlatforms" : [ "Win64", "Win32", "Mac", "IOS" ]
 		},
 		{
 			"Name" : "FaceFXEditor",
