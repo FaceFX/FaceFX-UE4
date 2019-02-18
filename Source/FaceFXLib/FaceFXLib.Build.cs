@@ -39,28 +39,28 @@ public class FaceFXLib : ModuleRules
         string FaceFXLib;
         string FaceFXDir;
         string FaceFXDirLib;
-        if (GetLibs(Target, out FaceFXDir, out FaceFXDirLib, out FaceFXLib))
-        {
-            if (Target.Platform == UnrealTargetPlatform.Android)
-            {
-                PublicLibraryPaths.Add(FaceFXDirLib + "/x86_64");
-                PublicLibraryPaths.Add(FaceFXDirLib + "/x86");
-                PublicLibraryPaths.Add(FaceFXDirLib + "/arm64-v8a");
-                PublicLibraryPaths.Add(FaceFXDirLib + "/armeabi-v7a");
-            }
-            else
-            {
-                PublicLibraryPaths.Add(FaceFXDirLib);
-            }
 
-            if (Target.Platform == UnrealTargetPlatform.Mac)
-            {
-                PublicAdditionalLibraries.Add(FaceFXDirLib + "/" + FaceFXLib);
-            }
-            else
-            {
-                PublicAdditionalLibraries.Add(FaceFXLib);
-            }
+        GetLibs(Target, out FaceFXDir, out FaceFXDirLib, out FaceFXLib);
+
+        if (Target.Platform == UnrealTargetPlatform.Android)
+        {
+            PublicLibraryPaths.Add(FaceFXDirLib + "/x86_64");
+            PublicLibraryPaths.Add(FaceFXDirLib + "/x86");
+            PublicLibraryPaths.Add(FaceFXDirLib + "/arm64-v8a");
+            PublicLibraryPaths.Add(FaceFXDirLib + "/armeabi-v7a");
+        }
+        else
+        {
+            PublicLibraryPaths.Add(FaceFXDirLib);
+        }
+
+        if (Target.Platform == UnrealTargetPlatform.Mac)
+        {
+            PublicAdditionalLibraries.Add(FaceFXDirLib + "/" + FaceFXLib);
+        }
+        else
+        {
+            PublicAdditionalLibraries.Add(FaceFXLib);
         }
     }
 
@@ -72,8 +72,7 @@ public class FaceFXLib : ModuleRules
     /// <param name="FaceFXDir">The result facefx directory</param>
     /// <param name="FaceFXDirLib">The result facefx directory for libraries</param>
     /// <param name="FaceFXLib">The actual lib filename</param>
-    /// <returns>True if all libs were found, else false</returns>
-    private bool GetLibs(ReadOnlyTargetRules Target, out string FaceFXDir, out string FaceFXDirLib, out string FaceFXLib)
+    private void GetLibs(ReadOnlyTargetRules Target, out string FaceFXDir, out string FaceFXDirLib, out string FaceFXLib)
     {
         FaceFXDir = Path.Combine(new []{ this.ModuleDirectory, RuntimeFolder });
         FaceFXDirLib = string.Empty;
@@ -81,8 +80,7 @@ public class FaceFXLib : ModuleRules
 
         if (!Directory.Exists(FaceFXDir))
         {
-            System.Console.WriteLine(System.String.Format("FaceFX: Cannot find FaceFX Folder '{0}'", FaceFXDir));
-            return false;
+            throw new BuildException(System.String.Format("FaceFX: cannot find the FaceFX Runtime directory '{0}'", FaceFXDir));
         }
 
         string CompilerFolder = "vs14";
@@ -129,8 +127,7 @@ public class FaceFXLib : ModuleRules
                 PlatformFolder = Path.Combine(new[] { "nx", CompilerFolder, "NX64" });
                 break;
             default:
-                System.Console.WriteLine(System.String.Format("FaceFX disabled. Unsupported target platform: {0}", Target.Platform));
-                return false;
+                throw new BuildException(System.String.Format("FaceFX: unsupported target platform '{0}'", Target.Platform));
         }
 
         string ConfigFolder = "Release";
@@ -168,10 +165,7 @@ public class FaceFXLib : ModuleRules
 
         if (!Directory.Exists(FaceFXDirLib))
         {
-            System.Console.WriteLine(System.String.Format("FaceFX: Cannot find FaceFX lib Folder '{0}'", FaceFXDirLib));
-            return false;
+            throw new BuildException(System.String.Format("FaceFX: cannot find the FaceFX Runtime library folder '{0}'", FaceFXDirLib));
         }
-
-        return true;
     }
 }
