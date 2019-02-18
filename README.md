@@ -5,7 +5,7 @@ Welcome to the FaceFX Unreal Engine 4 plugin source code!
 
 This repository gives you all the information you need to successfully compile and install the FaceFX UE4 plugin.
 
-The FaceFX UE4 plugin currently supports the Windows (Win32 and Win64) and Mac platforms.
+The FaceFX UE4 plugin currently supports the Windows, Mac, Xbox One, PS4, Nintendo Switch, iOS, and Android platforms.
 
 Important Information
 ---------------------
