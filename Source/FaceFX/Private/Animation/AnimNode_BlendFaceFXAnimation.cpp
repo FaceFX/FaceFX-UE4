@@ -29,6 +29,7 @@ DECLARE_CYCLE_STAT(TEXT("Blend FaceFX Animation - Load"), STAT_FaceFXBlendLoad, 
 
 FAnimNode_BlendFaceFXAnimation::FAnimNode_BlendFaceFXAnimation() :
 	Alpha(1.F),
+	bSkipBoneMappingWithoutNS(false),
 	bFaceFXCharacterLoadingCompleted(false)
 {
 #if !UE_BUILD_SHIPPING
@@ -100,7 +101,7 @@ void FAnimNode_BlendFaceFXAnimation::LoadFaceFXData(FAnimInstanceProxy* AnimInst
 					{
 						//find skeleton bone index
 						int32 BoneIdx = Component->GetBoneIndex(BoneName);
-						
+
 						if (BoneIdx == INDEX_NONE && !bSkipBoneMappingWithoutNS)
 						{
 							//strip any existing namespace from the bone name and try matching against it
@@ -131,7 +132,7 @@ void FAnimNode_BlendFaceFXAnimation::LoadFaceFXData(FAnimInstanceProxy* AnimInst
 							*BoneName.GetPlainNameString(), *GetNameSafe(Component->GetOwner()));
 					}
 				}
-				
+
 				//sort in parents before children order
 				struct BlendFacialAnimationSort
 				{
