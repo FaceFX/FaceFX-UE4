@@ -155,7 +155,7 @@ void FAnimNode_BlendFaceFXAnimation::LoadFaceFXData(FAnimInstanceProxy* AnimInst
 void FAnimNode_BlendFaceFXAnimation::Update_AnyThread(const FAnimationUpdateContext& Context)
 {
 	ComponentPose.Update(Context);
-	EvaluateGraphExposedInputs.Execute(Context);
+	GetEvaluateGraphExposedInputs().Execute(Context);
 }
 
 void FAnimNode_BlendFaceFXAnimation::Evaluate_AnyThread(FPoseContext& Output)
@@ -164,7 +164,7 @@ void FAnimNode_BlendFaceFXAnimation::Evaluate_AnyThread(FPoseContext& Output)
 	//Yet it happened on invalid VIMs. When this happens the blend node needs to be relinked and the VIM needs to be recompiled and saved
 	FComponentSpacePoseContext InputCSPose(Output.AnimInstanceProxy);
 	EvaluateComponentSpace_AnyThread(InputCSPose);
-	InputCSPose.Pose.ConvertToLocalPoses(Output.Pose);
+	FCSPose<FCompactPose>::ConvertComponentPosesToLocalPoses(InputCSPose.Pose, Output.Pose);
 
 #if !UE_BUILD_SHIPPING
 	if(!bIsDebugLocalSpaceBlendShown)

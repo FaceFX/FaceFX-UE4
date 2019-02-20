@@ -224,7 +224,7 @@ TSharedPtr<SWidget> FFaceFXAnimationTrackEditor::BuildOutlinerEditWidget(const F
 		//only create widgets for valid bindings
 
 		TSharedRef<SWidget> FaceFXAddTrackButton = FSequencerUtilities::MakeAddButton(LOCTEXT("SequencerAddSection", "Facial Animation"),
-			FOnGetContent::CreateSP(this, &FFaceFXAnimationTrackEditor::CreateOutlinerWidget, ObjectBinding), Params.NodeIsHovered);
+			FOnGetContent::CreateSP(this, &FFaceFXAnimationTrackEditor::CreateOutlinerWidget, ObjectBinding), Params.NodeIsHovered, GetSequencer());
 		FaceFXAddTrackButton->SetToolTipText(LOCTEXT("SequencerAddSectionTooltip", "Adds a FaceFX facial animation section"));
 
 		return SNew(SHorizontalBox)
