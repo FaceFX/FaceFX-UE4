@@ -85,7 +85,8 @@ public class FaceFXLib : ModuleRules
 
         string CompilerFolder = "vs14";
 
-        if (Target.WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2017)
+        if (Target.WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2017
+         || Target.WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2019)
         {
             CompilerFolder = "vs15";
         }
