@@ -30,6 +30,7 @@ DECLARE_CYCLE_STAT(TEXT("Blend FaceFX Animation - Load"), STAT_FaceFXBlendLoad, 
 FAnimNode_BlendFaceFXAnimation::FAnimNode_BlendFaceFXAnimation() :
 	Alpha(1.F),
 	bSkipBoneMappingWithoutNS(false),
+	LODThreshold(INDEX_NONE),
 	bFaceFXCharacterLoadingCompleted(false)
 {
 #if !UE_BUILD_SHIPPING
@@ -48,13 +49,13 @@ void FAnimNode_BlendFaceFXAnimation::Initialize_AnyThread(const FAnimationInitia
 	{
 		TargetBlendTransform.AddZeroed(1);
 	}
+
+	LoadFaceFXData(Context.AnimInstanceProxy);
 }
 
 void FAnimNode_BlendFaceFXAnimation::CacheBones_AnyThread(const FAnimationCacheBonesContext & Context)
 {
 	ComponentPose.CacheBones(Context);
-
-	LoadFaceFXData(Context.AnimInstanceProxy);
 }
 
 void FAnimNode_BlendFaceFXAnimation::LoadFaceFXData(FAnimInstanceProxy* AnimInstanceProxy)
@@ -200,6 +201,11 @@ void FAnimNode_BlendFaceFXAnimation::EvaluateComponentSpace_AnyThread(FComponent
 		return;
 	}
 
+	if(!IsLODEnabled(Output.AnimInstanceProxy))
+	{
+		return;
+	}
+
 	if(!bFaceFXCharacterLoadingCompleted)
 	{
 		//character not done loading yet -> try to retrieve again
@@ -234,6 +240,12 @@ void FAnimNode_BlendFaceFXAnimation::EvaluateComponentSpace_AnyThread(FComponent
 					const FTransform& FaceFXBoneTM = FaceFXBoneTransforms[Entry.TransformIdx];
 					const int32 BoneIdx = Entry.BoneIdx;
 					FCompactPoseBoneIndex CompactPoseBoneIndex = Output.Pose.GetPose().GetBoneContainer().MakeCompactPoseIndex(FMeshPoseBoneIndex(BoneIdx));
+
+					// Skip this bone if it doesn't exist at the current LOD level.
+					if(CompactPoseBoneIndex.GetInt() == INDEX_NONE)
+					{
+						continue;
+					}
 
 					//fill target transform
 					TargetBlendTransform[0].BoneIndex = CompactPoseBoneIndex;
