@@ -49,12 +49,18 @@ struct FACEFX_API FAnimNode_BlendFaceFXAnimation : public FAnimNode_Base
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=BoneMapping)
 	bool bSkipBoneMappingWithoutNS;
 
+	// @todo What about the transitions where the node becomes active / inactive?
+	/** The maximum LOD setting under which this node is allowed to run. Defaults to all LOD settings. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Performance, meta = (DisplayName = "LOD Threshold"))
+	int32 LODThreshold;
+
 	// FAnimNode_Base interface
 	virtual void Initialize_AnyThread(const FAnimationInitializeContext& Context) override;
 	virtual void CacheBones_AnyThread(const FAnimationCacheBonesContext & Context) override;
 	virtual void Update_AnyThread(const FAnimationUpdateContext& Context) override;
 	virtual void Evaluate_AnyThread(FPoseContext& Output) override;
 	virtual void EvaluateComponentSpace_AnyThread(FComponentSpacePoseContext& Output) override;
+	virtual int32 GetLODThreshold() const override { return LODThreshold; }
 	// End of FAnimNode_Base interface
 
 private:
