@@ -43,7 +43,7 @@ class UFaceFXMatineeControlHelper : public UInterpTrackHelper
 private:
 
 	/** Callback for when the key properties dialog closed */
-	void OnKeyDialogClose(IMatineeBase* Matinee, UInterpTrack* Track);
+	void OnKeyDialogClose(IMatineeBase* Matinee, UInterpTrack* Track) const;
 
 	/** The key creation dialog */
 	mutable FFaceFXAnimationKeyDetailsDialog KeyDialog;

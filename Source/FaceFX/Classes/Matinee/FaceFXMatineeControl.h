@@ -87,7 +87,7 @@ class UFaceFXMatineeControl : public UInterpTrack
 	friend class UFaceFXMatineeControlHelper;
 
 	//UInterpTrack
-	// Some overrides from UInterpTrack to allow inheriting from another module. Those functions are not exposed my the module via ENGINE_API
+	// Some overrides from UInterpTrack to allow inheriting from another module. Those functions are not exposed by the module via ENGINE_API
 	virtual const FString GetEdHelperClassName() const override
 	{
 		return TEXT("");
@@ -100,7 +100,7 @@ class UFaceFXMatineeControl : public UInterpTrack
 	}
 
 #if WITH_EDITORONLY_DATA
-	virtual class UTexture2D* GetTrackIcon() const
+	virtual class UTexture2D* GetTrackIcon() const override
 	{
 		return TrackIcon;
 	}
