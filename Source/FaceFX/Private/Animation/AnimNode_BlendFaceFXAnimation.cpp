@@ -150,6 +150,10 @@ void FAnimNode_BlendFaceFXAnimation::LoadFaceFXData(FAnimInstanceProxy* AnimInst
 				bFaceFXCharacterLoadingCompleted = !FaceFXComp->IsLoadingCharacterAsync() && FaceFXComp->IsRegistered();
 			}
 		}
+		else
+		{
+			bFaceFXCharacterLoadingCompleted = false;
+		}
 	}
 }
 
