@@ -149,7 +149,7 @@ void FFaceFXAnimationTrackEditor::OnFaceFXTrackDialogClosed(FGuid ObjectBinding)
 	}
 }
 
-void FFaceFXAnimationTrackEditor::BuildObjectBindingTrackMenu(FMenuBuilder& MenuBuilder, const FGuid& ObjectBinding, const UClass* ObjectClass)
+void FFaceFXAnimationTrackEditor::BuildObjectBindingTrackMenu(FMenuBuilder& MenuBuilder, const TArray<FGuid>& ObjectBindings, const UClass* ObjectClass)
 {
 	if (ObjectClass != UFaceFXComponent::StaticClass())
 	{
@@ -157,13 +157,13 @@ void FFaceFXAnimationTrackEditor::BuildObjectBindingTrackMenu(FMenuBuilder& Menu
 		return;
 	}
 
-	if (UFaceFXComponent* FaceFXComponent = GetFaceFXComponent(ObjectBinding))
+	if (UFaceFXComponent* FaceFXComponent = GetFaceFXComponent(ObjectBindings[0]))
 	{
 		MenuBuilder.AddMenuEntry(
 			LOCTEXT("SequencerAddSection", "Facial Animation"),
 			LOCTEXT("SequencerAddSectionTooltip", "Adds a FaceFX facial animation section"),
 			FSlateIcon(),
-			FUIAction(FExecuteAction::CreateRaw(this, &FFaceFXAnimationTrackEditor::OnAddKey, ObjectBinding)));
+			FUIAction(FExecuteAction::CreateRaw(this, &FFaceFXAnimationTrackEditor::OnAddKey, ObjectBindings[0])));
 	}
 }
 

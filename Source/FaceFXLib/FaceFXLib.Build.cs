@@ -93,42 +93,49 @@ public class FaceFXLib : ModuleRules
 
         string PlatformFolder = string.Empty;
 
-        switch (Target.Platform)
+        if (Target.Platform == UnrealTargetPlatform.Win32)
         {
-            case UnrealTargetPlatform.Win32:
-                FaceFXLib = "libfacefx.lib";
-                PlatformFolder = Path.Combine(new[] { "windows", CompilerFolder, "Win32" });
-                break;
-            case UnrealTargetPlatform.Win64:
-                FaceFXLib = "libfacefx.lib";
-                PlatformFolder = Path.Combine(new[] { "windows", CompilerFolder, "x64" });
-                break;
-            case UnrealTargetPlatform.Mac:
-                FaceFXLib = "libfacefx.a";
-                PlatformFolder = Path.Combine(new[] { "osx" });
-                break;
-            case UnrealTargetPlatform.IOS:
-                FaceFXLib = "facefx";
-                PlatformFolder = Path.Combine(new[] { "ios" });
-                break;
-            case UnrealTargetPlatform.Android:
-                FaceFXLib = "facefx";
-                PlatformFolder = Path.Combine(new[] { "android/gnustl_shared" });
-                break;
-            case UnrealTargetPlatform.XboxOne:
-                FaceFXLib = "libfacefx.lib";
-                PlatformFolder = Path.Combine(new[] { "xboxone", CompilerFolder });
-                break;
-            case UnrealTargetPlatform.PS4:
-                FaceFXLib = "facefx";
-                PlatformFolder = Path.Combine(new[] { "ps4", CompilerFolder });
-                break;
-            case UnrealTargetPlatform.Switch:
-                FaceFXLib = "facefx";
-                PlatformFolder = Path.Combine(new[] { "nx", CompilerFolder, "NX64" });
-                break;
-            default:
-                throw new BuildException(System.String.Format("FaceFX: unsupported target platform '{0}'", Target.Platform));
+            FaceFXLib = "libfacefx.lib";
+            PlatformFolder = Path.Combine(new[] { "windows", CompilerFolder, "Win32" });
+        }
+        else if (Target.Platform == UnrealTargetPlatform.Win64)
+        {
+            FaceFXLib = "libfacefx.lib";
+            PlatformFolder = Path.Combine(new[] { "windows", CompilerFolder, "x64" });
+        }
+        else if (Target.Platform == UnrealTargetPlatform.Mac)
+        {
+            FaceFXLib = "libfacefx.a";
+            PlatformFolder = Path.Combine(new[] { "osx" });
+        }
+        else if (Target.Platform == UnrealTargetPlatform.IOS)
+        {
+            FaceFXLib = "facefx";
+            PlatformFolder = Path.Combine(new[] { "ios" });
+        }
+        else if (Target.Platform == UnrealTargetPlatform.Android)
+        {
+            FaceFXLib = "facefx";
+            PlatformFolder = Path.Combine(new[] { "android/gnustl_shared" });
+        }
+        else if (Target.Platform == UnrealTargetPlatform.XboxOne)
+        {
+            FaceFXLib = "libfacefx.lib";
+            PlatformFolder = Path.Combine(new[] { "xboxone", CompilerFolder });
+        }
+        else if (Target.Platform == UnrealTargetPlatform.PS4)
+        {
+            FaceFXLib = "facefx";
+            PlatformFolder = Path.Combine(new[] { "ps4", CompilerFolder });
+        }
+        else if (Target.Platform == UnrealTargetPlatform.Switch)
+        {
+            FaceFXLib = "facefx";
+            PlatformFolder = Path.Combine(new[] { "nx", CompilerFolder, "NX64" });
+        }
+        else
+        {
+            throw new BuildException(System.String.Format("FaceFX: unsupported target platform '{0}'", Target.Platform));
         }
 
         string ConfigFolder = "Release";

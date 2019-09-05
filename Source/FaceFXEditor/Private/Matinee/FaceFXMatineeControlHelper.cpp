@@ -136,7 +136,7 @@ bool UFaceFXMatineeControlHelper::PreCreateKeyframe( UInterpTrack *Track, float 
 	return false;
 }
 
-void UFaceFXMatineeControlHelper::OnKeyDialogClose(IMatineeBase* Matinee, UInterpTrack* Track)
+void UFaceFXMatineeControlHelper::OnKeyDialogClose(IMatineeBase* Matinee, UInterpTrack* Track) const
 {
 	if (!KeyDialog.IsCancelled())
 	{
