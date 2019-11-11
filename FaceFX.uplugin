@@ -3,11 +3,11 @@
 
 	"FriendlyName" : "FaceFX",
 	"Version" : 1,
-	"VersionName" : "4.23",
+	"VersionName" : "4.24",
 	"CreatedBy" : "OC3 Entertainment, Inc.",
 	"CreatedByURL" : "https://www.facefx.com/",
 	"DocsURL" : "https://unreal.facefx.com/",
-	"EngineVersion" : "4.23.0",
+	"EngineVersion" : "4.24.0",
 	"Description" : "Enables engine and editor support for facial animations powered by FaceFX.",
 	"Category" : "FaceFX",
 	"EnabledByDefault" : true,
