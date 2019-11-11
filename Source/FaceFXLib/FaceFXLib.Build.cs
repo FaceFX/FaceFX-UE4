@@ -44,26 +44,34 @@ public class FaceFXLib : ModuleRules
 
         if (Target.Platform == UnrealTargetPlatform.Android)
         {
-            PublicLibraryPaths.Add(FaceFXDirLib + "/x86_64");
-            PublicLibraryPaths.Add(FaceFXDirLib + "/x86");
-            PublicLibraryPaths.Add(FaceFXDirLib + "/arm64-v8a");
-            PublicLibraryPaths.Add(FaceFXDirLib + "/armeabi-v7a");
+            string Arch = Target.Architecture.ToLower();
+
+            if (Arch == "x86_64")
+            {
+                PublicAdditionalLibraries.Add(FaceFXDirLib + "/x86_64/" + FaceFXLib);
+            }
+            else if (Arch == "x86")
+            {
+                PublicAdditionalLibraries.Add(FaceFXDirLib + "/x86/" + FaceFXLib);
+            }
+            else if (Arch == "arm64-v8a")
+            {
+                PublicAdditionalLibraries.Add(FaceFXDirLib + "/arm64-v8a/" + FaceFXLib);
+            }
+            else if (Arch == "armeabi-armv7a")
+            {
+                PublicAdditionalLibraries.Add(FaceFXDirLib + "/armeabi-v7a/" + FaceFXLib);
+            }
+            else
+            {
+                throw new BuildException(System.String.Format("FaceFX: unsupported Android architecture '{0}'", Arch));
+            }
         }
         else
-        {
-            PublicLibraryPaths.Add(FaceFXDirLib);
-        }
-
-        if (Target.Platform == UnrealTargetPlatform.Mac)
         {
             PublicAdditionalLibraries.Add(FaceFXDirLib + "/" + FaceFXLib);
         }
-        else
-        {
-            PublicAdditionalLibraries.Add(FaceFXLib);
-        }
     }
-
 
     /// <summary>
     /// Gets the libs for FaceFX
