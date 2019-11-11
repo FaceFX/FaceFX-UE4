@@ -194,7 +194,8 @@ private:
 		{
 			AActor* Actor = (*It);
 			check(Actor);
-			const TArray<UActorComponent*> CharacterInstances = Actor->GetComponentsByClass(UFaceFXCharacter::StaticClass());
+			TArray<UActorComponent*> CharacterInstances;
+	        Actor->GetComponents(UFaceFXCharacter::StaticClass(), CharacterInstances);
 			for (UActorComponent* CharacterInstance : CharacterInstances)
 			{
 				CastChecked<UFaceFXCharacter>(CharacterInstance)->Stop(true);

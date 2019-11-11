@@ -86,7 +86,7 @@ UMovieSceneSection* UFaceFXAnimationSection::SplitSection(FQualifiedFrameTime Sp
 
 	const float NewOffset = FMath::Fmod(AnimPositionSec, AnimLengthSec) + GetStartOffset();
 
-	UMovieSceneSection* NewSection = Super::SplitSection(SplitTime);
+	UMovieSceneSection* NewSection = Super::SplitSection(SplitTime, false);
 	if (UFaceFXAnimationSection* NewAnimSection = Cast<UFaceFXAnimationSection>(NewSection))
 	{
 		NewAnimSection->SetStartOffset(NewOffset);

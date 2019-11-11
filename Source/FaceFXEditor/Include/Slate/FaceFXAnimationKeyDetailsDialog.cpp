@@ -299,7 +299,7 @@ void FFaceFXAnimationKeyDetailsDialog::OnSkelMeshComboBoxSelected(TSharedPtr<FFa
 	if (const FFaceFXSkelMeshSelection* Selection = NewSelection.Get())
 	{
 		SelectionData.SkelMeshComponentId = Selection->Id;
-		SkelMeshComponentSelection->SetText(Selection->Text);
+		SkelMeshComponentSelection->SetText(FText::FromString(Selection->Text));
 	}
 }
 
