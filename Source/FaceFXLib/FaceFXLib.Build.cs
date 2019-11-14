@@ -118,12 +118,12 @@ public class FaceFXLib : ModuleRules
         }
         else if (Target.Platform == UnrealTargetPlatform.IOS)
         {
-            FaceFXLib = "facefx";
+            FaceFXLib = "libfacefx.a";
             PlatformFolder = Path.Combine(new[] { "ios" });
         }
         else if (Target.Platform == UnrealTargetPlatform.Android)
         {
-            FaceFXLib = "facefx";
+            FaceFXLib = "libfacefx.a";
             PlatformFolder = Path.Combine(new[] { "android/gnustl_shared" });
         }
         else if (Target.Platform == UnrealTargetPlatform.XboxOne)
@@ -133,12 +133,12 @@ public class FaceFXLib : ModuleRules
         }
         else if (Target.Platform == UnrealTargetPlatform.PS4)
         {
-            FaceFXLib = "facefx";
+            FaceFXLib = "libfacefx.a";
             PlatformFolder = Path.Combine(new[] { "ps4", CompilerFolder });
         }
         else if (Target.Platform == UnrealTargetPlatform.Switch)
         {
-            FaceFXLib = "facefx";
+            FaceFXLib = "libfacefx.a";
             PlatformFolder = Path.Combine(new[] { "nx", CompilerFolder, "NX64" });
         }
         else
