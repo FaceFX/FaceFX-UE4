@@ -11,14 +11,6 @@ If you are using the GitHub source, this is a non-issue. However, if you are usi
 
 Make sure the character's **Animation Blueprint** is referenced in the **Blueprint Class**, the **Blend FaceFX Animation** Blueprint node is added to the **Animation Blueprint**, and it is connected properly.
 
-#### FaceFX Animations do not play from the Matinee tab
-
-If the animations are played correctly when you use PIE, but not when you click play from the Matinee tab, check the following:
-
-+ **Compile Blueprints** Make sure your Blueprint and Animation Blueprint have been compiled.  In some cases, you must explicitly compile these blueprints with the Compile button before they will function. 
-
-+ **Morph bug** Due to a [potential issue with UE4](https://answers.unrealengine.com/questions/290685/morph-targets-not-updating-from-matinee-tab.html), morphs may not update correctly when played from the Matinee tab.
-
 #### FaceFX Animations do not play from the Sequencer tab in OSX
 
 On the Mac platform, there are known issues playing FaceFX animations from the Sequencer window.  Bone animations will work when scrubbing the time from the Sequencer tab, but morphs may not update during scrubbing.  Hitting play from the Sequencer tab will not update audio, bones or morph animations during playback.  Use the **Play in Editor** feature to see updates to both morph and bones animations.

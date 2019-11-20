@@ -13,8 +13,6 @@ The FaceFX UE4 Plugin Documentation is organized into the following main section
 
 + [Blueprint Nodes](BlueprintNodes.md) - Details the FaceFX Blueprint nodes made available by the FaceFX UE4 Plugin.
 
-+ [Matinee](Matinee.md) - Details the FaceFX integration with Matinee.
-
 + [Sequencer](Sequencer.md) - Details the FaceFX integration with Sequencer.
 
 + [Configuration](Configuration.md) - Details FaceFX UE4 Plugin configuration options.
