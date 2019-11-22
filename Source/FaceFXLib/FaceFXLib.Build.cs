@@ -44,27 +44,14 @@ public class FaceFXLib : ModuleRules
 
         if (Target.Platform == UnrealTargetPlatform.Android)
         {
+            // Arch being empty means use the default plugin Android architectures (armv7+arm64).
             string Arch = Target.Architecture.ToLower();
 
-            if (Arch == "x86_64")
-            {
-                PublicAdditionalLibraries.Add(FaceFXDirLib + "/x86_64/" + FaceFXLib);
-            }
-            else if (Arch == "x86")
-            {
-                PublicAdditionalLibraries.Add(FaceFXDirLib + "/x86/" + FaceFXLib);
-            }
-            else if (Arch == "arm64-v8a")
-            {
-                PublicAdditionalLibraries.Add(FaceFXDirLib + "/arm64-v8a/" + FaceFXLib);
-            }
-            else if (Arch == "armeabi-armv7a")
-            {
+            if (Arch == "") {
                 PublicAdditionalLibraries.Add(FaceFXDirLib + "/armeabi-v7a/" + FaceFXLib);
-            }
-            else
-            {
-                throw new BuildException(System.String.Format("FaceFX: unsupported Android architecture '{0}'", Arch));
+                PublicAdditionalLibraries.Add(FaceFXDirLib + "/arm64-v8a/" + FaceFXLib);
+            } else {
+                throw new BuildException(System.String.Format("FaceFX: unexpected non-default Android plugin architecture '{0}'", Arch));
             }
         }
         else
