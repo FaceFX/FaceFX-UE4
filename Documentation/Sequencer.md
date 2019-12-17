@@ -1,7 +1,7 @@
 Sequencer
 =======
 
-FaceFX animations can be played from Sequencer.  With the deprecation of Matinee, this is the preferred method of playing FaceFX animations in UE4 as part of a scripted sequence.
+FaceFX animations can be played from Sequencer.
 
 Tutorial
 --------

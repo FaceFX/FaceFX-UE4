@@ -44,7 +44,6 @@ public class FaceFXEditor : ModuleRules
                 "DesktopPlatform",
                 "AnimGraph",
                 "BlueprintGraph",
-                "Matinee",
                 "Sequencer",
                 "MovieScene",
                 "MovieSceneTools",

@@ -40,7 +40,7 @@ UFaceFXAnimationSection::UFaceFXAnimationSection(const FObjectInitializer& Objec
 	AnimationDuration = 0.f;
 }
 
-void UFaceFXAnimationSection::TrimSection(FQualifiedFrameTime TrimTime, bool bTrimLeft)
+void UFaceFXAnimationSection::TrimSection(FQualifiedFrameTime TrimTime, bool bTrimLeft, bool bDeleteKeys)
 {
 	if (IsTimeWithinSection(TrimTime.Time.GetFrame()))
 	{
@@ -67,7 +67,7 @@ void UFaceFXAnimationSection::TrimSection(FQualifiedFrameTime TrimTime, bool bTr
 	}
 }
 
-UMovieSceneSection* UFaceFXAnimationSection::SplitSection(FQualifiedFrameTime SplitTime)
+UMovieSceneSection* UFaceFXAnimationSection::SplitSection(FQualifiedFrameTime SplitTime, bool bDeleteKeys)
 {
 	const UMovieScene* MovieScene = GetTypedOuter<UMovieScene>();
 	if (!MovieScene)
@@ -86,7 +86,7 @@ UMovieSceneSection* UFaceFXAnimationSection::SplitSection(FQualifiedFrameTime Sp
 
 	const float NewOffset = FMath::Fmod(AnimPositionSec, AnimLengthSec) + GetStartOffset();
 
-	UMovieSceneSection* NewSection = Super::SplitSection(SplitTime);
+	UMovieSceneSection* NewSection = Super::SplitSection(SplitTime, false);
 	if (UFaceFXAnimationSection* NewAnimSection = Cast<UFaceFXAnimationSection>(NewSection))
 	{
 		NewAnimSection->SetStartOffset(NewOffset);

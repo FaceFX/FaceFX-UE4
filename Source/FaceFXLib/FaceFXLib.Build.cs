@@ -44,26 +44,21 @@ public class FaceFXLib : ModuleRules
 
         if (Target.Platform == UnrealTargetPlatform.Android)
         {
-            PublicLibraryPaths.Add(FaceFXDirLib + "/x86_64");
-            PublicLibraryPaths.Add(FaceFXDirLib + "/x86");
-            PublicLibraryPaths.Add(FaceFXDirLib + "/arm64-v8a");
-            PublicLibraryPaths.Add(FaceFXDirLib + "/armeabi-v7a");
+            // Arch being empty means use the default plugin Android architectures (armv7+arm64).
+            string Arch = Target.Architecture.ToLower();
+
+            if (Arch == "") {
+                PublicAdditionalLibraries.Add(FaceFXDirLib + "/armeabi-v7a/" + FaceFXLib);
+                PublicAdditionalLibraries.Add(FaceFXDirLib + "/arm64-v8a/" + FaceFXLib);
+            } else {
+                throw new BuildException(System.String.Format("FaceFX: unexpected non-default Android plugin architecture '{0}'", Arch));
+            }
         }
         else
-        {
-            PublicLibraryPaths.Add(FaceFXDirLib);
-        }
-
-        if (Target.Platform == UnrealTargetPlatform.Mac)
         {
             PublicAdditionalLibraries.Add(FaceFXDirLib + "/" + FaceFXLib);
         }
-        else
-        {
-            PublicAdditionalLibraries.Add(FaceFXLib);
-        }
     }
-
 
     /// <summary>
     /// Gets the libs for FaceFX
@@ -110,12 +105,12 @@ public class FaceFXLib : ModuleRules
         }
         else if (Target.Platform == UnrealTargetPlatform.IOS)
         {
-            FaceFXLib = "facefx";
+            FaceFXLib = "libfacefx.a";
             PlatformFolder = Path.Combine(new[] { "ios" });
         }
         else if (Target.Platform == UnrealTargetPlatform.Android)
         {
-            FaceFXLib = "facefx";
+            FaceFXLib = "libfacefx.a";
             PlatformFolder = Path.Combine(new[] { "android/gnustl_shared" });
         }
         else if (Target.Platform == UnrealTargetPlatform.XboxOne)
@@ -125,12 +120,12 @@ public class FaceFXLib : ModuleRules
         }
         else if (Target.Platform == UnrealTargetPlatform.PS4)
         {
-            FaceFXLib = "facefx";
+            FaceFXLib = "libfacefx.a";
             PlatformFolder = Path.Combine(new[] { "ps4", CompilerFolder });
         }
         else if (Target.Platform == UnrealTargetPlatform.Switch)
         {
-            FaceFXLib = "facefx";
+            FaceFXLib = "libfacefx.a";
             PlatformFolder = Path.Combine(new[] { "nx", CompilerFolder, "NX64" });
         }
         else

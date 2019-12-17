@@ -28,7 +28,6 @@
 #include "FaceFXEditorConfig.h"
 #include "Sequencer/FaceFXSequencer.h"
 #include "Sequencer/FaceFXAnimationTrackEditor.h"
-#include "Matinee/MatineeActor.h"
 #include "EngineUtils.h"
 #include "Editor.h"
 #include "Modules/ModuleManager.h"
@@ -146,12 +145,10 @@ private:
 		};
 
 		//prevent error message spamming of matinee and sequencer editors
-		static FFaceFXErrorMessageShownData MatineeErrorData;
 		static FFaceFXErrorMessageShownData SequencerErrorData;
-		const bool ShowMessageMatinee = MatineeErrorData.Update(GEditor->ActiveMatinee.Get(), Character, Asset);
 		const bool ShowMessageSequencer = SequencerErrorData.Update(FFaceFXAnimationTrackEditor::GetCurrentSequencer().Pin().Get(), Character, Asset);
 
-		if (!ShowMessageMatinee && !ShowMessageSequencer)
+		if (!ShowMessageSequencer)
 		{
 			return;
 		}
@@ -194,7 +191,8 @@ private:
 		{
 			AActor* Actor = (*It);
 			check(Actor);
-			const TArray<UActorComponent*> CharacterInstances = Actor->GetComponentsByClass(UFaceFXCharacter::StaticClass());
+			TArray<UActorComponent*> CharacterInstances;
+	        Actor->GetComponents(UFaceFXCharacter::StaticClass(), CharacterInstances);
 			for (UActorComponent* CharacterInstance : CharacterInstances)
 			{
 				CastChecked<UFaceFXCharacter>(CharacterInstance)->Stop(true);
