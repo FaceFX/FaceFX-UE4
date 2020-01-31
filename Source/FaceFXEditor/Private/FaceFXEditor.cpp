@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015-2019 OC3 Entertainment, Inc. All rights reserved.
+  Copyright (c) 2015-2020 OC3 Entertainment, Inc. All rights reserved.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -114,7 +114,7 @@ private:
 
 			FFaceFXErrorMessageShownData() : Editor(nullptr){}
 
-      // Note: jcr -- renamed Character & Asset to Character_ & Asset_ so as not to shadow Character & Asset parameters to OnFaceFXCharacterPlayAssetIncompatible
+			// Note: jcr -- renamed Character & Asset to Character_ & Asset_ so as not to shadow Character & Asset parameters to OnFaceFXCharacterPlayAssetIncompatible
 			/**
 			* Updates the data
 			* @param SourceEditor The editor which updates this data
@@ -170,8 +170,7 @@ private:
 	/** The event callback handle for OnPreSaveWorldHandle */
 	FDelegateHandle OnPreSaveWorldHandle;
 
-	/** Callback for when an PIE got ended */
-	static void OnEndPie(bool bIsSimulating)
+	static void StopAllInstances()
 	{
 		TArray<UObject*> CharacterInstances;
 		GetObjectsOfClass(UFaceFXCharacter::StaticClass(), CharacterInstances);
@@ -182,22 +181,18 @@ private:
 		}
 	}
 
+	/** Callback for when an PIE got ended */
+	static void OnEndPie(bool bIsSimulating)
+	{
+		FFaceFXEditorModule::StopAllInstances();
+	}
+
 	/** Callback for when a world gets saved */
 	static void PreSaveWorld(uint32 SaveFlags, UWorld* World)
 	{
 		check(World);
 
-		for (TActorIterator<AActor> It(World); It; ++It)
-		{
-			AActor* Actor = (*It);
-			check(Actor);
-			TArray<UActorComponent*> CharacterInstances;
-	        Actor->GetComponents(UFaceFXCharacter::StaticClass(), CharacterInstances);
-			for (UActorComponent* CharacterInstance : CharacterInstances)
-			{
-				CastChecked<UFaceFXCharacter>(CharacterInstance)->Stop(true);
-			}
-		}
+		FFaceFXEditorModule::StopAllInstances();
 	}
 
 	void RegisterSettings()
