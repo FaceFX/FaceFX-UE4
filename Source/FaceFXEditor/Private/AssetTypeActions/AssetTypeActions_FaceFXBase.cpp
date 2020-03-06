@@ -189,7 +189,11 @@ void FAssetTypeActions_FaceFXBase::ExecuteShowDetails(TArray<TWeakObjectPtr<UObj
 
 	if(!Details.IsEmpty())
 	{
-		OpenMsgDlgInt(EAppMsgType::Ok, FText::FromString(Details), LOCTEXT("DetailsWindowTitle", "FaceFX Asset Details"));
+
+		FText Message = FText::FromString(Details);
+		FText Title = LOCTEXT("DetailsWindowTitle", "FaceFX Asset Details");
+
+		FMessageDialog::Open(EAppMsgType::Ok, Message, &Title);
 	}
 }
 
