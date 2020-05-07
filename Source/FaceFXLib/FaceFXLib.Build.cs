@@ -111,7 +111,7 @@ public class FaceFXLib : ModuleRules
         else if (Target.Platform == UnrealTargetPlatform.Android)
         {
             FaceFXLib = "libfacefx.a";
-            PlatformFolder = Path.Combine(new[] { "android/gnustl_shared" });
+            PlatformFolder = Path.Combine(new[] { "android/c++_shared" });
         }
         else if (Target.Platform == UnrealTargetPlatform.XboxOne)
         {
