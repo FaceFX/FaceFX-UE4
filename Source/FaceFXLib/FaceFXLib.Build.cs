@@ -27,7 +27,7 @@ public class FaceFXLib : ModuleRules
     static bool DebugLibsWarningDisplayed = false;
 
     //The folder in the FaceFX runtime is located in. You need to update this whenever you update your FaceFX runtime
-    public static string RuntimeFolder { get { return "facefx-runtime-1.5.1/facefx"; } }
+    public static string RuntimeFolder { get { return "facefx-runtime-1.6.0/facefx"; } }
 
     public FaceFXLib(ReadOnlyTargetRules Target) : base(Target)
     {
@@ -111,7 +111,7 @@ public class FaceFXLib : ModuleRules
         else if (Target.Platform == UnrealTargetPlatform.Android)
         {
             FaceFXLib = "libfacefx.a";
-            PlatformFolder = Path.Combine(new[] { "android/gnustl_shared" });
+            PlatformFolder = Path.Combine(new[] { "android/c++_shared" });
         }
         else if (Target.Platform == UnrealTargetPlatform.XboxOne)
         {
