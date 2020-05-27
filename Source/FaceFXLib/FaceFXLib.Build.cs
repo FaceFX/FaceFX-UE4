@@ -1,4 +1,4 @@
-﻿/*******************************************************************************
+/*******************************************************************************
   The MIT License (MIT)
   Copyright (c) 2015-2020 OC3 Entertainment, Inc. All rights reserved.
   Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -27,7 +27,7 @@ public class FaceFXLib : ModuleRules
     static bool DebugLibsWarningDisplayed = false;
 
     //The folder in the FaceFX runtime is located in. You need to update this whenever you update your FaceFX runtime
-    public static string RuntimeFolder { get { return "facefx-runtime-1.6.0/facefx"; } }
+    public static string RuntimeFolder { get { return "facefx-runtime-1.7.0b1/facefx"; } }
 
     public FaceFXLib(ReadOnlyTargetRules Target) : base(Target)
     {
@@ -80,10 +80,13 @@ public class FaceFXLib : ModuleRules
 
         string CompilerFolder = "vs14";
 
-        if (Target.WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2017
-         || Target.WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2019)
+        if (Target.WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2017)
         {
             CompilerFolder = "vs15";
+        }
+        else if (Target.WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2019)
+        {
+            CompilerFolder = "vs16";
         }
 
         string PlatformFolder = string.Empty;

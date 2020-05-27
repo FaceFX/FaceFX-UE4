@@ -43,6 +43,7 @@ class FACEFX_API UFaceFXCharacter : public UObject, public FTickableGameObject
 	DECLARE_MULTICAST_DELEGATE_TwoParams(FOnFaceFXCharacterEventSignature, UFaceFXCharacter* /*Character*/, const FFaceFXAnimId& /*AnimId*/);
 	DECLARE_MULTICAST_DELEGATE_FourParams(FOnFaceFXCharacterAudioStartEventSignature, UFaceFXCharacter* /*Character*/, const FFaceFXAnimId& /*AnimId*/, bool /*IsAudioStarted*/, UActorComponent* /*AudioComponentStartedOn*/);
 	DECLARE_MULTICAST_DELEGATE_TwoParams(FOnFaceFXCharacterPlayAssetIncompatibleSignature, UFaceFXCharacter* /*Character*/, const UFaceFXAnim* /*Asset*/);
+	DECLARE_MULTICAST_DELEGATE_FourParams(FOnFaceFXCharacterAnimationEventSignature, UFaceFXCharacter* /*Character*/, const FFaceFXAnimId& /*AnimId*/, float /*EventTime*/, const FString& /*Payload*/);
 
 public:
 
@@ -61,6 +62,12 @@ public:
 
 	/** Event that triggers whenever this character paused playing an animation */
 	FOnFaceFXCharacterEventSignature OnPlaybackPaused;
+
+	/** Event that triggers whenever a playing animation of this character triggers an event from within the FaceFX runtime */
+	FOnFaceFXCharacterAnimationEventSignature OnAnimationEvent;
+
+	/** Event that triggers whenever an asset was tried to get played which is incompatible to the FaceFX actor handle */
+	static FOnFaceFXCharacterPlayAssetIncompatibleSignature OnFaceFXCharacterPlayAssetIncompatible;
 
 #if FACEFX_USEANIMATIONLINKAGE
 	/**
@@ -264,6 +271,16 @@ public:
 	*/
 	void SetAutoPlaySound(bool isAutoPlaySound);
 
+	bool IsIgnoreFaceFxEvents() const
+	{
+		return bIgnoreFaceFxEvents;
+	}
+
+	void SetIgnoreFaceFxEvents(bool ignoreEvents)
+	{
+		bIgnoreFaceFxEvents = ignoreEvents;
+	}
+
 	/**
 	* Sets the audio component for this character
 	* @param Component The new audio component
@@ -382,9 +399,6 @@ public:
 	bool GetAllLinkedAnimationIds(TArray<FFaceFXAnimId>& OutAnimIds) const;
 #endif //FACEFX_USEANIMATIONLINKAGE
 
-	/** Event that triggers whenever an asset was tried to get played which is incompatible to the FaceFX actor handle */
-	static FOnFaceFXCharacterPlayAssetIncompatibleSignature OnFaceFXCharacterPlayAssetIncompatible;
-
 private:
 
 	/**
@@ -454,9 +468,10 @@ private:
 	* Performs ticks from 0 to Duration in small enough timesteps to find out the location where the audio was triggered
 	* @param Duration The duration until to tick to
 	* @param OutAudioStarted True if the audio was started until the duration was reached, else false
+	* @param IgnoreFaceFxEvents Indicator if we want to ignore events coming from within the FaceFX runtime while jumping to the target position
 	* @returns True if succeeded with ticking until the duration, else false
 	*/
-	bool TickUntil(float Duration, bool& OutAudioStarted);
+	bool TickUntil(float Duration, bool& OutAudioStarted, bool IgnoreFaceFxEvents = true);
 
 	/**
 	* Retrieves the morph targets for a skel mesh and creates FaceFX indices for the names
@@ -495,6 +510,9 @@ private:
 
 	/** Sets the material parameters of the owners skel mesh to their defaults */
 	void ResetMaterialParametersToDefaults();
+
+	/** Callback for event notifications from within the FaceFX runtime. These are set within the source asset with a custom string being assigned */
+	static void OnFaceFxEvent(struct ffx_event_context_t* Context, const char* Payload);
 
 	/** The data set from where this character was loaded from */
 	UPROPERTY(Transient)
@@ -578,6 +596,9 @@ private:
 
 	/** Indicator if the use of available material parameters shall be disabled */
 	uint8 bDisabledMaterialParameters : 1;
+
+	/** Indicator if we ignore the events coming from the FaceFX runtime */
+	uint8 bIgnoreFaceFxEvents : 1;
 
 #if WITH_EDITOR
 	uint32 LastFrameNumber;
