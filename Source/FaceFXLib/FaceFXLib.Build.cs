@@ -1,4 +1,4 @@
-﻿/*******************************************************************************
+/*******************************************************************************
   The MIT License (MIT)
   Copyright (c) 2015-2020 OC3 Entertainment, Inc. All rights reserved.
   Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -61,6 +61,50 @@ public class FaceFXLib : ModuleRules
     }
 
     /// <summary>
+    /// Gets the lib folder for a given target platform & compilation sub folder
+    /// </summary>
+    /// <param name="Target">The target platform</param>
+    /// <param name="CompilerFolder">The compilation platform (i.e. vs14, vs15)</param>
+    /// <returns>The lib folder</returns>
+    private string GetPlatformLibFolder(ReadOnlyTargetRules Target, string CompilerFolder)
+    {
+        if (Target.Platform == UnrealTargetPlatform.Win32)
+        {
+            return Path.Combine(new[] { "windows", CompilerFolder, "Win32" });
+        }
+        else if (Target.Platform == UnrealTargetPlatform.Win64)
+        {
+            return Path.Combine(new[] { "windows", CompilerFolder, "x64" });
+        }
+        else if (Target.Platform == UnrealTargetPlatform.Mac)
+        {
+            return Path.Combine(new[] { "osx" });
+        }
+        else if (Target.Platform == UnrealTargetPlatform.IOS)
+        {
+            return Path.Combine(new[] { "ios" });
+        }
+        else if (Target.Platform == UnrealTargetPlatform.Android)
+        {
+            return Path.Combine(new[] { "android/c++_shared" });
+        }
+        else if (Target.Platform == UnrealTargetPlatform.XboxOne)
+        {
+            return Path.Combine(new[] { "xboxone", CompilerFolder });
+        }
+        else if (Target.Platform == UnrealTargetPlatform.PS4)
+        {
+            return Path.Combine(new[] { "ps4", CompilerFolder });
+        }
+        else if (Target.Platform == UnrealTargetPlatform.Switch)
+        {
+            return Path.Combine(new[] { "nx", CompilerFolder, "NX64" });
+        }
+
+        throw new BuildException(System.String.Format("FaceFX: unsupported target platform '{0}'", Target.Platform));
+    }
+
+    /// <summary>
     /// Gets the libs for FaceFX
     /// </summary>
     /// <param name="Target">The targetinfo to get the libs for</param>
@@ -80,53 +124,56 @@ public class FaceFXLib : ModuleRules
 
         string CompilerFolder = "vs14";
 
-        if (Target.WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2017
-         || Target.WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2019)
+        if (Target.WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2017)
         {
             CompilerFolder = "vs15";
         }
+        else if (Target.WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2019)
+        {
+            CompilerFolder = "vs16";
 
-        string PlatformFolder = string.Empty;
+            //check if that folder exists (older FaceFX libs may not have them)
+            string LibFolder = System.IO.Path.Combine(new[] { FaceFXDir, "bin", GetPlatformLibFolder(Target, CompilerFolder) });
+            if (!Directory.Exists(LibFolder))
+            {
+                //fallback to vs15 folder
+                CompilerFolder = "vs15";
+            }
+        }
+
+        string PlatformFolder = GetPlatformLibFolder(Target, CompilerFolder);
 
         if (Target.Platform == UnrealTargetPlatform.Win32)
         {
             FaceFXLib = "libfacefx.lib";
-            PlatformFolder = Path.Combine(new[] { "windows", CompilerFolder, "Win32" });
         }
         else if (Target.Platform == UnrealTargetPlatform.Win64)
         {
             FaceFXLib = "libfacefx.lib";
-            PlatformFolder = Path.Combine(new[] { "windows", CompilerFolder, "x64" });
         }
         else if (Target.Platform == UnrealTargetPlatform.Mac)
         {
             FaceFXLib = "libfacefx.a";
-            PlatformFolder = Path.Combine(new[] { "osx" });
         }
         else if (Target.Platform == UnrealTargetPlatform.IOS)
         {
             FaceFXLib = "libfacefx.a";
-            PlatformFolder = Path.Combine(new[] { "ios" });
         }
         else if (Target.Platform == UnrealTargetPlatform.Android)
         {
             FaceFXLib = "libfacefx.a";
-            PlatformFolder = Path.Combine(new[] { "android/c++_shared" });
         }
         else if (Target.Platform == UnrealTargetPlatform.XboxOne)
         {
             FaceFXLib = "libfacefx.lib";
-            PlatformFolder = Path.Combine(new[] { "xboxone", CompilerFolder });
         }
         else if (Target.Platform == UnrealTargetPlatform.PS4)
         {
             FaceFXLib = "libfacefx.a";
-            PlatformFolder = Path.Combine(new[] { "ps4", CompilerFolder });
         }
         else if (Target.Platform == UnrealTargetPlatform.Switch)
         {
             FaceFXLib = "libfacefx.a";
-            PlatformFolder = Path.Combine(new[] { "nx", CompilerFolder, "NX64" });
         }
         else
         {
