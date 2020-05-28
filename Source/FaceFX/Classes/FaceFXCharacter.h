@@ -62,6 +62,33 @@ public:
 	/** Event that triggers whenever this character paused playing an animation */
 	FOnFaceFXCharacterEventSignature OnPlaybackPaused;
 
+	/** Event that triggers whenever an asset was tried to get played which is incompatible to the FaceFX actor handle */
+	static FOnFaceFXCharacterPlayAssetIncompatibleSignature OnFaceFXCharacterPlayAssetIncompatible;
+
+#if FFX_HAS_EVENTS
+	DECLARE_MULTICAST_DELEGATE_FourParams(FOnFaceFXCharacterAnimationEventSignature, UFaceFXCharacter* /*Character*/, const FFaceFXAnimId& /*AnimId*/, float /*EventTime*/, const FString& /*Payload*/);
+
+	/** Event that triggers whenever a playing animation of this character triggers an event from within the FaceFX runtime */
+	FOnFaceFXCharacterAnimationEventSignature OnAnimationEvent;
+
+	bool IsIgnoreFaceFxEvents() const
+	{
+		return bIgnoreFaceFxEvents;
+	}
+
+	void SetIgnoreFaceFxEvents(bool ignoreEvents)
+	{
+		bIgnoreFaceFxEvents = ignoreEvents;
+	}
+
+private:
+
+	/** Callback for event notifications from within the FaceFX runtime. These are set within the source asset with a custom string being assigned */
+	static void OnFaceFxEvent(struct ffx_event_context_t* Context, const char* Payload);
+
+public:
+#endif //FFX_HAS_EVENTS
+
 #if FACEFX_USEANIMATIONLINKAGE
 	/**
 	* Starts the playback of the given facial animation
@@ -382,9 +409,6 @@ public:
 	bool GetAllLinkedAnimationIds(TArray<FFaceFXAnimId>& OutAnimIds) const;
 #endif //FACEFX_USEANIMATIONLINKAGE
 
-	/** Event that triggers whenever an asset was tried to get played which is incompatible to the FaceFX actor handle */
-	static FOnFaceFXCharacterPlayAssetIncompatibleSignature OnFaceFXCharacterPlayAssetIncompatible;
-
 private:
 
 	/**
@@ -454,9 +478,10 @@ private:
 	* Performs ticks from 0 to Duration in small enough timesteps to find out the location where the audio was triggered
 	* @param Duration The duration until to tick to
 	* @param OutAudioStarted True if the audio was started until the duration was reached, else false
+	* @param IgnoreFaceFxEvents Indicator if we want to ignore events coming from within the FaceFX runtime while jumping to the target position
 	* @returns True if succeeded with ticking until the duration, else false
 	*/
-	bool TickUntil(float Duration, bool& OutAudioStarted);
+	bool TickUntil(float Duration, bool& OutAudioStarted, bool IgnoreFaceFxEvents = true);
 
 	/**
 	* Retrieves the morph targets for a skel mesh and creates FaceFX indices for the names
@@ -578,6 +603,11 @@ private:
 
 	/** Indicator if the use of available material parameters shall be disabled */
 	uint8 bDisabledMaterialParameters : 1;
+
+#if FFX_HAS_EVENTS
+	/** Indicator if we ignore the events coming from the FaceFX runtime */
+	uint8 bIgnoreFaceFxEvents : 1;
+#endif //FFX_HAS_EVENTS
 
 #if WITH_EDITOR
 	uint32 LastFrameNumber;

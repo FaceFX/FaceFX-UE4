@@ -35,7 +35,7 @@ void UFaceFXComponent::OnRegister()
 	CreateAllCharacters();
 }
 
-bool UFaceFXComponent::Setup(USkeletalMeshComponent* SkelMeshComp, UActorComponent* AudioComponent, const UFaceFXActor* Asset, bool IsCompensateForForceFrontXAxsis, bool IsAutoPlaySound, bool IsDisableMorphTargets, bool IsDisableMaterialParameters, const UObject* Caller)
+bool UFaceFXComponent::Setup(USkeletalMeshComponent* SkelMeshComp, UActorComponent* AudioComponent, const UFaceFXActor* Asset, bool IsCompensateForForceFrontXAxsis, bool IsAutoPlaySound, bool IsDisableMorphTargets, bool IsDisableMaterialParameters, bool IsIgnoreFaceFxEvents, const UObject* Caller)
 {
 	if(!SkelMeshComp)
 	{
@@ -53,7 +53,7 @@ bool UFaceFXComponent::Setup(USkeletalMeshComponent* SkelMeshComp, UActorCompone
 	if(Idx == INDEX_NONE)
 	{
 		//add new entry
-		Idx = Entries.Add(FFaceFXEntry(SkelMeshComp, AudioComponent, Asset, IsCompensateForForceFrontXAxsis, IsAutoPlaySound, IsDisableMorphTargets, IsDisableMaterialParameters));
+		Idx = Entries.Add(FFaceFXEntry(SkelMeshComp, AudioComponent, Asset, IsCompensateForForceFrontXAxsis, IsAutoPlaySound, IsDisableMorphTargets, IsDisableMaterialParameters, IsIgnoreFaceFxEvents));
 	}
 	checkf(Idx != INDEX_NONE, TEXT("Internal Error: Unable to add new FaceFX entry."));
 
@@ -273,6 +273,57 @@ void UFaceFXComponent::OnCharacterPlaybackStopped(UFaceFXCharacter* Character, c
 	}
 }
 
+void UFaceFXComponent::OnCharacterAnimationEvent(UFaceFXCharacter* Character, const FFaceFXAnimId& AnimId, float EventTime, const FString& Payload)
+{
+#if FFX_HAS_EVENTS
+	//lookup the linked entry
+	auto Entry = Entries.FindByKey(Character);
+	if (!Entry)
+	{
+		return;
+	}
+
+	OnAnimationEvent.Broadcast(Entry->SkelMeshComp, AnimId.Name, EventTime, Payload);
+
+	//process anim notifiers
+	if (Entry->SkelMeshComp)
+	{
+		UAnimInstance* AnimInstance = Entry->SkelMeshComp->GetAnimInstance();
+		if (!AnimInstance)
+		{
+			return;
+		}
+
+		bool IsAnimNotifierTriggered = false;
+		const FName PayloadName(Payload);
+
+		//trigger anim notifiers
+		if (IAnimClassInterface const* const AnimBlueprintClass = IAnimClassInterface::GetFromClass(AnimInstance->GetClass()))
+		{
+			const TArray<FAnimNotifyEvent>& AnimNotifiers = AnimBlueprintClass->GetAnimNotifies();
+
+			for (const FAnimNotifyEvent& AnimNotifier : AnimNotifiers)
+			{
+				if (AnimNotifier.NotifyName == PayloadName)
+				{
+					AnimInstance->TriggerSingleAnimNotify(&AnimNotifier);
+					IsAnimNotifierTriggered = true;
+				}
+			}
+		}
+
+		//trigger skeleton notifiers
+		if(!IsAnimNotifierTriggered)
+		{
+			FAnimNotifyEvent AnimNotifyEvent;
+			AnimNotifyEvent.NotifyName = PayloadName;
+
+			AnimInstance->TriggerSingleAnimNotify(&AnimNotifyEvent);
+		}
+	}
+#endif //FFX_HAS_EVENTS
+}
+
 void UFaceFXComponent::CreateAllCharacters()
 {
 	if(FApp::IsUnattended())
@@ -319,6 +370,11 @@ void UFaceFXComponent::CreateCharacter(FFaceFXEntry& Entry)
 				//success -> register events
 				Entry.Character->OnPlaybackStartAudio.AddUObject(this, &UFaceFXComponent::OnCharacterAudioStart);
 				Entry.Character->OnPlaybackStopped.AddUObject(this, &UFaceFXComponent::OnCharacterPlaybackStopped);
+
+#if FFX_HAS_EVENTS
+				Entry.Character->OnAnimationEvent.AddUObject(this, &UFaceFXComponent::OnCharacterAnimationEvent);
+				Entry.Character->SetIgnoreFaceFxEvents(Entry.bIsIgnoreFaceFxEvents);
+#endif //FFX_HAS_EVENTS
 
 				Entry.Character->SetAudioComponent(Entry.AudioComp);
 				Entry.Character->SetAutoPlaySound(Entry.bIsAutoPlaySound);
