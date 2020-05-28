@@ -141,6 +141,24 @@ struct IFaceFXAudio
 		return PlaybackState != EPlaybackState::Stopped;
 	}
 
+	/**
+	* Gets the indicator if the audio is currently paused
+	* @returns True if paused, else false
+	*/
+	inline bool IsPaused() const
+	{
+		return PlaybackState != EPlaybackState::Paused;
+	}
+
+	/**
+	* Gets the indicator if the audio is currently stopped
+	* @returns True if stopped, else false
+	*/
+	inline bool IsStopped() const
+	{
+		return PlaybackState == EPlaybackState::Stopped;
+	}
+
 	/** 
 	* Gets the owning component of this audio player 
 	* @returns The owning component or nullptr
