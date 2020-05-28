@@ -68,7 +68,7 @@ bool FFaceFXAudioDefault::Play(float Position, UActorComponent** OutAudioComp)
 		{
 			CurrentProgress = FMath::Clamp(Position, 0.F, Sound->GetDuration());
 			AudioComp->SetSound(Sound);
-			AudioComp->bIsUISound = true;
+			AudioComp->SetPaused(false);
 			AudioComp->Play(CurrentProgress);
 
 			if (OutAudioComp)
@@ -103,21 +103,16 @@ bool FFaceFXAudioDefault::Pause(bool fadeOut)
 	if (UAudioComponent* AudioComp = GetAudioComponent())
 	{
 		AudioComp->Stop();
-		AudioComp->bIsUISound = true;
 		AudioComp->Play(CurrentProgress);
 
-		//Since UE4.17 the engine does not update the audio times anymore within editor worlds. 
-		//Without that the fade out does not work properly anymore as it never stops. Deactivated for now.
-		//See: FAudioDevice::UpdateActiveSoundPlaybackTime
-
-		//if (fadeOut)
-		//{
-		//	//fade out instead of direct stopping to support very short playback durations when play/pausing in one tick (i.e. for scrubbing)
-		//	AudioComp->FadeOut(0.050f, 1.f);
-		//}
-		//else
+		if (fadeOut)
 		{
-			AudioComp->Stop();
+			//fade out instead of direct stopping to support very short playback durations when play/pausing in one tick (i.e. for scrubbing)
+			AudioComp->FadeOut(0.050f, 0.f);
+		}
+		else
+		{
+			AudioComp->SetPaused(true);
 		}
 		return true;
 	}
@@ -156,10 +151,26 @@ bool FFaceFXAudioDefault::Resume()
 		return true;
 	}
 
+	if (!IsPaused())
+	{
+		//not in paused state
+		return false;
+	}
+
+	PlaybackState = EPlaybackState::Playing;
+
 	if (UAudioComponent* AudioComp = GetAudioComponent())
 	{
-		PlaybackState = EPlaybackState::Playing;
-		AudioComp->Play(CurrentProgress);
+		if (AudioComp->bIsPaused)
+		{
+			//audio was paused
+			AudioComp->SetPaused(false);
+		}
+		else
+		{
+			//audio is fading out or was stopped already
+			AudioComp->Play(CurrentProgress);
+		}
 		return true;
 	}
 
