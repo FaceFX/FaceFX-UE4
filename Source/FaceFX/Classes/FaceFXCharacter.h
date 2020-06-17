@@ -84,7 +84,7 @@ public:
 private:
 
 	/** Callback for event notifications from within the FaceFX runtime. These are set within the source asset with a custom string being assigned */
-	static void OnFaceFxEvent(struct ffx_event_context_t* Context, const char* Payload);
+	static void OnFaceFXEvent(const FxEventFiringContext* Context, const char* Payload);
 
 public:
 #endif //FFX_HAS_EVENTS

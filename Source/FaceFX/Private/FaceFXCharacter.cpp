@@ -41,8 +41,8 @@ DECLARE_CYCLE_STAT(TEXT("Process Material Parameters"), STAT_FaceFXProcessMateri
 namespace
 {
 #if !FFX_HAS_EVENTS
-	typedef unsigned int FFX_BONE_SET_FLAGS;
-	typedef int FFX_CHANNEL_FLAGS;
+	typedef unsigned int FxBoneSetFlags;
+	typedef int FxChannelFlags;
 #endif //FFX_HAS_EVENTS
 
 	EFaceFXBlendMode GetBlendMode(const UFaceFXActor* Dataset)
@@ -59,15 +59,15 @@ namespace
 		return BlendMode;
 	}
 
-	FFX_BONE_SET_FLAGS GetBoneSetCreationFlags(EFaceFXBlendMode BlendMode, bool IsCompensateForForceFrontXAxis)
+	FxBoneSetFlags GetBoneSetCreationFlags(EFaceFXBlendMode BlendMode, bool IsCompensateForForceFrontXAxis)
 	{
-		unsigned int BoneSetCreationFlags = BlendMode == EFaceFXBlendMode::Additive ? FFX_USE_OFFSET_XFORMS : FFX_USE_FULL_XFORMS;
+		FxBoneSetFlags BoneSetCreationFlags = BlendMode == EFaceFXBlendMode::Additive ? FFX_USE_OFFSET_XFORMS : FFX_USE_FULL_XFORMS;
 		if (IsCompensateForForceFrontXAxis)
 		{
 			BoneSetCreationFlags |= 0x80000000;
 		}
 
-		return (FFX_BONE_SET_FLAGS)BoneSetCreationFlags;
+		return BoneSetCreationFlags;
 	}
 }
 
@@ -656,16 +656,16 @@ bool UFaceFXCharacter::IsPlayingOrPaused(const UFaceFXAnim* Animation) const
 }
 
 #if FFX_HAS_EVENTS
-void UFaceFXCharacter::OnFaceFxEvent(ffx_event_context_t* Context, const char* Payload)
+void UFaceFXCharacter::OnFaceFXEvent(const FxEventFiringContext* Context, const char* Payload)
 {
-	UE_LOG(LogFaceFX, Verbose, TEXT("UFaceFXCharacter::OnFaceFxEventReceived. FaceFX event received: %s."), ANSI_TO_TCHAR(Payload));
+	UE_LOG(LogFaceFX, Verbose, TEXT("UFaceFXCharacter::OnFaceFXEventReceived. FaceFX event received: %s."), ANSI_TO_TCHAR(Payload));
 
-	if (UFaceFXCharacter* Character = static_cast<UFaceFXCharacter*>(Context->user_data))
+	if (UFaceFXCharacter* Character = static_cast<UFaceFXCharacter*>(Context->pUserData))
 	{
-		if (!Character->bIgnoreFaceFxEvents && Context->actor == Character->ActorHandle && Context->anim == Character->CurrentAnimHandle)
+		if (!Character->bIgnoreFaceFxEvents && Context->actor == Character->ActorHandle && Context->animation == Character->CurrentAnimHandle)
 		{
 			SCOPE_CYCLE_COUNTER(STAT_FaceFXAnimEvents);
-			Character->OnAnimationEvent.Broadcast(Character, Character->GetCurrentAnimationId(), Context->event_time, Payload);
+			Character->OnAnimationEvent.Broadcast(Character, Character->GetCurrentAnimationId(), Context->eventTime, Payload);
 		}
 	}
 }
@@ -699,7 +699,7 @@ bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset, bool IsCompensateForFor
 	//only create the bone set handle if there is bone set data
 	if(ActorData.BonesRawData.Num() > 0)
 	{
-		const FFX_BONE_SET_FLAGS BoneSetCreationFlags = ::GetBoneSetCreationFlags(BlendMode, IsCompensateForForceFrontXAxis);
+		const FxBoneSetFlags BoneSetCreationFlags = ::GetBoneSetCreationFlags(BlendMode, IsCompensateForForceFrontXAxis);
 
 		if (!FaceFX::Check(ffx_create_bone_set_handle((char*)(&ActorData.BonesRawData[0]), ActorData.BonesRawData.Num(), FFX_RUN_INTEGRITY_CHECK, BoneSetCreationFlags, &BoneSetHandle, &Context)))
 		{
@@ -721,11 +721,11 @@ bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset, bool IsCompensateForFor
 
 #if FFX_HAS_EVENTS
 
-	ffx_event_handler_t EventHandler;
-	EventHandler.callback = UFaceFXCharacter::OnFaceFxEvent;
-	EventHandler.user_data = this;
+	FxEventCallbacks EventHandler;
+	EventHandler.pfnEventFired = UFaceFXCharacter::OnFaceFXEvent;
+	EventHandler.pUserData = this;
 
-	if (!FaceFX::Check(ffx_create_actor_handle_with_event_handler((char*)(&ActorData.ActorRawData[0]), ActorData.ActorRawData.Num(), FFX_RUN_INTEGRITY_CHECK, ChannelCount, &ActorHandle, &EventHandler, &Context)))
+	if (fxActorCreateWithEventHandler((const void*)(&ActorData.ActorRawData[0]), ActorData.ActorRawData.Num(), FX_DATA_VALIDATION_ON, ChannelCount, &ActorHandle, &EventHandler, (const FxAllocationCallbacks*)(&Context)) != FX_SUCCESS)
 #else //FFX_HAS_EVENTS
 	if (!FaceFX::Check(ffx_create_actor_handle((char*)(&ActorData.ActorRawData[0]), ActorData.ActorRawData.Num(), FFX_RUN_INTEGRITY_CHECK, ChannelCount, &ActorHandle, &Context)))
 #endif //FFX_HAS_EVENTS
@@ -1098,7 +1098,7 @@ void UFaceFXCharacter::SetAudioComponent(UActorComponent* Component)
 
 bool UFaceFXCharacter::IsAudioStarted()
 {
-	FFX_CHANNEL_FLAGS ChannelFlags[FACEFX_CHANNELS];
+	FxChannelFlags ChannelFlags[FACEFX_CHANNELS];
 	if(FaceFX::Check(ffx_read_frame_channel_flags(FrameState, ChannelFlags, FACEFX_CHANNELS)))
 	{
 		return (ChannelFlags[0] & FFX_START_AUDIO) != 0;

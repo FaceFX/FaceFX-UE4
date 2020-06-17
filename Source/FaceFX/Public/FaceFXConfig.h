@@ -22,7 +22,7 @@
 
 #include "CoreMinimal.h"
 #include "Runtime/Launch/Resources/Version.h"
-#include "FaceFXLib/facefx-runtime-1.6.0/facefx/facefx.h"
+#include "FaceFXLib/facefx-runtime-2.0.0/facefx/facefx.h"
 
 #include "FaceFXConfig.generated.h"
 

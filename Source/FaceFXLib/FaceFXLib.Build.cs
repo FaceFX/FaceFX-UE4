@@ -1,4 +1,4 @@
-/*******************************************************************************
+﻿/*******************************************************************************
   The MIT License (MIT)
   Copyright (c) 2015-2020 OC3 Entertainment, Inc. All rights reserved.
   Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -27,7 +27,7 @@ public class FaceFXLib : ModuleRules
     static bool DebugLibsWarningDisplayed = false;
 
     //The folder in the FaceFX runtime is located in. You need to update this whenever you update your FaceFX runtime
-    public static string RuntimeFolder { get { return "facefx-runtime-1.6.0/facefx"; } }
+    public static string RuntimeFolder { get { return "facefx-runtime-2.0.0/facefx"; } }
 
     public FaceFXLib(ReadOnlyTargetRules Target) : base(Target)
     {
@@ -78,7 +78,7 @@ public class FaceFXLib : ModuleRules
         }
         else if (Target.Platform == UnrealTargetPlatform.Mac)
         {
-            return Path.Combine(new[] { "osx" });
+            return Path.Combine(new[] { "macos" });
         }
         else if (Target.Platform == UnrealTargetPlatform.IOS)
         {
@@ -86,7 +86,7 @@ public class FaceFXLib : ModuleRules
         }
         else if (Target.Platform == UnrealTargetPlatform.Android)
         {
-            return Path.Combine(new[] { "android/c++_shared" });
+            return Path.Combine(new[] { "android" });
         }
         else if (Target.Platform == UnrealTargetPlatform.XboxOne)
         {
@@ -98,7 +98,7 @@ public class FaceFXLib : ModuleRules
         }
         else if (Target.Platform == UnrealTargetPlatform.Switch)
         {
-            return Path.Combine(new[] { "nx", CompilerFolder, "NX64" });
+            return Path.Combine(new[] { "switch", CompilerFolder, "NX64" });
         }
 
         throw new BuildException(System.String.Format("FaceFX: unsupported target platform '{0}'", Target.Platform));
