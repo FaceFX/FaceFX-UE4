@@ -273,7 +273,7 @@ void UFaceFXComponent::OnCharacterPlaybackStopped(UFaceFXCharacter* Character, c
 	}
 }
 
-void UFaceFXComponent::OnCharacterAnimationEvent(UFaceFXCharacter* Character, const FFaceFXAnimId& AnimId, float EventTime, const FString& Payload)
+void UFaceFXComponent::OnCharacterAnimationEvent(UFaceFXCharacter* Character, const FFaceFXAnimId& AnimId, int ChannelIndex, float ChannelTime, float EventTime, const FString& Payload)
 {
 #if FFX_HAS_EVENTS
 	//lookup the linked entry
@@ -283,7 +283,7 @@ void UFaceFXComponent::OnCharacterAnimationEvent(UFaceFXCharacter* Character, co
 		return;
 	}
 
-	OnAnimationEvent.Broadcast(Entry->SkelMeshComp, AnimId.Name, EventTime, Payload);
+	OnAnimationEvent.Broadcast(Entry->SkelMeshComp, AnimId.Name, ChannelIndex, ChannelTime, EventTime, Payload);
 
 	//process anim notifiers
 	if (Entry->SkelMeshComp)

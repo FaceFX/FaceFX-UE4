@@ -66,7 +66,7 @@ public:
 	static FOnFaceFXCharacterPlayAssetIncompatibleSignature OnFaceFXCharacterPlayAssetIncompatible;
 
 #if FFX_HAS_EVENTS
-	DECLARE_MULTICAST_DELEGATE_FourParams(FOnFaceFXCharacterAnimationEventSignature, UFaceFXCharacter* /*Character*/, const FFaceFXAnimId& /*AnimId*/, float /*EventTime*/, const FString& /*Payload*/);
+	DECLARE_MULTICAST_DELEGATE_SixParams(FOnFaceFXCharacterAnimationEventSignature, UFaceFXCharacter* /*Character*/, const FFaceFXAnimId& /*AnimId*/, int /*ChannelIndex*/, float /*ChannelTime*/, float /*EventTime*/, const FString& /*Payload*/);
 
 	/** Event that triggers whenever a playing animation of this character triggers an event from within the FaceFX runtime */
 	FOnFaceFXCharacterAnimationEventSignature OnAnimationEvent;

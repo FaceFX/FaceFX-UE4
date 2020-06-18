@@ -665,7 +665,7 @@ void UFaceFXCharacter::OnFaceFXEvent(const FxEventFiringContext* Context, const 
 		if (!Character->bIgnoreFaceFxEvents && Context->actor == Character->ActorHandle && Context->animation == Character->CurrentAnimHandle)
 		{
 			SCOPE_CYCLE_COUNTER(STAT_FaceFXAnimEvents);
-			Character->OnAnimationEvent.Broadcast(Character, Character->GetCurrentAnimationId(), Context->eventTime, Payload);
+			Character->OnAnimationEvent.Broadcast(Character, Character->GetCurrentAnimationId(), (int)Context->channelIndex, Context->channelTime, Context->eventTime, Payload);
 		}
 	}
 }

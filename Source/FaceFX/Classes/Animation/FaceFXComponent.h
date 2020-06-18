@@ -31,7 +31,7 @@ class UFaceFXCharacter;
 /** The delegate used for various FaceFX events */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnFaceFXEventSignature, USkeletalMeshComponent*, SkelMeshComp, const FName&, AnimId);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnFaceFXAudioStartEventSignature, USkeletalMeshComponent*, SkelMeshComp, const FName&, AnimId, bool, IsAudioStarted, UActorComponent*, AudioComponentStartedOn);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnFaceFXAnimationEventSignature, USkeletalMeshComponent*, SkelMeshComp, const FName&, AnimId, float, EventTime, FString, Payload);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FOnFaceFXAnimationEventSignature, USkeletalMeshComponent*, SkelMeshComp, const FName&, AnimId, int, ChannelIndex, float, ChannelTime, float, EventTime, FString, Payload);
 
 /** A single FaceFX entry for a skelmesh */
 USTRUCT(BlueprintType)
@@ -352,13 +352,15 @@ private:
 
 	/**
 	* Callback for when a FaceFX character instance triggers an animation event from within the FaceFX runtime
-	* @param Character The character instance who triggered the event
-	* @param AnimId The facial animation that is played and triggers the event
-	* @param EventTime The exact time of playback duration at which the event was triggered
+	* @param Character The character instance who triggered the event.
+	* @param AnimId The facial animation that is played and triggers the event.
+	* @param ChannelIndex The index of the channel that the animation is currently playing in.
+	* @param ChannelTime The current playback time in the animation when the event is fired.
+	* @param EventTime The exact time of playback duration at which the event was triggered.
 	* @param Payload The event payload. This is a string assigned to the event directly within the FaceFX asset.
 	*/
 	UFUNCTION()
-	void OnCharacterAnimationEvent(UFaceFXCharacter* Character, const FFaceFXAnimId& AnimId, float EventTime, const FString& Payload);
+	void OnCharacterAnimationEvent(UFaceFXCharacter* Character, const FFaceFXAnimId& AnimId, int ChannelIndex, float ChannelTime, float EventTime, const FString& Payload);
 
 	/** Processes the current list of registered skelmesh components and creates FaceFX characters for the ones that were not processed yet */
 	void CreateAllCharacters();
