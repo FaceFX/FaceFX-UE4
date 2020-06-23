@@ -55,9 +55,9 @@ bool FAssetTypeActions_FaceFXBase::CanExecuteSetSource(const TArray<UObject*> Ob
 /** Determine if we can show details */
 bool FAssetTypeActions_FaceFXBase::CanExecuteShowDetails(const TArray<UObject*> Objects) const
 {
-	if(Objects.Num() == 1)
+	if (Objects.Num() == 1)
 	{
-		if(const UFaceFXAsset* FaceFXAsset = Cast<UFaceFXAsset>(Objects[0]))
+		if (const UFaceFXAsset* FaceFXAsset = Cast<UFaceFXAsset>(Objects[0]))
 		{
 			return FaceFXAsset->IsValid();
 		}
@@ -68,7 +68,7 @@ bool FAssetTypeActions_FaceFXBase::CanExecuteShowDetails(const TArray<UObject*> 
 /** Handler for when SetSource is selected */
 void FAssetTypeActions_FaceFXBase::ExecuteSetSource(TArray<TWeakObjectPtr<UObject>> Objects)
 {
-	if(Objects.Num() == 0)
+	if (Objects.Num() == 0)
 	{
 		//failure
 		FFaceFXEditorTools::ShowError(LOCTEXT("SetSourceFailedMissing","Missing asset."));
@@ -76,14 +76,14 @@ void FAssetTypeActions_FaceFXBase::ExecuteSetSource(TArray<TWeakObjectPtr<UObjec
 	}
 
 	UFaceFXAsset* FaceFXAsset = Cast<UFaceFXAsset>(Objects[0].Get());
-	if(!FaceFXAsset)
+	if (!FaceFXAsset)
 	{
 		//failure
 		FFaceFXEditorTools::ShowError(LOCTEXT("SetSourceFailedInvalid","Invalid asset type."));
 		return;
 	}
 
-	if(IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get())
+	if (IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get())
 	{
 		//get parent window
 		void* ParentWindowWindowHandle = nullptr;
@@ -98,14 +98,14 @@ void FAssetTypeActions_FaceFXBase::ExecuteSetSource(TArray<TWeakObjectPtr<UObjec
 		TArray<FString> Files;
 		DesktopPlatform->OpenFileDialog(ParentWindowWindowHandle, LOCTEXT("OpenAssetTitle", "Select FaceFX Asset").ToString(), TEXT(""), FaceFXAsset->GetAssetPathAbsolute(), FACEFX_FILEFILTER_ASSET_ACTOR, EFileDialogFlags::None, Files);
 
-		if(Files.Num() <= 0)
+		if (Files.Num() <= 0)
 		{
 			//no file selected
 			FFaceFXEditorTools::ShowError(LOCTEXT("SetSourceFailedCancelled", "FaceFX asset selection cancelled."));
 			return;
 		}
 
-		if(UFaceFXAnim* FaceFXAnim = Cast<UFaceFXAnim>(FaceFXAsset))
+		if (UFaceFXAnim* FaceFXAnim = Cast<UFaceFXAnim>(FaceFXAsset))
 		{
 			//remove previous animation id in case of an UFaceFXAnim so the init phase will ask the user for an animation of the new source
 			FaceFXAnim->GetId().Reset();
@@ -115,7 +115,7 @@ void FAssetTypeActions_FaceFXBase::ExecuteSetSource(TArray<TWeakObjectPtr<UObjec
 		FFaceFXImportResultSet ResultSet;
 
         FCompilationBeforeDeletionDelegate DeletionDelegate;
-        if(FaceFXAsset->IsA(UFaceFXActor::StaticClass()) && UFaceFXEditorConfig::Get().IsImportAnimationOnActorImport())
+        if (FaceFXAsset->IsA(UFaceFXActor::StaticClass()) && UFaceFXEditorConfig::Get().IsImportAnimationOnActorImport())
         {
             //actor assets may lead to changed animation sets
             DeletionDelegate = FCompilationBeforeDeletionDelegate::CreateStatic(&UFaceFXActorFactory::OnFxActorCompilationBeforeDelete);
@@ -145,12 +145,12 @@ void FAssetTypeActions_FaceFXBase::ExecuteReimport(TArray<TWeakObjectPtr<UObject
 
 	for (const TWeakObjectPtr<UObject>& Object : Objects)
 	{
-		if(UFaceFXAsset* FaceFXAsset = Cast<UFaceFXAsset>(Object.Get()))
+		if (UFaceFXAsset* FaceFXAsset = Cast<UFaceFXAsset>(Object.Get()))
 		{
 			FFaceFXImportResult& Result = ResultSet.GetOrAdd(FaceFXAsset);
 
 			FCompilationBeforeDeletionDelegate DeletionDelegate;
-			if(FaceFXAsset->IsA(UFaceFXActor::StaticClass()) && UFaceFXEditorConfig::Get().IsImportAnimationOnActorImport())
+			if (FaceFXAsset->IsA(UFaceFXActor::StaticClass()) && UFaceFXEditorConfig::Get().IsImportAnimationOnActorImport())
 			{
 				//actor assets may lead to changed animation sets
 				DeletionDelegate = FCompilationBeforeDeletionDelegate::CreateRaw(this, &FAssetTypeActions_FaceFXBase::OnReimportBeforeDelete);
@@ -169,7 +169,7 @@ void FAssetTypeActions_FaceFXBase::ExecuteReimport(TArray<TWeakObjectPtr<UObject
 
 void FAssetTypeActions_FaceFXBase::OnReimportBeforeDelete(class UObject* Asset, const FString& CompilationFolder, bool LoadResult, FFaceFXImportResult& OutResultMessages)
 {
-	if(LoadResult)
+	if (LoadResult)
 	{
 		UFaceFXActorFactory::HandleFaceFXActorCreated(CastChecked<UFaceFXActor>(Asset), CompilationFolder, OutResultMessages);
 	}
@@ -178,7 +178,7 @@ void FAssetTypeActions_FaceFXBase::OnReimportBeforeDelete(class UObject* Asset, 
 /** Handler for when ShowDetails is selected */
 void FAssetTypeActions_FaceFXBase::ExecuteShowDetails(TArray<TWeakObjectPtr<UObject>> Objects)
 {
-	if(Objects.Num() != 1 || !GEditor)
+	if (Objects.Num() != 1 || !GEditor)
 	{
 		return;
 	}
@@ -187,7 +187,7 @@ void FAssetTypeActions_FaceFXBase::ExecuteShowDetails(TArray<TWeakObjectPtr<UObj
 	FString Details;
 	FaceFXAsset->GetDetails(Details);
 
-	if(!Details.IsEmpty())
+	if (!Details.IsEmpty())
 	{
 
 		FText Message = FText::FromString(Details);
@@ -204,22 +204,22 @@ void FAssetTypeActions_FaceFXBase::ExecuteOpenFolder(TArray<TWeakObjectPtr<UObje
 
 	for (const TWeakObjectPtr<UObject>& Object : Objects)
 	{
-		if(UFaceFXAsset* FaceFXAsset = Cast<UFaceFXAsset>(Object.Get()))
+		if (UFaceFXAsset* FaceFXAsset = Cast<UFaceFXAsset>(Object.Get()))
 		{
-			if(FaceFXAsset->IsValid())
+			if (FaceFXAsset->IsValid())
 			{
 				const FString PathAbs = FaceFXAsset->GetAssetPathAbsolute();
-				if(FPaths::FileExists(PathAbs))
+				if (FPaths::FileExists(PathAbs))
 				{
 #if PLATFORM_WINDOWS
 					//fire and forget
 					FPlatformProcess::CreateProc(TEXT("explorer.exe"), *FString::Printf(TEXT("/select,\"%s\""), *PathAbs.Replace(TEXT("/"), TEXT("\\"))), true, false, false, nullptr, 0, nullptr, nullptr);
 #elif PLATFORM_MAC
                     int32 lastSlashIdx;
-                    if(PathAbs.FindLastChar('/', lastSlashIdx))
+                    if (PathAbs.FindLastChar('/', lastSlashIdx))
                     {
                         const FString Folder = PathAbs.LeftChop(PathAbs.Len()-lastSlashIdx-1);
-                        if(Folder.Len() > 0)
+                        if (Folder.Len() > 0)
                         {
 					        //fire and forget
 					        FPlatformProcess::CreateProc(TEXT("/usr/bin/open"), *FString::Printf(TEXT("\"%s\""), *Folder), true, false, false, nullptr, 0, nullptr, nullptr);
@@ -237,7 +237,7 @@ void FAssetTypeActions_FaceFXBase::ExecuteOpenFolder(TArray<TWeakObjectPtr<UObje
 		}
 	}
 
-	if(!Errors.IsEmpty())
+	if (!Errors.IsEmpty())
 	{
 		//we have some errors
 		FFaceFXEditorTools::ShowError(FText::FromString(Errors));
@@ -251,7 +251,7 @@ bool FAssetTypeActions_FaceFXBase::CanExecuteOpenFolder(const TArray<UObject*> O
 	{
 		if (UFaceFXAsset* FaceFXAsset = Cast<UFaceFXAsset>(Object.Get()))
 		{
-			if(FaceFXAsset->IsAssetPathSet())
+			if (FaceFXAsset->IsAssetPathSet())
 			{
 				return true;
 			}

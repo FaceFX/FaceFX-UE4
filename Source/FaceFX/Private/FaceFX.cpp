@@ -19,7 +19,7 @@
 *******************************************************************************/
 
 #include "FaceFX.h"
-#include "FaceFXContext.h"
+#include "FaceFXAllocator.h"
 #include "FaceFXConfig.h"
 #include "FaceFXAnim.h"
 #include "Modules/ModuleManager.h"
@@ -36,21 +36,16 @@ DEFINE_LOG_CATEGORY(LogFaceFX);
 
 FString FaceFX::GetVersion()
 {
-	char ffx_version_string[32];
-	ffx_strversion(ffx_version_string, 32);
+	char VersionString[32];
 
-	return FString(ANSI_TO_TCHAR(ffx_version_string));
-}
+	FxResult Result = fxGetVersionString(VersionString, 32);
 
-FString FaceFX::GetPlatform()
-{
-	ffx_platform_info_t ffx_platform;
-	ffx_platform_info(&ffx_platform);
+	if (Result != FX_SUCCESS)
+	{
+		UE_LOG(LogFaceFX, Error, TEXT("FaceFX::GetVersion. Unable to get version string. %s"), *FaceFX::GetFaceFXResultString(Result));
+	}
 
-	char ffx_platform_string[32];
-	ffx_strplatform(&ffx_platform, ffx_platform_string, 32);
-
-	return FString(ANSI_TO_TCHAR(ffx_platform_string));
+	return FString(ANSI_TO_TCHAR(VersionString));
 }
 
 FStreamableManager& FaceFX::GetStreamer()
@@ -60,63 +55,72 @@ FStreamableManager& FaceFX::GetStreamer()
 	return s_streamer;
 }
 
-bool FaceFX::Check(int32 Value)
+FString FaceFX::GetFaceFXResultString(FxResult Result)
 {
-	return Value != 0 && (ffx_errno() == EOK);
+	switch (Result)
+	{
+		case FX_SUCCESS:                    return TEXT("Success"); break;
+		case FX_ERROR_INVALID_ARGUMENT:     return TEXT("Invalid Argument"); break;
+		case FX_ERROR_DATA:                 return TEXT("Invalid Data"); break;
+		case FX_ERROR_INCOMPATIBLE_VERSION: return TEXT("Incompatible Data Version"); break;
+		case FX_ERROR_INCOMPATIBLE_TYPE:    return TEXT("Incompatible Type"); break;
+		case FX_ERROR_SIZE:                 return TEXT("Invalid Data Size"); break;
+		case FX_ERROR_RANGE:                return TEXT("Range Error"); break;
+		case FX_ERROR_VALIDATION_FAILED:    return TEXT("Data Validation Failed (Corrupt Data)"); break;
+		case FX_ERROR_INCOMPATIBLE_HANDLE:  return TEXT("Incompatible Handles"); break;
+		case FX_ERROR_ZOMBIE_HANDLE:        return TEXT("Zombie Handle"); break;
+		case FX_ERROR_NOT_PERMITTED:        return TEXT("Operation Not Permitted"); break;
+		case FX_ERROR_UNKNOWN:              return TEXT("Unknown Error"); break;
+		default: 							return TEXT("Unexpected FxResult Value"); break;
+	}
 }
 
-FString FaceFX::GetFaceFXError()
+FxAnimation FaceFX::LoadAnimation(const FFaceFXAnimData& AnimData)
 {
-	char Msg[128] = { 0 };
-	if (ffx_strerror(ffx_errno(), Msg, 128))
-	{
-		return FString(Msg);
-	}
-	else
-	{
-		return TEXT("Unable to retrieve additional FaceFX error message.");
-	}
-}
-
-ffx_anim_handle_t* FaceFX::LoadAnimation(const FFaceFXAnimData& AnimData)
-{
-	//load animations
 	if (AnimData.RawData.Num() == 0)
 	{
-		UE_LOG(LogFaceFX, Warning, TEXT("FaceFX::LoadAnimation. Missing facefx animation data."));
-		return nullptr;
+		UE_LOG(LogFaceFX, Warning, TEXT("FaceFX::LoadAnimation. Missing FaceFX animation data."));
+		return FX_INVALID_ANIMATION;
 	}
 
-	ffx_context_t Context = FFaceFXContext::CreateContext();
+	FxAllocationCallbacks Allocator = FFaceFXAllocator::CreateAllocator();
 
-	ffx_anim_handle_t* NewHandle = nullptr;
-	if (!FaceFX::Check(ffx_create_anim_handle((char*)(&AnimData.RawData[0]), AnimData.RawData.Num(), FFX_RUN_INTEGRITY_CHECK, &NewHandle, &Context)) || !NewHandle)
+	FxAnimation Animation = FX_INVALID_ANIMATION;
+
+	FxResult Result = fxAnimationCreate(&AnimData.RawData[0], AnimData.RawData.Num(), FX_DATA_VALIDATION_ON, &Animation, &Allocator);
+
+	if (Result != FX_SUCCESS)
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("FaceFX::LoadAnimation. Unable to create animation FaceFX handle. %s"), *FaceFX::GetFaceFXError());
+		UE_LOG(LogFaceFX, Error, TEXT("FaceFX::LoadAnimation. Unable to create FaceFX animation. %s"), *FaceFX::GetFaceFXResultString(Result));
 	}
 
-	return NewHandle;
+	return Animation;
 }
 
-bool FaceFX::GetAnimationBounds(const UFaceFXAnim* Animation, float& OutStart, float& OutEnd)
+bool FaceFX::GetAnimationBounds(const UFaceFXAnim* pAnimation, float& Start, float& End)
 {
-	ffx_anim_handle_t* AnimHandle = FaceFX::LoadAnimation(Animation->GetData());
-	if (!AnimHandle)
+	FxAnimation Animation = FaceFX::LoadAnimation(pAnimation->GetData());
+
+	if (Animation == FX_INVALID_ANIMATION)
 	{
 		return false;
 	}
 
-	bool Result = true;
-	if (!FaceFX::Check(ffx_get_anim_bounds(AnimHandle, &OutStart, &OutEnd)))
+	FxResult BoundsResult = fxAnimationGetBounds(Animation, &Start, &End);
+
+	if (BoundsResult != FX_SUCCESS)
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("FaceFX::GetAnimationBounds. FaceFX call <ffx_get_anim_bounds> failed. %s. Asset: %s"), *FaceFX::GetFaceFXError(), *GetNameSafe(Animation));
-		Result = false;
+		UE_LOG(LogFaceFX, Error, TEXT("FaceFX::GetAnimationBounds. FaceFX call <fxAnimationGetBounds> failed. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(BoundsResult), *GetNameSafe(pAnimation));
 	}
 
-	ffx_destroy_anim_handle(&AnimHandle, nullptr, nullptr);
-	AnimHandle = nullptr;
+	FxResult DestroyResult = fxAnimationDestroy(&Animation, nullptr, nullptr);
 
-	return Result;
+	if (DestroyResult != FX_SUCCESS)
+	{
+		UE_LOG(LogFaceFX, Error, TEXT("FaceFX::GetAnimationBounds. FaceFX call <fxAnimationDestroy> failed. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(DestroyResult), *GetNameSafe(pAnimation));
+	}
+
+	return (BoundsResult == FX_SUCCESS && DestroyResult == FX_SUCCESS);
 }
 
 #if WITH_EDITOR
@@ -143,7 +147,7 @@ class FFaceFXModule : public FDefaultModuleImpl
 {
 	virtual void StartupModule() override
 	{
-		if(!GIsEditor)
+		if (!GIsEditor)
 		{
 			//Workaround for the circumstance that we have the anim graph node inside an editor only plugin and we can't load the plugin for editor AND uncooked but not during cooked
 			//Instead we explicitly load the plugin for this scenario when we play with uncooked standalone

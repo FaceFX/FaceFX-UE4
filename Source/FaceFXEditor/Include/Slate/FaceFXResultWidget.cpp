@@ -98,15 +98,15 @@ FReply FFaceFXAssetRefWidget::OnClicked(FSoftObjectPath InAssetRef)
 FFaceFXResultWidget::~FFaceFXResultWidget()
 {
 	const int32 IdxOpenWidget = s_OpenInstances.IndexOfByKey(this);
-	if(IdxOpenWidget != INDEX_NONE)
+	if (IdxOpenWidget != INDEX_NONE)
 	{
 		s_OpenInstances.RemoveAtSwap(IdxOpenWidget);
 	}
 
 	//run extra cleanup round
-	for(int32 i=0; i<s_OpenInstances.Num(); ++i)
+	for (int32 i=0; i<s_OpenInstances.Num(); ++i)
 	{
-		if(!s_OpenInstances[i].IsValid())
+		if (!s_OpenInstances[i].IsValid())
 		{
 			s_OpenInstances.RemoveAt(i);
 			--i;
@@ -165,11 +165,11 @@ void FFaceFXResultWidget::Construct(const FArguments& Args)
 
 	//fill list with entries from result
 	const TArray<FFaceFXImportResult>& ResultSetEntries = Args._Result.GetEntries();
-	for(const FFaceFXImportResult& ResultSetEntry : ResultSetEntries)
+	for (const FFaceFXImportResult& ResultSetEntry : ResultSetEntries)
 	{
 		const TArray<FFaceFXImportActionResult>& ResultEntries = ResultSetEntry.GetEntries();
 
-		for(const FFaceFXImportActionResult& ResultEntry : ResultEntries)
+		for (const FFaceFXImportActionResult& ResultEntry : ResultEntries)
 		{
 			ListRowEntry* NewEntry = new ListRowEntry();
 			NewEntry->ImportRootAsset = ResultSetEntry.GetImportRootAsset();
@@ -190,16 +190,16 @@ TSharedRef<ITableRow> FFaceFXResultWidget::GenerateRow(TSharedPtr<ListRowEntry> 
 bool FFaceFXResultWidget::MergeResult(const FFaceFXImportResultSet& Data)
 {
 	const TArray<FFaceFXImportResult>& ResultSetEntries = Data.GetEntries();
-	if(ResultSetEntries.Num() == 0)
+	if (ResultSetEntries.Num() == 0)
 	{
 		return true;
 	}
 
-	for(const FFaceFXImportResult& ResultSetEntry : ResultSetEntries)
+	for (const FFaceFXImportResult& ResultSetEntry : ResultSetEntries)
 	{
 		const TArray<FFaceFXImportActionResult>& ResultEntries = ResultSetEntry.GetEntries();
 
-		for(const FFaceFXImportActionResult& ResultEntry : ResultEntries)
+		for (const FFaceFXImportActionResult& ResultEntry : ResultEntries)
 		{
 			ListRowEntry* NewEntry = new ListRowEntry();
 			NewEntry->ImportRootAsset = ResultSetEntry.GetImportRootAsset();
@@ -218,9 +218,9 @@ bool FFaceFXResultWidget::MergeResult(const FFaceFXImportResultSet& Data)
 void FFaceFXResultWidget::UpdateTitle()
 {
 	SWindow* Window = FSlateApplication::Get().FindWidgetWindow(AsShared()).Get();
-	if(Window)
+	if (Window)
 	{
-		if(!bWindowTitleSet)
+		if (!bWindowTitleSet)
 		{
 			WindowTitle = Window->GetTitle();
 			bWindowTitleSet = true;
@@ -231,11 +231,11 @@ void FFaceFXResultWidget::UpdateTitle()
 		int32 NumErrors = 0;
 
 		//locate all errors/warnings
-		for(const TSharedPtr<ListRowEntry>& ListViewEntry : ListViewEntries)
+		for (const TSharedPtr<ListRowEntry>& ListViewEntry : ListViewEntries)
 		{
-			if(const ListRowEntry* Entry = ListViewEntry.Get())
+			if (const ListRowEntry* Entry = ListViewEntry.Get())
 			{
-				switch(Entry->Result.GetResultType())
+			 	switch (Entry->Result.GetResultType())
 				{
 				case FFaceFXImportActionResult::ResultType::Success: ++NumSuccesses; break;
 				case FFaceFXImportActionResult::ResultType::Warning: ++NumWarnings; break;
@@ -264,7 +264,7 @@ EAppReturnType::Type FFaceFXResultWidget::OpenDialog(const FText& InTitle, bool 
 	//add instance to the open list
 	s_OpenInstances.Add(FResultWidgetInstance(Window, AsShared(), InTitle));
 
-	if(ShowAsModal)
+	if (ShowAsModal)
 	{
 		GEditor->EditorAddModalWindow(Window);
 	}
@@ -286,19 +286,19 @@ EAppReturnType::Type FFaceFXResultWidget::Create(const FText& InTitle, const FFa
 		return EAppReturnType::Ok;
 	}
 
-	if(ResultSet.GetEntries().Num() == 0)
+	if (ResultSet.GetEntries().Num() == 0)
 	{
 		//nothing to display
 		return EAppReturnType::Ok;
 	}
 
 	//Check if there is another result widget open for the same type of results. If so merge them. Used to prevent multiple windows opening up after mass imports via drag'n'drop
-	if(MergeWithOpenWindow)
+	if (MergeWithOpenWindow)
 	{
-		if(FResultWidgetInstance* ExistingWidget = s_OpenInstances.FindByKey(InTitle))
+		if (FResultWidgetInstance* ExistingWidget = s_OpenInstances.FindByKey(InTitle))
 		{
 			FFaceFXResultWidget* ExistingResultWidget = ExistingWidget->GetResultWidget();
-			if(ExistingResultWidget && ExistingResultWidget->MergeResult(ResultSet))
+			if (ExistingResultWidget && ExistingResultWidget->MergeResult(ResultSet))
 			{
 				return EAppReturnType::Ok;
 			}
@@ -315,15 +315,15 @@ FReply FFaceFXResultWidget::OnRollbackChanges()
 	TArray<TSharedPtr<ListRowEntry>> SelectedEntries = ListView->GetSelectedItems();
 	TArray<TSharedPtr<ListRowEntry>> SelectedCreateEntries;
 
-	for(TSharedPtr<ListRowEntry>& Entry : SelectedEntries)
+	for (TSharedPtr<ListRowEntry>& Entry : SelectedEntries)
 	{
-		if(Entry->Result.CanRollback())
+		if (Entry->Result.CanRollback())
 		{
 			SelectedCreateEntries.Add(Entry);
 		}
 	}
 
-	if(SelectedCreateEntries.Num() == 0)
+	if (SelectedCreateEntries.Num() == 0)
 	{
 		return FReply::Handled();
 	}
@@ -333,13 +333,13 @@ FReply FFaceFXResultWidget::OnRollbackChanges()
 		FText::Format(LOCTEXT("ImportRollbackImport", "Are you sure to rollback the changes on the {0} selected create actions ?"), FText::FromString(FString::FromInt(SelectedCreateEntries.Num()))),
 		&DialogTitle);
 
-	if(Result == EAppReturnType::Yes)
+	if (Result == EAppReturnType::Yes)
 	{
 		int32 RollbackSuccessCount = 0;
 
-		for(TSharedPtr<ListRowEntry>& Entry : SelectedCreateEntries)
+		for (TSharedPtr<ListRowEntry>& Entry : SelectedCreateEntries)
 		{
-			if(Entry->Result.Rollback())
+			if (Entry->Result.Rollback())
 			{
 				ListViewEntries.Remove(Entry);
 				++RollbackSuccessCount;
@@ -364,19 +364,19 @@ void FFaceFXResultWidget::ListRowWidget::Construct(const FArguments& InArgs, con
 
 TSharedRef<SWidget> FFaceFXResultWidget::ListRowWidget::GenerateWidgetForColumn(const FName& ColumnName)
 {
-	if(ColumnName == s_ColIdRootImportAsset)
+	if (ColumnName == s_ColIdRootImportAsset)
 	{
 		return SNew(FFaceFXAssetRefWidget).AssetRef(Entry->ImportRootAsset.ToSoftObjectPath());
 	}
-	else if(ColumnName == s_ColIdImportAsset)
+	else if (ColumnName == s_ColIdImportAsset)
 	{
 		return SNew(FFaceFXAssetRefWidget).AssetRef(Entry->Result.GetImportAsset().ToSoftObjectPath());
 	}
-	else if(ColumnName == s_ColIdAsset)
+	else if (ColumnName == s_ColIdAsset)
 	{
 		return SNew(FFaceFXAssetRefWidget).AssetRef(Entry->Result.GetAsset().ToSoftObjectPath());
 	}
-	else if(ColumnName == s_ColIdSuccess)
+	else if (ColumnName == s_ColIdSuccess)
 	{
 		static const FSlateBrush* s_BrushSuccess = FFaceFXStyle::GetBrushStateIconSuccess();
 		static const FSlateBrush* s_BrushWarning = FFaceFXStyle::GetBrushStateIconWarning();
@@ -387,7 +387,7 @@ TSharedRef<SWidget> FFaceFXResultWidget::ListRowWidget::GenerateWidgetForColumn(
 
 		const FSlateBrush* Brush = nullptr;
 		const FText* Tooltip = nullptr;
-		switch(Entry->Result.GetResultType())
+		switch (Entry->Result.GetResultType())
 		{
 		case FFaceFXImportActionResult::ResultType::Success:
 			{
@@ -418,10 +418,10 @@ TSharedRef<SWidget> FFaceFXResultWidget::ListRowWidget::GenerateWidgetForColumn(
 				SNew(SImage).Image(Brush).ToolTip(SNew(SToolTip).Text(Tooltip ? *Tooltip : FText::GetEmpty()))
 			];
 	}
-	else if(ColumnName == s_ColIdAction)
+	else if (ColumnName == s_ColIdAction)
 	{
 		FText Action;
-		switch(Entry->Result.GetType())
+		switch (Entry->Result.GetType())
 		{
 		case FFaceFXImportActionResult::ActionType::None: Action = LOCTEXT("ResultActionTypeNone","-"); break;
 		case FFaceFXImportActionResult::ActionType::Create :  Action = LOCTEXT("ResultActionTypeCreate","Create"); break;
@@ -435,7 +435,7 @@ TSharedRef<SWidget> FFaceFXResultWidget::ListRowWidget::GenerateWidgetForColumn(
 				SNew(STextBlock).Text(Action)
 			];
 	}
-	else if(ColumnName == s_ColIdMessage)
+	else if (ColumnName == s_ColIdMessage)
 	{
 		const FText& Message = Entry->Result.GetMessage();
 		return SNew(SBox)

@@ -22,6 +22,7 @@
 
 #include "CoreMinimal.h"
 #include "Runtime/Launch/Resources/Version.h"
+#define FX_NO_1_6_API_COMPATIBILITY
 #include "FaceFXLib/facefx-runtime-2.0.0/facefx/facefx.h"
 
 #include "FaceFXConfig.generated.h"
@@ -86,9 +87,6 @@
 #error                                                                         \
     "FaceFX Sequencer support requires Unreal Engine 4.12 or higher. Please update your engine or use a previous version of the plugin.";
 #endif
-
-// Support for event notifiers coming from within the FaceFX runtime
-#define FFX_HAS_EVENTS (FFX_VERSION >= FFX_MAKE_VERSION(1,7,0))
 
 /** Blend mode for FaceFX runtime */
 UENUM()

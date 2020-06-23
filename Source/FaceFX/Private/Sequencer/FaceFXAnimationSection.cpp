@@ -106,7 +106,7 @@ void UFaceFXAnimationSection::GetSnapTimes(TArray<FFrameNumber>& OutSnapTimes, b
 	}
 
 	//Don't consider any infinite sections
-	if(!HasStartFrame() || !HasEndFrame())
+	if (!HasStartFrame() || !HasEndFrame())
 	{
 		return;
 	}
@@ -194,7 +194,7 @@ FFrameNumber UFaceFXAnimationSection::GetAnimationDurationInFrames(const AActor*
 		return 0;
 	}
 
-	if(!HasStartFrame() || !HasEndFrame())
+	if (!HasStartFrame() || !HasEndFrame())
 	{
 		return 0;
 	}

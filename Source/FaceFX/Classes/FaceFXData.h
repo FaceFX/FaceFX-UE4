@@ -90,7 +90,7 @@ struct FFaceFXAnimId
 	bool SetFromIdString(const FString& Id)
 	{
 		FString GroupS, IdS;
-		if(ParseIdString(Id, GroupS, IdS))
+		if (ParseIdString(Id, GroupS, IdS))
 		{
 			Name = FName(*IdS);
 			Group = FName(*GroupS);

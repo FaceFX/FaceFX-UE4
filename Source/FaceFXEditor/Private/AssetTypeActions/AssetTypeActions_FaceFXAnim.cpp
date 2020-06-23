@@ -128,27 +128,27 @@ void FAssetTypeActions_FaceFXAnim::ExecuteUnlink(TArray<TWeakObjectPtr<UObject>>
 
 void FAssetTypeActions_FaceFXAnim::OnAssetLinkChosen(const TArray<FAssetData>& SelectedAssets, TArray<TWeakObjectPtr<UObject>> SelectedObjects)
 {
-	if(SelectedAssets.Num() == 0 || SelectedObjects.Num() == 0)
+	if (SelectedAssets.Num() == 0 || SelectedObjects.Num() == 0)
 	{
 		return;
 	}
 
-	for(const FAssetData& Asset : SelectedAssets)
+	for (const FAssetData& Asset : SelectedAssets)
 	{
 		bool bHasChanged = false;
 
-		if(UFaceFXActor* FaceFXActor = Cast<UFaceFXActor>(Asset.GetAsset()))
+		if (UFaceFXActor* FaceFXActor = Cast<UFaceFXActor>(Asset.GetAsset()))
 		{
-			for(auto& Object : SelectedObjects)
+			for (auto& Object : SelectedObjects)
 			{
-				if(UFaceFXAnim* AnimSet = Cast<UFaceFXAnim>(Object.Get()))
+				if (UFaceFXAnim* AnimSet = Cast<UFaceFXAnim>(Object.Get()))
 				{
 					FaceFXActor->LinkTo(AnimSet);
 					bHasChanged = true;
 				}
 			}
 
-			if(bHasChanged)
+			if (bHasChanged)
 			{
 				FaceFXActor->GetOutermost()->MarkPackageDirty();
 			}
@@ -158,27 +158,27 @@ void FAssetTypeActions_FaceFXAnim::OnAssetLinkChosen(const TArray<FAssetData>& S
 
 void FAssetTypeActions_FaceFXAnim::OnAssetUnlinkChosen(const TArray<FAssetData>& SelectedAssets, TArray<TWeakObjectPtr<UObject>> SelectedObjects)
 {
-	if(SelectedAssets.Num() == 0 || SelectedObjects.Num() == 0)
+	if (SelectedAssets.Num() == 0 || SelectedObjects.Num() == 0)
 	{
 		return;
 	}
 
-	for(const FAssetData& Asset : SelectedAssets)
+	for (const FAssetData& Asset : SelectedAssets)
 	{
 		bool bHasChanged = false;
 
-		if(UFaceFXActor* FaceFXActor = Cast<UFaceFXActor>(Asset.GetAsset()))
+		if (UFaceFXActor* FaceFXActor = Cast<UFaceFXActor>(Asset.GetAsset()))
 		{
-			for(auto& Object : SelectedObjects)
+			for (auto& Object : SelectedObjects)
 			{
-				if(UFaceFXAnim* AnimSet = Cast<UFaceFXAnim>(Object.Get()))
+				if (UFaceFXAnim* AnimSet = Cast<UFaceFXAnim>(Object.Get()))
 				{
 					FaceFXActor->UnlinkFrom(AnimSet);
 					bHasChanged = true;
 				}
 			}
 
-			if(bHasChanged)
+			if (bHasChanged)
 			{
 				FaceFXActor->GetOutermost()->MarkPackageDirty();
 			}

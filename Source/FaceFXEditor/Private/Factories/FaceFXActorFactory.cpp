@@ -62,7 +62,7 @@ UObject* UFaceFXActorFactory::FactoryCreateNew(UClass* InClass, UObject* InParen
 
 void UFaceFXActorFactory::OnFxActorCompilationBeforeDelete(UObject* Asset, const FString& CompilationFolder, bool LoadResult, FFaceFXImportResult& OutResultMessages)
 {
-	if(LoadResult && UFaceFXEditorConfig::Get().IsImportAnimationOnActorImport())
+	if (LoadResult && UFaceFXEditorConfig::Get().IsImportAnimationOnActorImport())
 	{
 		//generate proper factory
 		UFaceFXAnimFactory* Factory = NewObject<UFaceFXAnimFactory>(UFaceFXAnimFactory::StaticClass());
@@ -79,7 +79,7 @@ void UFaceFXActorFactory::HandleFaceFXActorCreated(UFaceFXActor* Asset, const FS
 {
 	check(Asset);
 
-	if(!UFaceFXEditorConfig::Get().IsImportAnimationOnActorImport())
+	if (!UFaceFXEditorConfig::Get().IsImportAnimationOnActorImport())
 	{
 		//animation import disabled
 		return;
@@ -87,7 +87,7 @@ void UFaceFXActorFactory::HandleFaceFXActorCreated(UFaceFXActor* Asset, const FS
 
 	//asset successfully loaded -> ask for importing Animations as well or not
 	TArray<FString> AnimGroups;
-	if(FFaceFXEditorTools::GetAnimationGroupsInFolder(CompilationFolder, &AnimGroups) && AnimGroups.Num() > 0)
+	if (FFaceFXEditorTools::GetAnimationGroupsInFolder(CompilationFolder, &AnimGroups) && AnimGroups.Num() > 0)
 	{
 		IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
 
@@ -95,7 +95,7 @@ void UFaceFXActorFactory::HandleFaceFXActorCreated(UFaceFXActor* Asset, const FS
 		Asset->GetOutermost()->GetName(PackageName);
 
 		//import additional animations
-		for(const FString& Group : AnimGroups)
+		for (const FString& Group : AnimGroups)
 		{
 			FFaceFXEditorTools::ReimportOrCreateAnimAssets(CompilationFolder, Group, PackageName, Asset, AssetTools, OutResultMessages, Factory);
 		}
@@ -116,10 +116,10 @@ bool OnPreInitialization(UFaceFXAsset* Asset, FString& OutFaceFXAsset, FFaceFXIm
 
 UObject* UFaceFXActorFactory::CreateNew(UClass* Class, UObject* InParent, const FName& Name, EObjectFlags Flags, const FCompilationBeforeDeletionDelegate& BeforeDeletionCallback, FString FaceFXAsset)
 {
-	if(FaceFXAsset.IsEmpty())
+	if (FaceFXAsset.IsEmpty())
 	{
 		//fetch source file
-		if(IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get())
+		if (IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get())
 		{
 			//get parent window
 			void* ParentWindowWindowHandle = nullptr;
@@ -136,7 +136,7 @@ UObject* UFaceFXActorFactory::CreateNew(UClass* Class, UObject* InParent, const 
 			TArray<FString> Files;
 			DesktopPlatform->OpenFileDialog(ParentWindowWindowHandle, LOCTEXT("OpenAssetTitle", "Select FaceFX Asset").ToString(), TEXT(""), LastCreatePath, FACEFX_FILEFILTER_ASSET_ACTOR, EFileDialogFlags::None, Files);
 
-			if(Files.Num() <= 0)
+			if (Files.Num() <= 0)
 			{
 				//no file selected
 				FFaceFXEditorTools::ShowError(LOCTEXT("CreateFail", "Import of FaceFX asset cancelled."));
@@ -152,7 +152,7 @@ UObject* UFaceFXActorFactory::CreateNew(UClass* Class, UObject* InParent, const 
 		}
 	}
 
-	if(!FaceFXAsset.IsEmpty())
+	if (!FaceFXAsset.IsEmpty())
 	{
 		GWarn->BeginSlowTask(LOCTEXT("ImportProgress", "Importing FaceFX Assets..."), true);
 
@@ -162,7 +162,7 @@ UObject* UFaceFXActorFactory::CreateNew(UClass* Class, UObject* InParent, const 
 		//initialize asset
 		FFaceFXImportResultSet ResultSet;
 
-		if(OnPreInitialization(NewAsset, FaceFXAsset, ResultSet) && FFaceFXEditorTools::InitializeFromFile(NewAsset, FaceFXAsset, ResultSet.GetOrAdd(NewAsset), BeforeDeletionCallback, true))
+		if (OnPreInitialization(NewAsset, FaceFXAsset, ResultSet) && FFaceFXEditorTools::InitializeFromFile(NewAsset, FaceFXAsset, ResultSet.GetOrAdd(NewAsset), BeforeDeletionCallback, true))
 		{
 			//success
 			FFaceFXEditorTools::SavePackage(NewAsset->GetOutermost());

@@ -267,13 +267,13 @@ struct FFaceFXImportResult
 	inline FFaceFXImportActionResult::ResultType GetMaxErrorLevel() const
 	{
 		FFaceFXImportActionResult::ResultType Result = FFaceFXImportActionResult::ResultType::Success;
-		for(const FFaceFXImportActionResult& Entry : Entries)
+		for (const FFaceFXImportActionResult& Entry : Entries)
 		{
 			const FFaceFXImportActionResult::ResultType EntryResult = Entry.GetResultType();
-			if(Result < EntryResult)
+			if (Result < EntryResult)
 			{
 				Result = EntryResult;
-				if(Result >= FFaceFXImportActionResult::ResultType::Error)
+				if (Result >= FFaceFXImportActionResult::ResultType::Error)
 				{
 					break;
 				}
@@ -306,7 +306,7 @@ struct FFaceFXImportResultSet
 	*/
 	inline FFaceFXImportResult& GetOrAdd(const TSoftObjectPtr<class UFaceFXAsset>& Asset)
 	{
-		if(FFaceFXImportResult* Entry = Entries.FindByKey(Asset))
+		if (FFaceFXImportResult* Entry = Entries.FindByKey(Asset))
 		{
 			return *Entry;
 		}
@@ -343,13 +343,13 @@ struct FFaceFXImportResultSet
 	inline FFaceFXImportActionResult::ResultType GetMaxErrorLevel() const
 	{
 		FFaceFXImportActionResult::ResultType Result = FFaceFXImportActionResult::ResultType::Success;
-		for(const FFaceFXImportResult& Entry : Entries)
+		for (const FFaceFXImportResult& Entry : Entries)
 		{
 			const FFaceFXImportActionResult::ResultType EntryResult = Entry.GetMaxErrorLevel();
-			if(Result < EntryResult)
+			if (Result < EntryResult)
 			{
 				Result = EntryResult;
-				if(Result >= FFaceFXImportActionResult::ResultType::Error)
+				if (Result >= FFaceFXImportActionResult::ResultType::Error)
 				{
 					break;
 				}

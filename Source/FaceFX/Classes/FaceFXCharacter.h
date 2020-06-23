@@ -65,20 +65,19 @@ public:
 	/** Event that triggers whenever an asset was tried to get played which is incompatible to the FaceFX actor handle */
 	static FOnFaceFXCharacterPlayAssetIncompatibleSignature OnFaceFXCharacterPlayAssetIncompatible;
 
-#if FFX_HAS_EVENTS
 	DECLARE_MULTICAST_DELEGATE_SixParams(FOnFaceFXCharacterAnimationEventSignature, UFaceFXCharacter* /*Character*/, const FFaceFXAnimId& /*AnimId*/, int /*ChannelIndex*/, float /*ChannelTime*/, float /*EventTime*/, const FString& /*Payload*/);
 
 	/** Event that triggers whenever a playing animation of this character triggers an event from within the FaceFX runtime */
 	FOnFaceFXCharacterAnimationEventSignature OnAnimationEvent;
 
-	bool IsIgnoreFaceFxEvents() const
+	bool IsIgnoreFaceFXEvents() const
 	{
-		return bIgnoreFaceFxEvents;
+		return bIgnoreFaceFXEvents;
 	}
 
-	void SetIgnoreFaceFxEvents(bool ignoreEvents)
+	void SetIgnoreFaceFXEvents(bool ignoreEvents)
 	{
-		bIgnoreFaceFxEvents = ignoreEvents;
+		bIgnoreFaceFXEvents = ignoreEvents;
 	}
 
 private:
@@ -87,7 +86,6 @@ private:
 	static void OnFaceFXEvent(const FxEventFiringContext* Context, const char* Payload);
 
 public:
-#endif //FFX_HAS_EVENTS
 
 #if FACEFX_USEANIMATIONLINKAGE
 	/**
@@ -175,7 +173,7 @@ public:
 	*/
 	inline bool IsLoaded() const
 	{
-		return ActorHandle != nullptr && FaceFXActor;
+		return Actor != nullptr && FaceFXActor;
 	}
 
 	/**
@@ -248,7 +246,7 @@ public:
 	*/
 	inline bool IsPaused() const
 	{
-		return AnimPlaybackState == EPlaybackState::Paused && CurrentAnimHandle;
+		return AnimPlaybackState == EPlaybackState::Paused && CurrentAnimation;
 	}
 
 	/**
@@ -334,7 +332,7 @@ public:
 	*/
 	inline const TArray<FTransform>& GetBoneTransforms(bool UpdateIfDirty = true)
 	{
-		if(bIsDirty && UpdateIfDirty)
+		if (bIsDirty && UpdateIfDirty)
 		{
 			UpdateTransforms();
 		}
@@ -430,11 +428,11 @@ private:
 	UFaceFXComponent* GetOwningFaceFXComponent() const;
 
 	/**
-	* Checks if the character FaceFX actor handle can play the given animation handle
-	* @param AnimationHandle The animation handle to check
+	* Checks if the character FaceFX actor can play the given animation
+	* @param Animation The animation to check
 	* @returns True if it can play the animation, else false
 	*/
-	bool IsCanPlay(struct ffx_anim_handle_t* AnimationHandle) const;
+	bool IsCanPlay(FxAnimation Animation) const;
 
 	/**
 	* Gets the indicator if the audio start event was triggered within the current frame state
@@ -478,17 +476,18 @@ private:
 	* Performs ticks from 0 to Duration in small enough timesteps to find out the location where the audio was triggered
 	* @param Duration The duration until to tick to
 	* @param OutAudioStarted True if the audio was started until the duration was reached, else false
-	* @param IgnoreFaceFxEvents Indicator if we want to ignore events coming from within the FaceFX runtime while jumping to the target position
+	* @param IgnoreFaceFXEvents Indicator if we want to ignore events coming from within the FaceFX runtime while jumping to the target position
 	* @returns True if succeeded with ticking until the duration, else false
 	*/
-	bool TickUntil(float Duration, bool& OutAudioStarted, bool IgnoreFaceFxEvents = true);
+	bool TickUntil(float Duration, bool& OutAudioStarted, bool IgnoreFaceFXEvents = true);
 
 	/**
 	* Retrieves the morph targets for a skel mesh and creates FaceFX indices for the names
 	* @param Dataset The asset to fetch the ids from
+	* @param TrackIds The FaceFX track ids
 	* @returns True if setup succeeded, else false
 	*/
-	bool SetupMorphTargets(const UFaceFXActor* Dataset);
+	bool SetupMorphTargets(const UFaceFXActor* Dataset, const TArray<uint64>& TrackIds);
 	
 	/** Processes the morph targets for the current frame state */
 	void ProcessMorphTargets();
@@ -497,16 +496,17 @@ private:
 	inline void ResetMorphTargets()
 	{
 		MorphTargetNames.Empty();
-		MorphTargetTrackValues.Empty();
+		MorphTargetIndices.Empty();
 	}
 
 	/**
 	* Retrieves the material parameters for skel mesh materials and creates FaceFX indices for the names
 	* @param Dataset The asset to fetch the ids from
+	* @param TrackIds The FaceFX track ids
 	* @param IgnoredTracks The list of tracks to ignore
 	* @returns True if setup succeeded, else false
 	*/
-	bool SetupMaterialParameters(const UFaceFXActor* Dataset, const TArray<FName>& IgnoredTracks);
+	bool SetupMaterialParameters(const UFaceFXActor* Dataset, const TArray<uint64>& TrackIds, const TArray<FName>& IgnoredTracks);
 
 	/** Processes the material parameters for the current frame state */
 	void ProcessMaterialParameters();
@@ -515,7 +515,7 @@ private:
 	inline void ResetMaterialParameters()
 	{
 		MaterialParameterNames.Empty();
-		MaterialParameterTrackValues.Empty();
+		MaterialParameterIndices.Empty();
 	}
 
 	/** Sets the material parameters of the owners skel mesh to their defaults */
@@ -529,19 +529,19 @@ private:
 	TSharedPtr<IFaceFXAudio> AudioPlayer;
 
 	/** The associated actor handle */
-	struct ffx_actor_handle_t* ActorHandle;
+	FxActor Actor;
 
 	/** The current frame state */
-	struct ffx_frame_state_t* FrameState;
+	FxFrameState FrameState;
 
 	/** The bone set handle */
-	struct ffx_bone_set_handle_t* BoneSetHandle;
+	FxBoneSet BoneSet;
 
 	/** The handle of the currently playing animation */
-	struct ffx_anim_handle_t* CurrentAnimHandle;
+	FxAnimation CurrentAnimation;
 
-	/** The currently loaded xforms */
-	TArray<ffx_bone_xform_t> XForms;
+	/** The current FaceFX bone transforms */
+	TArray<FxBoneTransform> FaceFXBoneTransforms;
 
 	/** The current bone transforms */
 	TArray<FTransform> BoneTransforms;
@@ -555,14 +555,17 @@ private:
 	/** The list of morph target names retrieved from the skel mesh during asset loading. The indices match the morph target track values: MorphTargetTrackValues */
 	TArray<FName> MorphTargetNames;
 
-	/** The track values buffer for the morph target processing */
-	TArray<ffx_track_value_t> MorphTargetTrackValues;
+	/** The indexes of the morph targets in the FaceFX track values array */
+	TArray<size_t> MorphTargetIndices;
 
 	/** The list of material parameter names retrieved from the skel mesh during asset loading. The indices match the material parameter track values: MaterialParameterTrackValues */
 	TArray<FName> MaterialParameterNames;
 
-	/** The track values buffer for the material parameter processing */
-	TArray<ffx_track_value_t> MaterialParameterTrackValues;
+	/** The indexes of the material parameters in the FaceFX track values array */
+	TArray<size_t> MaterialParameterIndices;
+
+	/** The FaceFX track values */
+	TArray<float> TrackValues;
 
 	/** The overall time progression */
 	float CurrentTime;
@@ -604,10 +607,8 @@ private:
 	/** Indicator if the use of available material parameters shall be disabled */
 	uint8 bDisabledMaterialParameters : 1;
 
-#if FFX_HAS_EVENTS
 	/** Indicator if we ignore the events coming from the FaceFX runtime */
-	uint8 bIgnoreFaceFxEvents : 1;
-#endif //FFX_HAS_EVENTS
+	uint8 bIgnoreFaceFXEvents : 1;
 
 #if WITH_EDITOR
 	uint32 LastFrameNumber;

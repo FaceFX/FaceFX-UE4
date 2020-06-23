@@ -46,7 +46,7 @@ class FFaceFXEditorModule : public FDefaultModuleImpl
 		AssetTypeActions.Add(MakeShareable(new FAssetTypeActions_FaceFXActor));
 		AssetTypeActions.Add(MakeShareable(new FAssetTypeActions_FaceFXAnim));
 
-		for(auto& Action : AssetTypeActions)
+		for (auto& Action : AssetTypeActions)
 		{
 			AssetTools.RegisterAssetTypeActions(Action.ToSharedRef());
 		}
@@ -54,7 +54,7 @@ class FFaceFXEditorModule : public FDefaultModuleImpl
 		FFaceFXStyle::Initialize();
 		FFaceFXSequencer::Get().Initialize();
 
-		if(GIsEditor && UFaceFXEditorConfig::Get().IsShowToasterMessageOnIncompatibleAnim())
+		if (GIsEditor && UFaceFXEditorConfig::Get().IsShowToasterMessageOnIncompatibleAnim())
 		{
 			OnFaceFXCharacterPlayAssetIncompatibleHandle = UFaceFXCharacter::OnFaceFXCharacterPlayAssetIncompatible.AddRaw(this, &FFaceFXEditorModule::OnFaceFXCharacterPlayAssetIncompatible);
 		}
@@ -67,7 +67,7 @@ class FFaceFXEditorModule : public FDefaultModuleImpl
 
 	virtual void ShutdownModule() override
 	{
-		if(OnFaceFXCharacterPlayAssetIncompatibleHandle.IsValid() && FModuleManager::Get().IsModuleLoaded("FaceFX"))
+		if (OnFaceFXCharacterPlayAssetIncompatibleHandle.IsValid() && FModuleManager::Get().IsModuleLoaded("FaceFX"))
 		{
 			UFaceFXCharacter::OnFaceFXCharacterPlayAssetIncompatible.Remove(OnFaceFXCharacterPlayAssetIncompatibleHandle);
 		}
@@ -75,11 +75,11 @@ class FFaceFXEditorModule : public FDefaultModuleImpl
 		FEditorDelegates::EndPIE.Remove(OnEndPieHandle);
 		FEditorDelegates::PreSaveWorld.Remove(OnPreSaveWorldHandle);
 
-		if(FModuleManager::Get().IsModuleLoaded("AssetTools"))
+		if (FModuleManager::Get().IsModuleLoaded("AssetTools"))
 		{
 			IAssetTools &AssetTools = FModuleManager::GetModuleChecked<FAssetToolsModule>("AssetTools").Get();
 
-			for(auto& Action : AssetTypeActions)
+			for (auto& Action : AssetTypeActions)
 			{
 				AssetTools.UnregisterAssetTypeActions(Action.ToSharedRef());
 				Action.Reset();

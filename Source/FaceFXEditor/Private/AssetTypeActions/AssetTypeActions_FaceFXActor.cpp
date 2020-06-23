@@ -131,7 +131,7 @@ void FAssetTypeActions_FaceFXActor::ExecuteEdit(TArray< TWeakObjectPtr<UObject> 
 		}
 	}
 
-	if(Items.Num() > 0)
+	if (Items.Num() > 0)
 	{
 		OpenAssetEditor(Items, nullptr);
 	}
@@ -152,27 +152,27 @@ void FAssetTypeActions_FaceFXActor::ExecuteLink(TArray<TWeakObjectPtr<UObject>> 
 
 void FAssetTypeActions_FaceFXActor::OnAssetLinkChosen(const TArray<FAssetData>& SelectedAssets, TArray<TWeakObjectPtr<UObject>> SelectedObjects)
 {
-	if(SelectedAssets.Num() == 0 || SelectedObjects.Num() == 0)
+	if (SelectedAssets.Num() == 0 || SelectedObjects.Num() == 0)
 	{
 		return;
 	}
 
-	for(auto& Object : SelectedObjects)
+	for (auto& Object : SelectedObjects)
 	{
-		if(UFaceFXActor* FaceFXActor = Cast<UFaceFXActor>(Object.Get()))
+		if (UFaceFXActor* FaceFXActor = Cast<UFaceFXActor>(Object.Get()))
 		{
 			bool bHasChanged = false;
 
-			for(const FAssetData& Asset : SelectedAssets)
+			for (const FAssetData& Asset : SelectedAssets)
 			{
-				if(UFaceFXAnim* AnimSet = Cast<UFaceFXAnim>(Asset.GetAsset()))
+				if (UFaceFXAnim* AnimSet = Cast<UFaceFXAnim>(Asset.GetAsset()))
 				{
 					FaceFXActor->LinkTo(AnimSet);
 					bHasChanged = true;
 				}
 			}
 
-			if(bHasChanged)
+			if (bHasChanged)
 			{
 				FaceFXActor->GetOutermost()->MarkPackageDirty();
 			}
@@ -195,26 +195,26 @@ void FAssetTypeActions_FaceFXActor::ExecuteUnlink(TArray<TWeakObjectPtr<UObject>
 /** Callback for when the assets to unlink with have been chosen for a set of objects */
 void FAssetTypeActions_FaceFXActor::OnAssetUnlinkChosen(const TArray<FAssetData>& selectedAssets, TArray<TWeakObjectPtr<UObject>> selectedObjects)
 {
-	if(selectedAssets.Num() == 0 || selectedObjects.Num() == 0)
+	if (selectedAssets.Num() == 0 || selectedObjects.Num() == 0)
 	{
 		return;
 	}
 
-	for(auto& Object : selectedObjects)
+	for (auto& Object : selectedObjects)
 	{
-		if(UFaceFXActor* FaceFXActor = Cast<UFaceFXActor>(Object.Get()))
+		if (UFaceFXActor* FaceFXActor = Cast<UFaceFXActor>(Object.Get()))
 		{
 			bool bHasChanged = false;
 
-			for(const FAssetData& Asset : selectedAssets)
+			for (const FAssetData& Asset : selectedAssets)
 			{
-				if(UFaceFXAnim* AnimSet = Cast<UFaceFXAnim>(Asset.GetAsset()))
+				if (UFaceFXAnim* AnimSet = Cast<UFaceFXAnim>(Asset.GetAsset()))
 				{
 					bHasChanged |= FaceFXActor->UnlinkFrom(AnimSet);
 				}
 			}
 
-			if(bHasChanged)
+			if (bHasChanged)
 			{
 				FaceFXActor->GetOutermost()->MarkPackageDirty();
 			}
@@ -230,10 +230,10 @@ void FAssetTypeActions_FaceFXActor::OpenAssetEditor( const TArray<UObject*>& InO
 
 	for (UObject* Object : InObjects)
 	{
-		if(UFaceFXActor* FaceFXActor = Cast<UFaceFXActor>(Object))
+		if (UFaceFXActor* FaceFXActor = Cast<UFaceFXActor>(Object))
 		{
 			FString ErrMsg;
-			if(!FFaceFXEditorTools::OpenFaceFXStudio(FaceFXActor, &ErrMsg))
+			if (!FFaceFXEditorTools::OpenFaceFXStudio(FaceFXActor, &ErrMsg))
 			{
 				FFaceFXEditorTools::ShowError(FText::FromString(ErrMsg));
 				bAnyError = true;
@@ -241,7 +241,7 @@ void FAssetTypeActions_FaceFXActor::OpenAssetEditor( const TArray<UObject*>& InO
 		}
 	}
 
-	if(!bAnyError)
+	if (!bAnyError)
 	{
 		FFaceFXEditorTools::ShowInfo(LOCTEXT("Asset_OpenAsset","Opening asset(s) in background process successfully completed."));
 	}

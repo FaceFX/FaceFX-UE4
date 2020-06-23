@@ -82,7 +82,7 @@ public:
 	{
 		AnimData.Reset();
 
-		if(ResetAudio)
+		if (ResetAudio)
 		{
 			AudioPath = TEXT("");
 			Audio.Reset();

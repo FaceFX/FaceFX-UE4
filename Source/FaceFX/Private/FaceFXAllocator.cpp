@@ -18,13 +18,16 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "FaceFXContext.h"
+#include "FaceFXAllocator.h"
 #include "FaceFX.h"
 
-ffx_context_t FFaceFXContext::CreateContext()
+FxAllocationCallbacks FFaceFXAllocator::CreateAllocator()
 {
-	ffx_context_t ctx;
-	ctx.alloc_fn = &AllocCallback;
-	ctx.free_fn = &FreeCallback;
-	return ctx;
+    FxAllocationCallbacks Allocator;
+
+    Allocator.pfnAllocation = &AllocateMemory;
+    Allocator.pfnFree = &FreeMemory;
+    Allocator.pUserData = nullptr;
+
+    return Allocator;
 }
