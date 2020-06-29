@@ -40,7 +40,7 @@ FString FaceFX::GetVersion()
 
 	FxResult Result = fxGetVersionString(VersionString, 32);
 
-	if (Result != FX_SUCCESS)
+	if (!FX_SUCCEEDED(Result))
 	{
 		UE_LOG(LogFaceFX, Error, TEXT("FaceFX::GetVersion. Unable to get version string. %s"), *FaceFX::GetFaceFXResultString(Result));
 	}
@@ -60,6 +60,7 @@ FString FaceFX::GetFaceFXResultString(FxResult Result)
 	switch (Result)
 	{
 		case FX_SUCCESS:                    return TEXT("Success"); break;
+		case FX_WARNING_LEGACY_DATA_FORMAT: return TEXT("Legacy data format loaded. Please recompile the content."); break;
 		case FX_ERROR_INVALID_ARGUMENT:     return TEXT("Invalid Argument"); break;
 		case FX_ERROR_DATA:                 return TEXT("Invalid Data"); break;
 		case FX_ERROR_INCOMPATIBLE_VERSION: return TEXT("Incompatible Data Version"); break;
@@ -89,9 +90,13 @@ FxAnimation FaceFX::LoadAnimation(const FFaceFXAnimData& AnimData)
 
 	FxResult Result = fxAnimationCreate(&AnimData.RawData[0], AnimData.RawData.Num(), FX_DATA_VALIDATION_ON, &Animation, &Allocator);
 
-	if (Result != FX_SUCCESS)
+	if (!FX_SUCCEEDED(Result))
 	{
 		UE_LOG(LogFaceFX, Error, TEXT("FaceFX::LoadAnimation. Unable to create FaceFX animation. %s"), *FaceFX::GetFaceFXResultString(Result));
+	}
+	else if (Result == FX_WARNING_LEGACY_DATA_FORMAT)
+	{
+		UE_LOG(LogFaceFX, Warning, TEXT("FaceFX::LoadAnimation. Loaded a legacy data format. Please recompile the content with the latest FaceFX Runtime compiler."));
 	}
 
 	return Animation;
@@ -108,19 +113,19 @@ bool FaceFX::GetAnimationBounds(const UFaceFXAnim* pAnimation, float& Start, flo
 
 	FxResult BoundsResult = fxAnimationGetBounds(Animation, &Start, &End);
 
-	if (BoundsResult != FX_SUCCESS)
+	if (!FX_SUCCEEDED(BoundsResult))
 	{
 		UE_LOG(LogFaceFX, Error, TEXT("FaceFX::GetAnimationBounds. FaceFX call <fxAnimationGetBounds> failed. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(BoundsResult), *GetNameSafe(pAnimation));
 	}
 
 	FxResult DestroyResult = fxAnimationDestroy(&Animation, nullptr, nullptr);
 
-	if (DestroyResult != FX_SUCCESS)
+	if (!FX_SUCCEEDED(DestroyResult))
 	{
 		UE_LOG(LogFaceFX, Error, TEXT("FaceFX::GetAnimationBounds. FaceFX call <fxAnimationDestroy> failed. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(DestroyResult), *GetNameSafe(pAnimation));
 	}
 
-	return (BoundsResult == FX_SUCCESS && DestroyResult == FX_SUCCESS);
+	return (FX_SUCCEEDED(BoundsResult) && FX_SUCCEEDED(DestroyResult));
 }
 
 #if WITH_EDITOR
