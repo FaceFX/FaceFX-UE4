@@ -35,7 +35,7 @@
 #include "ISourceControlModule.h"
 #include "Editor.h"
 #include "Misc/MessageDialog.h"
-
+#include "Misc/FeedbackContext.h"
 
 #define LOCTEXT_NAMESPACE "FaceFX"
 
