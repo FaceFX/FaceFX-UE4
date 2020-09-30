@@ -22,6 +22,7 @@ SOFTWARE.
 
 #include "MovieScene.h"
 #include "MovieSceneNameableTrack.h"
+#include "Compilation/IMovieSceneTrackTemplateProducer.h"
 #include "FaceFXAnimationTrack.generated.h"
 
 
@@ -32,7 +33,9 @@ struct FFaceFXAnimComponentSet;
 
 /** FaceFX movie scene track */
 UCLASS(MinimalAPI)
-class UFaceFXAnimationTrack : public UMovieSceneNameableTrack
+class UFaceFXAnimationTrack
+	: public UMovieSceneNameableTrack
+	, public IMovieSceneTrackTemplateProducer
 {
 	GENERATED_UCLASS_BODY()
 
@@ -44,8 +47,9 @@ public:
 	/** Gets the animation section at a certain time, or nullptr if there is none */
 	UMovieSceneSection* GetSectionAtTime(const FFrameNumber& Time) const;
 
-	//UMovieSceneTrack
+	//IMovieSceneTrackTemplateProducer
 	virtual FMovieSceneEvalTemplatePtr CreateTemplateForSection(const UMovieSceneSection& InSection) const override;
+	//UMovieSceneTrack
 	virtual void RemoveAllAnimationData() override;
 	virtual bool HasSection(const UMovieSceneSection& Section) const override;
 	virtual void AddSection(UMovieSceneSection& Section) override;
