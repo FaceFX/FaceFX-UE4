@@ -66,6 +66,11 @@ const TArray<UMovieSceneSection*>& UFaceFXAnimationTrack::GetAllSections() const
 	return AnimationSections;
 }
 
+bool UFaceFXAnimationTrack::SupportsType(TSubclassOf<UMovieSceneSection> SectionClass) const
+{
+	return SectionClass == UFaceFXAnimationSection::StaticClass();
+}
+
 UMovieSceneSection* UFaceFXAnimationTrack::CreateNewSection()
 {
 	return NewObject<UFaceFXAnimationSection>(this);
