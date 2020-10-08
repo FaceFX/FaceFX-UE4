@@ -73,7 +73,7 @@ bool UFaceFXAnimationTrack::SupportsType(TSubclassOf<UMovieSceneSection> Section
 
 UMovieSceneSection* UFaceFXAnimationTrack::CreateNewSection()
 {
-	return NewObject<UFaceFXAnimationSection>(this);
+	return NewObject<UFaceFXAnimationSection>(this, NAME_None, RF_Transactional);
 }
 
 void UFaceFXAnimationTrack::RemoveAllAnimationData()
