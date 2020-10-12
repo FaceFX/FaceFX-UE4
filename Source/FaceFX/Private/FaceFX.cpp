@@ -96,7 +96,7 @@ FxAnimation FaceFX::LoadAnimation(const FFaceFXAnimData& AnimData)
 	}
 	else if (Result == FX_WARNING_LEGACY_DATA_FORMAT)
 	{
-		UE_LOG(LogFaceFX, Warning, TEXT("FaceFX::LoadAnimation. Loaded a legacy data format. Please recompile the content with the latest FaceFX Runtime compiler."));
+		UE_LOG(LogFaceFX, Verbose, TEXT("FaceFX::LoadAnimation. Loaded a legacy data format. Please recompile the content with the latest FaceFX Runtime compiler."));
 	}
 
 	return Animation;

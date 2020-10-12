@@ -753,7 +753,7 @@ bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset, bool IsCompensateForFor
 
 		if (Result == FX_WARNING_LEGACY_DATA_FORMAT)
 		{
-			UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::Load. Loaded a legacy data format. Please recompile the content with the latest FaceFX Runtime compiler. Asset: %s"), *GetNameSafe(FaceFXActor));
+			UE_LOG(LogFaceFX, Verbose, TEXT("UFaceFXCharacter::Load. Loaded a legacy data format. Please recompile the content with the latest FaceFX Runtime compiler. Asset: %s"), *GetNameSafe(FaceFXActor));
 		}
 	}
 
@@ -782,7 +782,7 @@ bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset, bool IsCompensateForFor
 
 	if (Result == FX_WARNING_LEGACY_DATA_FORMAT)
 	{
-		UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::Load. Loaded a legacy data format. Please recompile the content with the latest FaceFX Runtime compiler. Asset: %s"), *GetNameSafe(FaceFXActor));
+		UE_LOG(LogFaceFX, Verbose, TEXT("UFaceFXCharacter::Load. Loaded a legacy data format. Please recompile the content with the latest FaceFX Runtime compiler. Asset: %s"), *GetNameSafe(FaceFXActor));
 	}
 
 	size_t TrackCount = 0;
