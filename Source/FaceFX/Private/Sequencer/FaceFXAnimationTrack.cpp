@@ -36,12 +36,14 @@ UFaceFXAnimationTrack::UFaceFXAnimationTrack(const FObjectInitializer& ObjectIni
 
 void UFaceFXAnimationTrack::AddSection(const FFrameNumber& KeyTime, const FFaceFXAnimComponentSet& AnimCompSet)
 {
-	UFaceFXAnimationSection* NewSection = Cast<UFaceFXAnimationSection>(CreateNewSection());
+	Modify();
+
+	if (UFaceFXAnimationSection* NewSection = Cast<UFaceFXAnimationSection>(CreateNewSection()))
 	{
 		NewSection->SetData(AnimCompSet);
 		NewSection->InitialPlacement(AnimationSections, KeyTime, NewSection->GetAnimationDurationInFrames().Value, SupportsMultipleRows());
+		AddSection(*NewSection);
 	}
-	AddSection(*NewSection);
 }
 
 UMovieSceneSection* UFaceFXAnimationTrack::GetSectionAtTime(const FFrameNumber& Time) const

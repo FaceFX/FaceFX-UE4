@@ -166,6 +166,7 @@ float UFaceFXAnimationSection::GetAnimationDurationInSeconds(const AActor* Actor
 			if (UFaceFXCharacter::GetAnimationBoundsById(Actor, AnimationId, AnimStart, AnimEnd))
 			{
 				AnimationDuration = AnimEnd - AnimStart;
+				bIsAnimationDurationLoaded = true;
 			}
 		}
 		else
@@ -177,10 +178,9 @@ float UFaceFXAnimationSection::GetAnimationDurationInSeconds(const AActor* Actor
 			if (FaceFX::GetAnimationBounds(TargetAnimation, AnimStart, AnimEnd))
 			{
 				AnimationDuration = AnimEnd - AnimStart;
+				bIsAnimationDurationLoaded = true;
 			}
 		}
-
-		bIsAnimationDurationLoaded = true;
 	}
 	return AnimationDuration;
 }
