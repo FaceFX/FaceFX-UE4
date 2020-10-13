@@ -18,39 +18,33 @@
   SOFTWARE.
 *******************************************************************************/
 
-#include "Animation/AnimGraphNode_BlendFaceFXAnimation.h"
-#include "FaceFXEditor.h"
-#include "AnimationGraphSchema.h"
+#pragma once
 
-#define LOCTEXT_NAMESPACE "FaceFX"
+#include "AnimGraphNode_Base.h"
+#include "Animation/AnimNode_BlendFaceFXAnimation.h"
+#include "AnimGraphNode_BlendFaceFXAnimation.generated.h"
 
-UAnimGraphNode_BlendFaceFXAnimation::UAnimGraphNode_BlendFaceFXAnimation(const FObjectInitializer& PCIP) : Super(PCIP)
+/** The blend node Editor UI wrapper class */
+UCLASS()
+class UAnimGraphNode_BlendFaceFXAnimation : public UAnimGraphNode_Base
 {
-}
+    GENERATED_UCLASS_BODY()
 
-FLinearColor UAnimGraphNode_BlendFaceFXAnimation::GetNodeTitleColor() const
-{
-	return FLinearColor(0.1f, 0.5f, 0.5f);
-}
+public:
 
-FText UAnimGraphNode_BlendFaceFXAnimation::GetTooltipText() const
-{
-	return LOCTEXT("BlendAnimationNodeTooltip", "Blends in the bone transforms coming from the FaceFX runtime.");
-}
+    /** The associated node */
+    UPROPERTY(EditAnywhere, Category=Settings)
+    FAnimNode_BlendFaceFXAnimation Node;
 
-FText UAnimGraphNode_BlendFaceFXAnimation::GetNodeTitle( ENodeTitleType::Type TitleType ) const
-{
-	return LOCTEXT("BlendAnimationNodeTitle", "Blend FaceFX Animation");
-}
+    // UEdGraphNode interface
+    virtual FText GetTooltipText() const override;
+    virtual FText GetNodeTitle(ENodeTitleType::Type TitleType) const override;
+    virtual FLinearColor GetNodeTitleColor() const override;
+    // End of UEdGraphNode interface
 
-FString UAnimGraphNode_BlendFaceFXAnimation::GetNodeCategory() const
-{
-	return TEXT("FaceFX");
-}
+    // UAnimGraphNode_Base interface
+    virtual FString GetNodeCategory() const override;
+    // End of UAnimGraphNode_Base interface
 
-void UAnimGraphNode_BlendFaceFXAnimation::CreateOutputPins()
-{
-	CreatePin(EGPD_Output, GetDefault<UAnimationGraphSchema>()->PC_Struct, TEXT(""), FComponentSpacePoseLink::StaticStruct(), TEXT("Pose"));
-}
-
-#undef LOCTEXT_NAMESPACE
+    virtual void CreateOutputPins() override;
+};

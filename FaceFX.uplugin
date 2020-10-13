@@ -30,8 +30,13 @@
 			]
 		},
 		{
-			"Name": "FaceFXEditor",
+			"Name": "FaceFXGraphNode",
 			"Type": "UncookedOnly",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "FaceFXEditor",
+			"Type": "Editor",
 			"LoadingPhase": "Default"
 		}
 	]

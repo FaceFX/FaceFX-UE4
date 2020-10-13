@@ -18,31 +18,38 @@
   SOFTWARE.
 *******************************************************************************/
 
-#pragma once
+#include "AnimGraphNode_BlendFaceFXAnimation.h"
+#include "AnimationGraphSchema.h"
 
-#include "AnimGraphNode_Base.h"
-#include "Animation/AnimNode_BlendFaceFXAnimation.h"
-#include "AnimGraphNode_BlendFaceFXAnimation.generated.h"
+#define LOCTEXT_NAMESPACE "FaceFX"
 
-/** The blend node Editor UI wrapper class */
-UCLASS()
-class UAnimGraphNode_BlendFaceFXAnimation : public UAnimGraphNode_Base
+UAnimGraphNode_BlendFaceFXAnimation::UAnimGraphNode_BlendFaceFXAnimation(const FObjectInitializer& PCIP) : Super(PCIP)
 {
-	GENERATED_UCLASS_BODY()
+}
 
-	/** The associated node */
-    UPROPERTY(EditAnywhere, Category=Settings)
-    FAnimNode_BlendFaceFXAnimation Node;
+FLinearColor UAnimGraphNode_BlendFaceFXAnimation::GetNodeTitleColor() const
+{
+	return FLinearColor(0.1f, 0.5f, 0.5f);
+}
 
-	// UEdGraphNode interface
-	FACEFXEDITOR_API virtual FText GetTooltipText() const override;
-	FACEFXEDITOR_API virtual FText GetNodeTitle(ENodeTitleType::Type TitleType) const override;
-	FACEFXEDITOR_API virtual FLinearColor GetNodeTitleColor() const override;
-	// End of UEdGraphNode interface
+FText UAnimGraphNode_BlendFaceFXAnimation::GetTooltipText() const
+{
+	return LOCTEXT("BlendAnimationNodeTooltip", "Blends in the bone transforms coming from the FaceFX runtime.");
+}
 
-	// UAnimGraphNode_Base interface
-	FACEFXEDITOR_API virtual FString GetNodeCategory() const override;
-	// End of UAnimGraphNode_Base interface
+FText UAnimGraphNode_BlendFaceFXAnimation::GetNodeTitle( ENodeTitleType::Type TitleType ) const
+{
+	return LOCTEXT("BlendAnimationNodeTitle", "Blend FaceFX Animation");
+}
 
-	FACEFXEDITOR_API virtual void CreateOutputPins() override;
-};
+FString UAnimGraphNode_BlendFaceFXAnimation::GetNodeCategory() const
+{
+	return TEXT("FaceFX");
+}
+
+void UAnimGraphNode_BlendFaceFXAnimation::CreateOutputPins()
+{
+	CreatePin(EGPD_Output, GetDefault<UAnimationGraphSchema>()->PC_Struct, TEXT(""), FComponentSpacePoseLink::StaticStruct(), TEXT("Pose"));
+}
+
+#undef LOCTEXT_NAMESPACE
