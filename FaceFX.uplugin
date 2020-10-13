@@ -31,7 +31,7 @@
 		},
 		{
 			"Name": "FaceFXEditor",
-			"Type": "Editor",
+			"Type": "UncookedOnly",
 			"LoadingPhase": "Default"
 		}
 	]
