@@ -70,14 +70,14 @@ public:
 	/** Event that triggers whenever a playing animation of this character triggers an event from within the FaceFX runtime */
 	FOnFaceFXCharacterAnimationEventSignature OnAnimationEvent;
 
-	bool IsIgnoreFaceFXEvents() const
+	bool IsIgnoreEvents() const
 	{
-		return bIgnoreFaceFXEvents;
+		return bIgnoreEvents;
 	}
 
-	void SetIgnoreFaceFXEvents(bool ignoreEvents)
+	void SetIgnoreEvents(bool ignoreEvents)
 	{
-		bIgnoreFaceFXEvents = ignoreEvents;
+		bIgnoreEvents = ignoreEvents;
 	}
 
 private:
@@ -476,10 +476,10 @@ private:
 	* Performs ticks from 0 to Duration in small enough timesteps to find out the location where the audio was triggered
 	* @param Duration The duration until to tick to
 	* @param OutAudioStarted True if the audio was started until the duration was reached, else false
-	* @param IgnoreFaceFXEvents Indicator if we want to ignore events coming from within the FaceFX runtime while jumping to the target position
+	* @param IgnoreEvents Indicator if we want to ignore events coming from within the FaceFX runtime while jumping to the target position
 	* @returns True if succeeded with ticking until the duration, else false
 	*/
-	bool TickUntil(float Duration, bool& OutAudioStarted, bool IgnoreFaceFXEvents = true);
+	bool TickUntil(float Duration, bool& OutAudioStarted, bool IgnoreEvents = true);
 
 	/**
 	* Retrieves the morph targets for a skel mesh and creates FaceFX indices for the names
@@ -608,7 +608,7 @@ private:
 	uint8 bDisabledMaterialParameters : 1;
 
 	/** Indicator if we ignore the events coming from the FaceFX runtime */
-	uint8 bIgnoreFaceFXEvents : 1;
+	uint8 bIgnoreEvents : 1;
 
 #if WITH_EDITOR
 	uint32 LastFrameNumber;

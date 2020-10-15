@@ -35,7 +35,7 @@ void UFaceFXComponent::OnRegister()
 	CreateAllCharacters();
 }
 
-bool UFaceFXComponent::Setup(USkeletalMeshComponent* SkelMeshComp, UActorComponent* AudioComponent, const UFaceFXActor* Asset, bool IsCompensateForForceFrontXAxsis, bool IsAutoPlaySound, bool IsDisableMorphTargets, bool IsDisableMaterialParameters, bool IsIgnoreFaceFXEvents, const UObject* Caller)
+bool UFaceFXComponent::Setup(USkeletalMeshComponent* SkelMeshComp, UActorComponent* AudioComponent, const UFaceFXActor* Asset, bool IsCompensateForForceFrontXAxsis, bool IsAutoPlaySound, bool IsDisableMorphTargets, bool IsDisableMaterialParameters, bool IsIgnoreEvents, const UObject* Caller)
 {
 	if (!SkelMeshComp)
 	{
@@ -53,7 +53,7 @@ bool UFaceFXComponent::Setup(USkeletalMeshComponent* SkelMeshComp, UActorCompone
 	if (Idx == INDEX_NONE)
 	{
 		//add new entry
-		Idx = Entries.Add(FFaceFXEntry(SkelMeshComp, AudioComponent, Asset, IsCompensateForForceFrontXAxsis, IsAutoPlaySound, IsDisableMorphTargets, IsDisableMaterialParameters, IsIgnoreFaceFXEvents));
+		Idx = Entries.Add(FFaceFXEntry(SkelMeshComp, AudioComponent, Asset, IsCompensateForForceFrontXAxsis, IsAutoPlaySound, IsDisableMorphTargets, IsDisableMaterialParameters, IsIgnoreEvents));
 	}
 	checkf(Idx != INDEX_NONE, TEXT("Internal Error: Unable to add new FaceFX entry."));
 
@@ -370,7 +370,7 @@ void UFaceFXComponent::CreateCharacter(FFaceFXEntry& Entry)
 				Entry.Character->OnPlaybackStopped.AddUObject(this, &UFaceFXComponent::OnCharacterPlaybackStopped);
 
 				Entry.Character->OnAnimationEvent.AddUObject(this, &UFaceFXComponent::OnCharacterAnimationEvent);
-				Entry.Character->SetIgnoreFaceFXEvents(Entry.bIsIgnoreFaceFXEvents);
+				Entry.Character->SetIgnoreEvents(Entry.bIsIgnoreEvents);
 
 				Entry.Character->SetAudioComponent(Entry.AudioComp);
 				Entry.Character->SetAutoPlaySound(Entry.bIsAutoPlaySound);

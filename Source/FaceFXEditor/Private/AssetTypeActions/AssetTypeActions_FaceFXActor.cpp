@@ -44,7 +44,7 @@ void FAssetTypeActions_FaceFXActor::GetActions( const TArray<UObject*>& InObject
 #if PLATFORM_WINDOWS
 	MenuBuilder.AddMenuEntry(
 		LOCTEXT("Asset_Edit","Open in FaceFX Studio"),
-		LOCTEXT("Asset_EditTooltip", "Opens the Face FX asset within FaceFX studio."),
+		LOCTEXT("Asset_EditTooltip", "Opens the FaceFX asset within FaceFX studio."),
 		FSlateIcon(),
 		FUIAction(
 		FExecuteAction::CreateSP( this, &FAssetTypeActions_FaceFXActor::ExecuteEdit, GetTypedWeakObjectPtrs<UObject>(InObjects) ),

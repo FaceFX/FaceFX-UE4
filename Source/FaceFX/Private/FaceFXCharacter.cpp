@@ -84,7 +84,7 @@ UFaceFXCharacter::UFaceFXCharacter(const class FObjectInitializer& PCIP) : Super
 	bCompensatedForForceFrontXAxis(false),
 	bDisabledMorphTargets(false),
 	bDisabledMaterialParameters(false)
-	,bIgnoreFaceFXEvents(false)
+	,bIgnoreEvents(false)
 #if WITH_EDITOR
 	,LastFrameNumber(0)
 #endif
@@ -113,7 +113,7 @@ void UFaceFXCharacter::BeginDestroy()
 #endif
 }
 
-bool UFaceFXCharacter::TickUntil(float Duration, bool& OutAudioStarted, bool IgnoreFaceFXEvents)
+bool UFaceFXCharacter::TickUntil(float Duration, bool& OutAudioStarted, bool IgnoreEvents)
 {
 	if (!bCanPlay || Duration < 0.f)
 	{
@@ -126,14 +126,14 @@ bool UFaceFXCharacter::TickUntil(float Duration, bool& OutAudioStarted, bool Ign
 	//The steps to perform
 	static const float TickSteps = 0.1f;
 
-	const bool IgnoreFaceFXEventsPrev = bIgnoreFaceFXEvents;
-	bIgnoreFaceFXEvents = IgnoreFaceFXEvents;
+	const bool IgnoreEventsPrev = bIgnoreEvents;
+	bIgnoreEvents = IgnoreEvents;
 
 	FxResult ProcessZeroResult = fxActorProcessFrame(Actor, FrameState, 0.f);
 	const bool bIsAudioStartedAtZero = IsAudioStarted();
 	FxResult Result = fxActorProcessFrame(Actor, FrameState, CurrentTime);
 
-	bIgnoreFaceFXEvents = IgnoreFaceFXEventsPrev;
+	bIgnoreEvents = IgnoreEventsPrev;
 
 	if (!FX_SUCCEEDED(ProcessZeroResult) || !FX_SUCCEEDED(Result))
 	{
@@ -704,7 +704,7 @@ void UFaceFXCharacter::OnFaceFXEvent(const FxEventFiringContext* Context, const 
 
 	if (UFaceFXCharacter* Character = static_cast<UFaceFXCharacter*>(Context->pUserData))
 	{
-		if (!Character->bIgnoreFaceFXEvents && Context->actor == Character->Actor && Context->animation == Character->CurrentAnimation)
+		if (!Character->bIgnoreEvents && Context->actor == Character->Actor && Context->animation == Character->CurrentAnimation)
 		{
 			SCOPE_CYCLE_COUNTER(STAT_FaceFXAnimEvents);
 			Character->OnAnimationEvent.Broadcast(Character, Character->GetCurrentAnimationId(), (int)Context->channelIndex, Context->channelTime, Context->eventTime, Payload);
