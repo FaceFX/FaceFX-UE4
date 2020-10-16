@@ -98,6 +98,11 @@ void UFaceFXAnimationTrack::RemoveSection(UMovieSceneSection& Section)
 	AnimationSections.Remove(&Section);
 }
 
+void UFaceFXAnimationTrack::RemoveSectionAt(int32 SectionIndex)
+{
+	AnimationSections.RemoveAt(SectionIndex);
+}
+
 bool UFaceFXAnimationTrack::IsEmpty() const
 {
 	return AnimationSections.Num() == 0;
@@ -105,7 +110,7 @@ bool UFaceFXAnimationTrack::IsEmpty() const
 
 #if WITH_EDITORONLY_DATA
 
-FText UFaceFXAnimationTrack::GetDefaultDisplayName() const
+FText UFaceFXAnimationTrack::GetDisplayName() const
 {
 	return LOCTEXT("SequencerTrackName", "FaceFX");
 }
