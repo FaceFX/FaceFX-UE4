@@ -1,9 +1,9 @@
 Events
 =======
 
-In-game actions can be triggered from animation events.  Each animation can trigger multiple events at different times with unique string payloads.  The string payloads are passed via Blueprint to trigger custom in-game systems.
+In-game actions can be triggered from animation events. Each animation can trigger multiple events at different times with unique string payloads. The string payloads are passed via Blueprint to trigger custom in-game systems.
 
-Events are created from the Events tab in FaceFX Studio.  While FaceFX Studio events can contain animation curves in addition to the event payload, all animation curves are baked into the parent animation by the compiler, leaving only the payload to be passed to an in-game system.
+Events are created from the Events tab in FaceFX Studio. While FaceFX Studio events can contain animation curves in addition to the event payload, all animation curves are baked into the parent animation by the compiler, leaving only the payload to be passed to an in-game system.
 
 Events were added in version 2 of the FaceFX Runtime, first integrated with UE4.26.
 

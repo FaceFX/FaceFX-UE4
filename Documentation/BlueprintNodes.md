@@ -1,7 +1,7 @@
 Blueprint Nodes
 ===============
 
-The FaceFX UE4 Plugin provides serveral Blueprint nodes, which are described here.
+The FaceFX UE4 Plugin provides several Blueprint nodes, which are described here.
 
 All FaceFX Blueprint nodes require a **FaceFX Component** to be wired to their respective **Target** slots. The FaceFX Setup Blueprint node requires the **Skel Mesh Comp** slot to be wired with the **Skeletal Mesh Component** to animate. The **Skel Mesh Comp** is optional for the other FaceFX Blueprint nodes (this is so a single Blueprint can drive multiple FaceFX characters). If it is not supplied, the first one found is used.
 
@@ -20,15 +20,15 @@ The FaceFX Setup Blueprint node initializes the linked **FaceFX Component** with
 
 + The **Asset** property is required and should be set to the **FaceFXActor** asset to be used for animation.
 
-+ The **Is Compensate for Force Front XAxis** property should (only) be checked if your Skeletal Mesh was imported with the **Force Front XAxis** option selection.  Not keeping these settings in sync will result in FaceFX animations playing in the wrong coordinate system and can resemble an exploded face.
++ The **Compensate For Force Front XAxis** property should only be **checked** if **Force Front XAxis** was **checked** when the Skeletal Mesh was imported. Not keeping these settings in sync will result in FaceFX animations playing in the wrong coordinate system and can resemble an exploded face.
 
-+ The **Is Auto Play Sound** property is optional. When **checked**, the audio associated with the **FaceFXAnim** asset being played will automatically be started at the appropriate time.
++ The **Automatically Play Sound** property is optional. When **checked**, the audio associated with the **FaceFXAnim** asset being played will automatically be started at the appropriate time.
 
-+ The **Is Disable Morph Targets** property is optional. When **checked**, FaceFX will not animate any morph targets. When **unchecked**, any morph target on the character that has a matching target name in the specified **FaceFXActor** asset will be animated by FaceFX.
++ The **Disable Morph Targets** property is optional. When **checked**, FaceFX will not animate any morph targets. When **unchecked**, any morph target on the character that has a matching target name in the specified **FaceFXActor** asset will be animated by FaceFX.
 
-+ The **Is Disable Material Parameters** property is optional. When **checked**, FaceFX will not animate material parameters. When **unchecked**, any material parameter on the character that has a matching target name in the specified **FaceFXActor** asset will be animated by FaceFX.
++ The **Disable Material Parameters** property is optional. When **checked**, FaceFX will not animate material parameters. When **unchecked**, any material parameter on the character that has a matching target name in the specified **FaceFXActor** asset will be animated by FaceFX.
 
-+ The **Is Ignore Events** property is optional. When **checked**, [Events](Events.md) will be ignored.
++ The **Ignore Events** property is optional. When **checked**, [Events](Events.md) will be ignored.
 
 
 Play

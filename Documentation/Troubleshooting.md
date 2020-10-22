@@ -13,8 +13,8 @@ Make sure the character's **Animation Blueprint** is referenced in the **Bluepri
 
 #### My character's face explodes when playing an animation
 
-Make sure the **Is Compensate for Force Front XAxis** setting on the FaceFX [Blueprint Node](BlueprintNodes.md) matches the skeletal mesh import setting.
+Make sure the **Compensate For Force Front XAxis** setting on the FaceFX [Blueprint Node](BlueprintNodes.md) matches the skeletal mesh import setting.
 
 #### All other issues
 
-Make sure there are no FaceFX warnings or errors in the log (launch the Unreal Editor with the **-Log** option). Also check the open issues in this repro. Otherwise, let us know, so we can add the issue!
+Make sure there are no FaceFX warnings or errors in the log (launch the Unreal Editor with the **-Log** option). Also check the open issues in this repo. Otherwise, let us know, so we can add the issue!
