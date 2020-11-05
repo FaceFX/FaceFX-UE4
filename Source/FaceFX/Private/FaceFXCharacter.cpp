@@ -406,6 +406,15 @@ bool UFaceFXCharacter::Play(const UFaceFXAnim* Animation, bool Loop)
 		{
 			UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::Play. Animation is not compatible with FaceFX actor. Actor: %s. Animation: %s"), *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
 			OnFaceFXCharacterPlayAssetIncompatible.Broadcast(this, Animation);
+
+			//destroy the animation that can't be played so it isn't leaked.
+			FxResult Result = fxAnimationDestroy(&NewAnimation, nullptr, nullptr);
+
+			if (!FX_SUCCEEDED(Result))
+			{
+				UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Play. FaceFX call <fxAnimationDestroy> failed. %s. Actor: %s Animation: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
+			}
+
 			return false;
 		}
 
@@ -1060,7 +1069,24 @@ void UFaceFXCharacter::ResetMaterialParametersToDefaults()
 
 bool UFaceFXCharacter::IsCanPlay(const UFaceFXAnim* Animation) const
 {
-	return Animation && IsCanPlay(FaceFX::LoadAnimation(Animation->GetData()));
+	bool CanPlay = false;
+
+	if (Animation)
+	{
+		FxAnimation NewAnimation = FaceFX::LoadAnimation(Animation->GetData());
+
+		CanPlay = IsCanPlay(NewAnimation);
+
+		//destroy the animation so it isn't leaked.
+		FxResult Result = fxAnimationDestroy(&NewAnimation, nullptr, nullptr);
+
+		if (!FX_SUCCEEDED(Result))
+		{
+			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::IsCanPlay. FaceFX call <fxAnimationDestroy> failed. %s. Actor: %s Animation: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
+		}
+	}
+
+	return Animation && CanPlay;
 }
 
 bool UFaceFXCharacter::IsCanPlay(FxAnimation Animation) const
