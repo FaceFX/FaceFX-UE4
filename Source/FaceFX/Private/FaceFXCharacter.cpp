@@ -442,7 +442,7 @@ bool UFaceFXCharacter::Play(const UFaceFXAnim* Animation, bool Loop)
 
 	if (!FX_SUCCEEDED(Result))
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Play. FaceFX call <ffx_play> failed. %s. Actor: %s. Animation: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Play. FaceFX call <fxActorPlayAnimation> failed. %s. Actor: %s. Animation: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
 		return false;
 	}
 
@@ -543,7 +543,7 @@ bool UFaceFXCharacter::Stop(bool enforceStop)
 
 		if (!FX_SUCCEEDED(Result))
 		{
-			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Stop. FaceFX call <ffx_stop> failed. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
+			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Stop. FaceFX call <fxActorStopAnimation> failed. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
 			return false;
 		}
 
