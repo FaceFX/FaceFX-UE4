@@ -212,6 +212,24 @@ void UFaceFXCharacter::Tick(float DeltaTime)
 		return;
 	}
 
+	FxChannelFlags ChannelFlags[FACEFX_CHANNELS];
+
+	Result = fxFrameStateGetChannelFlags(FrameState, ChannelFlags, FACEFX_CHANNELS);
+
+	if (!FX_SUCCEEDED(Result))
+	{
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Tick. FaceFX call <fxFrameStateGetChannelFlags> failed. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
+		return;
+	}
+
+	const FxChannelFlags EventStoppedCurrentAnimationFlags = FX_CHANNEL_ACTIVE_BIT | FX_CHANNEL_EVENT_FIRED_BIT | FX_CHANNEL_FINISHED_BIT;
+
+	if (EventStoppedCurrentAnimationFlags == ChannelFlags[0])
+	{
+		UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::Tick(). The FaceFX event handler stopped the currently playing animation."));
+		return;
+	}
+
 	Result = fxFrameStateGetTrackValues(FrameState, &TrackValues[0], (size_t)TrackValues.Num());
 
 	if (!FX_SUCCEEDED(Result))
@@ -390,7 +408,7 @@ bool UFaceFXCharacter::Play(const UFaceFXAnim* Animation, bool Loop)
 		if (GetCurrentAnimationId() != Animation->GetId())
 		{
 			//warn only about any animation that is not getting restarted
-			UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::Play. Animation already playing/paused. Stopping now. Actor: %s. Animation: %s"), *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
+			UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::Play. Stopping currently playing/paused animation %s to play animation %s Actor: %s."), *GetNameSafe(CurrentAnim), *GetNameSafe(Animation), *GetNameSafe(FaceFXActor));
 		}
 		Stop();
 	}
@@ -461,9 +479,6 @@ bool UFaceFXCharacter::Play(const UFaceFXAnim* Animation, bool Loop)
 	CurrentAnimStart = AnimStart;
 	AnimPlaybackState = EPlaybackState::Playing;
 	bIsLooping = Loop;
-
-	//tick once so we update the transforms at least once (in case another animation was playing before and we pause directly after play)
-	EnforceZeroTick();
 
 	{
 		SCOPE_CYCLE_COUNTER(STAT_FaceFXAudioEvents);
@@ -555,9 +570,6 @@ bool UFaceFXCharacter::Stop(bool enforceStop)
 			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Stop. FaceFX call <fxActorStopAnimation> failed. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
 			return false;
 		}
-
-		//enforce a processing so we reset to the initial transforms on the next update
-		EnforceZeroTick();
 	}
 
 	const FFaceFXAnimId StoppedAnimId = GetCurrentAnimationId();

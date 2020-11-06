@@ -463,15 +463,6 @@ private:
 	*/
 	void UnloadCurrentAnim();
 
-	/** Enforces a tick with a zero delta */
-	inline void EnforceZeroTick()
-	{
-#if WITH_EDITOR
-		LastFrameNumber = GFrameNumber+1;
-#endif //WITH_EDITOR
-		Tick(0.F);
-	}
-
 	/**
 	* Performs ticks from 0 to Duration in small enough timesteps to find out the location where the audio was triggered
 	* @param Duration The duration until to tick to
