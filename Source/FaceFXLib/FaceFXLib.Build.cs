@@ -90,7 +90,8 @@ public class FaceFXLib : ModuleRules
         }
         else if (Target.Platform == UnrealTargetPlatform.XboxOne)
         {
-            return Path.Combine(new[] { "xboxone", CompilerFolder });
+            // If you are using the XDK, replace gdk with xdk below.
+            return Path.Combine(new[] { "xboxone", "gdk", CompilerFolder });
         }
         else if (Target.Platform == UnrealTargetPlatform.PS4)
         {
