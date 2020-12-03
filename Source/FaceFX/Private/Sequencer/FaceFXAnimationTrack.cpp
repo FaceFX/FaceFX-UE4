@@ -36,12 +36,14 @@ UFaceFXAnimationTrack::UFaceFXAnimationTrack(const FObjectInitializer& ObjectIni
 
 void UFaceFXAnimationTrack::AddSection(const FFrameNumber& KeyTime, const FFaceFXAnimComponentSet& AnimCompSet)
 {
-	UFaceFXAnimationSection* NewSection = Cast<UFaceFXAnimationSection>(CreateNewSection());
+	Modify();
+
+	if (UFaceFXAnimationSection* NewSection = Cast<UFaceFXAnimationSection>(CreateNewSection()))
 	{
 		NewSection->SetData(AnimCompSet);
 		NewSection->InitialPlacement(AnimationSections, KeyTime, NewSection->GetAnimationDurationInFrames().Value, SupportsMultipleRows());
+		AddSection(*NewSection);
 	}
-	AddSection(*NewSection);
 }
 
 UMovieSceneSection* UFaceFXAnimationTrack::GetSectionAtTime(const FFrameNumber& Time) const
@@ -66,9 +68,14 @@ const TArray<UMovieSceneSection*>& UFaceFXAnimationTrack::GetAllSections() const
 	return AnimationSections;
 }
 
+bool UFaceFXAnimationTrack::SupportsType(TSubclassOf<UMovieSceneSection> SectionClass) const
+{
+	return SectionClass == UFaceFXAnimationSection::StaticClass();
+}
+
 UMovieSceneSection* UFaceFXAnimationTrack::CreateNewSection()
 {
-	return NewObject<UFaceFXAnimationSection>(this);
+	return NewObject<UFaceFXAnimationSection>(this, NAME_None, RF_Transactional);
 }
 
 void UFaceFXAnimationTrack::RemoveAllAnimationData()
@@ -91,6 +98,11 @@ void UFaceFXAnimationTrack::RemoveSection(UMovieSceneSection& Section)
 	AnimationSections.Remove(&Section);
 }
 
+void UFaceFXAnimationTrack::RemoveSectionAt(int32 SectionIndex)
+{
+	AnimationSections.RemoveAt(SectionIndex);
+}
+
 bool UFaceFXAnimationTrack::IsEmpty() const
 {
 	return AnimationSections.Num() == 0;
@@ -98,7 +110,7 @@ bool UFaceFXAnimationTrack::IsEmpty() const
 
 #if WITH_EDITORONLY_DATA
 
-FText UFaceFXAnimationTrack::GetDefaultDisplayName() const
+FText UFaceFXAnimationTrack::GetDisplayName() const
 {
 	return LOCTEXT("SequencerTrackName", "FaceFX");
 }

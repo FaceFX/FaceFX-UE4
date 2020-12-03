@@ -20,6 +20,7 @@ SOFTWARE.
 
 #include "FaceFXEditorConfig.h"
 #include "FaceFXEditor.h"
+#include "Misc/Paths.h"
 
 const FString& UFaceFXEditorConfig::GetFaceFXPluginFolder() const
 {

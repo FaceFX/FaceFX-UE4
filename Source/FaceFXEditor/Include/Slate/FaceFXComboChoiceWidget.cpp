@@ -40,7 +40,7 @@ EAppReturnType::Type FFaceFXComboChoiceWidget::OpenDialog(const FText& InTitle, 
 	Parent = Window;
 	Window->SetContent(AsShared());
 
-	if(ShowAsModal)
+	if (ShowAsModal)
 	{
 		GEditor->EditorAddModalWindow(Window);
 	}
@@ -63,7 +63,7 @@ void FFaceFXComboChoiceWidget::Construct(const FArguments& Args)
 	Response = EAppReturnType::Cancel;
 
 	//copy options
-	for(const FString& Option : Args._Options.Get())
+	for (const FString& Option : Args._Options.Get())
 	{
 		Options.Add(MakeShareable(new FString(Option)));
 	}
@@ -110,11 +110,11 @@ void FFaceFXComboChoiceWidget::Construct(const FArguments& Args)
 
 void FFaceFXComboChoiceWidget::OnSelectionChanged(TSharedPtr<FString> NewSelection, ESelectInfo::Type SelectInfo)
 {
-	if(NewSelection.IsValid())
+	if (NewSelection.IsValid())
 	{
 		Response = EAppReturnType::Ok;
 	}
-	if(Parent.IsValid())
+	if (Parent.IsValid())
 	{
 		Parent->RequestDestroyWindow();
 	}
@@ -138,7 +138,7 @@ FReply FFaceFXComboChoiceWidget::HandleButtonClicked(EAppReturnType::Type Respon
 
 FReply FFaceFXComboChoiceWidget::OnKeyDown(const FGeometry& Geometry, const FKeyEvent& KeyboardEvent)
 {
-	if(KeyboardEvent.GetKey() == EKeys::Escape)
+	if (KeyboardEvent.GetKey() == EKeys::Escape)
 	{
 		return HandleButtonClicked(EAppReturnType::Cancel);
 	}

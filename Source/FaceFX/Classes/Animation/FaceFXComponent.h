@@ -28,10 +28,10 @@
 class USkeletalMeshComponent;
 class UFaceFXCharacter;
 
-
 /** The delegate used for various FaceFX events */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnFaceFXEventSignature, USkeletalMeshComponent*, SkelMeshComp, const FName&, AnimId);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FOnFaceFXAudioStartEventSignature, USkeletalMeshComponent*, SkelMeshComp, const FName&, AnimId, bool, IsAudioStarted, UActorComponent*, AudioComponentStartedOn);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FOnFaceFXAnimationEventSignature, USkeletalMeshComponent*, SkelMeshComp, const FName&, AnimId, int, ChannelIndex, float, ChannelTime, float, EventTime, FString, Payload);
 
 /** A single FaceFX entry for a skelmesh */
 USTRUCT(BlueprintType)
@@ -39,9 +39,11 @@ struct FACEFX_API FFaceFXEntry
 {
 	GENERATED_USTRUCT_BODY()
 
-	FFaceFXEntry() : SkelMeshComp(nullptr), AudioComp(nullptr), Character(nullptr), bIsCompensateForForceFrontXAxis(false), bIsAutoPlaySound(true), bIsDisableMorphTargets(false), bIsDisableMaterialParameters(false) {}
-	FFaceFXEntry(USkeletalMeshComponent* InSkelMeshComp, UActorComponent* InAudioComp, const TSoftObjectPtr<class UFaceFXActor>& InAsset, bool InIsCompensateForForceFrontXAxis = false, bool InIsAutoPlaySound = true, bool InIsDisableMorphTargets = false, bool InbIsDisableMaterialParameters = false) :
-		SkelMeshComp(InSkelMeshComp), AudioComp(InAudioComp), Asset(InAsset), Character(nullptr), bIsCompensateForForceFrontXAxis(InIsCompensateForForceFrontXAxis), bIsAutoPlaySound(InIsAutoPlaySound), bIsDisableMorphTargets(InIsDisableMorphTargets), bIsDisableMaterialParameters(InbIsDisableMaterialParameters) {}
+	FFaceFXEntry() : SkelMeshComp(nullptr), AudioComp(nullptr), Character(nullptr), bIsCompensateForForceFrontXAxis(false), bIsAutoPlaySound(true), bIsDisableMorphTargets(false), bIsDisableMaterialParameters(false), bIsIgnoreEvents(false) {}
+	FFaceFXEntry(USkeletalMeshComponent* InSkelMeshComp, UActorComponent* InAudioComp, const TSoftObjectPtr<class UFaceFXActor>& InAsset, bool InIsCompensateForForceFrontXAxis = false, bool InIsAutoPlaySound = true, 
+		bool InIsDisableMorphTargets = false, bool InbIsDisableMaterialParameters = false, bool InIsIgnoreEvents = false) :
+		SkelMeshComp(InSkelMeshComp), AudioComp(InAudioComp), Asset(InAsset), Character(nullptr), bIsCompensateForForceFrontXAxis(InIsCompensateForForceFrontXAxis), bIsAutoPlaySound(InIsAutoPlaySound), 
+		bIsDisableMorphTargets(InIsDisableMorphTargets), bIsDisableMaterialParameters(InbIsDisableMaterialParameters), bIsIgnoreEvents(InIsIgnoreEvents){}
 
 	/** The linked skelmesh component */
 	UPROPERTY(BlueprintReadOnly, Category=FaceFX)
@@ -59,21 +61,25 @@ struct FACEFX_API FFaceFXEntry
 	UPROPERTY(Transient, BlueprintReadOnly, Category=FaceFX)
 	UFaceFXCharacter* Character;
 
-	/** */
+	/** Should only be enabled if Force Front XAxis was enabled when the Skeletal Mesh was imported. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=FaceFX)
 	uint8 bIsCompensateForForceFrontXAxis : 1;
 
-	/** Indicator that defines if the FaceFX character shall play the sound wave assigned to the FaceFX Animation asset automatically when this animation is getting played */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=FaceFX)
+	/** Indicates whether or not the sound assigned to a FaceFX animation is automatically played when the animation is played. */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category=FaceFX, DisplayName="Automatically Play Sound")
 	uint8 bIsAutoPlaySound : 1;
 
-	/** Indicator if the morph targets driven by FaceFX tracks are disabled */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=FaceFX)
+	/** Indicates whether or not FaceFX tracks will animate matched morph targets. */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category=FaceFX, DisplayName="Disable Morph Targets")
 	uint8 bIsDisableMorphTargets : 1;
 
-	/** Indicator if the material parameters driven by FaceFX tracks are disabled */
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = FaceFX)
+	/** Indicates or not FaceFX tracks will animate matched material parameters.. */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = FaceFX, DisplayName="Disable Material Parameters")
 	uint8 bIsDisableMaterialParameters : 1;
+ 
+	/** Indicates whether or not FaceFX events are ignored. */
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = FaceFX, DisplayName="Ignore Events")
+	uint8 bIsIgnoreEvents : 1;
 
 	FORCEINLINE bool operator==(const USkeletalMeshComponent* InComp) const
 	{
@@ -99,18 +105,27 @@ public:
 	//~UObject
 
 	/**
-	* Setups a FaceFX character to a given skelmesh component
-	* @param SkelMeshComp The skelmesh component to setup the FaceFX character for
+	* Sets up a FaceFX character for a given skelmesh component
+	* @param SkelMeshComp The skelmesh component setting up the FaceFX character.
 	* @param AudioComponent The audio component to assign to the FaceFX character. Keep empty to use the first audio component found on the owning actor.
-	* @param Asset The FaceFX asset to use
-	* @param IsCompensateForForceFrontXAxis Indicator that compensates for the Force Front XAxis setting when importing FBX files
-	* @param IsAutoPlaySound Indicator that defines if the FaceFX character shall play the sound wave assigned to the FaceFX Animation asset automatically when this animation is getting played
-	* @param IsDisableMorphTargets Indicator if the use of available morph targets driven by FaceFX tracks shall be disabled
-	* @param IsDisableMaterialParameters Indicator if the use of available material parameters driven by FaceFX tracks shall be disabled
+	* @param Asset The FaceFX asset to use.
+	* @param IsCompensateForForceFrontXAxis Should only be enabled if Force Front XAxis was enabled when the Skeletal Mesh was imported.
+	* @param IsAutoPlaySound Indicates whether or not the sound assigned to a FaceFX animation is automatically played when the animation is played.
+	* @param IsDisableMorphTargets Indicates whether or not FaceFX tracks will animate matched morph targets.
+	* @param IsDisableMaterialParameters Indicates or not FaceFX tracks will animate matched material parameters.
+	* @param IsIgnoreEvents Indicates whether or not FaceFX events are ignored.
 	* @return True if succeeded, else false
 	*/
 	UFUNCTION(BlueprintCallable, Category=FaceFX, Meta=(IsAutoPlaySound=true, HidePin="Caller", DefaultToSelf="Caller"))
-	bool Setup(USkeletalMeshComponent* SkelMeshComp, UActorComponent* AudioComponent, const UFaceFXActor* Asset, bool IsCompensateForForceFrontXAxis, bool IsAutoPlaySound, bool IsDisableMorphTargets, bool IsDisableMaterialParameters, const UObject* Caller = nullptr);
+	bool Setup(USkeletalMeshComponent* SkelMeshComp, 
+               UActorComponent* AudioComponent,
+			   const UFaceFXActor* Asset,
+			   UPARAM(DisplayName="Compensate For Force Front XAxis") bool IsCompensateForForceFrontXAxis, 
+			   UPARAM(DisplayName="Automatically Play Sound") bool IsAutoPlaySound,
+			   UPARAM(DisplayName="Disable Morph Targets") bool IsDisableMorphTargets, 
+			   UPARAM(DisplayName="Disable Material Parameters") bool IsDisableMaterialParameters, 
+			   UPARAM(DisplayName="Ignore Events") bool IsIgnoreEvents, 
+			   const UObject* Caller = nullptr);
 
 	/**
 	* Starts the playback of the given facial animation for a given skel mesh components character
@@ -230,6 +245,10 @@ public:
 	UPROPERTY(BlueprintAssignable, Category=FaceFX)
 	FOnFaceFXEventSignature OnPlaybackStopped;
 
+	/** Event that triggers whenever any of the FaceFX character instances triggers an animation event from within the FaceFX runtime */
+	UPROPERTY(BlueprintAssignable, Category = FaceFX)
+	FOnFaceFXAnimationEventSignature OnAnimationEvent;
+
 	/**
 	* Gets the skeletal mesh component that is targeted by the given SkelMesh identifier
 	* @param SkelMeshId The skelmesh identifier
@@ -244,9 +263,9 @@ public:
 	*/
 	inline UFaceFXCharacter* GetCharacter(const USkeletalMeshComponent* SkelMeshComp = nullptr) const
 	{
-		if(SkelMeshComp)
+		if (SkelMeshComp)
 		{
-			if(const FFaceFXEntry* Entry = Entries.FindByKey(SkelMeshComp))
+			if (const FFaceFXEntry* Entry = Entries.FindByKey(SkelMeshComp))
 			{
 				return Entry->Character;
 			}
@@ -282,9 +301,9 @@ public:
 	*/
 	inline USkeletalMeshComponent* GetSkelMeshTarget(const UFaceFXCharacter* FaceFXCharacter) const
 	{
-		if(FaceFXCharacter)
+		if (FaceFXCharacter)
 		{
-			if(const FFaceFXEntry* Entry = Entries.FindByKey(FaceFXCharacter))
+			if (const FFaceFXEntry* Entry = Entries.FindByKey(FaceFXCharacter))
 			{
 				return Entry->SkelMeshComp;
 			}
@@ -298,7 +317,7 @@ public:
 	*/
 	inline void GetSetupSkelMeshComponents(TArray<USkeletalMeshComponent*>& OutSkelMeshComponent) const
 	{
-		for(const FFaceFXEntry& Entry : Entries)
+		for (const FFaceFXEntry& Entry : Entries)
 		{
 			OutSkelMeshComponent.Add(Entry.SkelMeshComp);
 		}
@@ -338,6 +357,18 @@ private:
 	*/
 	UFUNCTION()
 	void OnCharacterPlaybackStopped(UFaceFXCharacter* Character, const FFaceFXAnimId& AnimId);
+
+	/**
+	* Callback for when a FaceFX character instance triggers an animation event from within the FaceFX runtime
+	* @param Character The character instance who triggered the event.
+	* @param AnimId The facial animation that is played and triggers the event.
+	* @param ChannelIndex The index of the channel that the animation is currently playing in.
+	* @param ChannelTime The current playback time in the animation when the event is fired.
+	* @param EventTime The exact time of playback duration at which the event was triggered.
+	* @param Payload The event payload. This is a string assigned to the event directly within the FaceFX asset.
+	*/
+	UFUNCTION()
+	void OnCharacterAnimationEvent(UFaceFXCharacter* Character, const FFaceFXAnimId& AnimId, int ChannelIndex, float ChannelTime, float EventTime, const FString& Payload);
 
 	/** Processes the current list of registered skelmesh components and creates FaceFX characters for the ones that were not processed yet */
 	void CreateAllCharacters();

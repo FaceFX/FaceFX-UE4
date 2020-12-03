@@ -106,7 +106,7 @@ void UFaceFXAnimationSection::GetSnapTimes(TArray<FFrameNumber>& OutSnapTimes, b
 	}
 
 	//Don't consider any infinite sections
-	if(!HasStartFrame() || !HasEndFrame())
+	if (!HasStartFrame() || !HasEndFrame())
 	{
 		return;
 	}
@@ -166,6 +166,7 @@ float UFaceFXAnimationSection::GetAnimationDurationInSeconds(const AActor* Actor
 			if (UFaceFXCharacter::GetAnimationBoundsById(Actor, AnimationId, AnimStart, AnimEnd))
 			{
 				AnimationDuration = AnimEnd - AnimStart;
+				bIsAnimationDurationLoaded = true;
 			}
 		}
 		else
@@ -177,10 +178,9 @@ float UFaceFXAnimationSection::GetAnimationDurationInSeconds(const AActor* Actor
 			if (FaceFX::GetAnimationBounds(TargetAnimation, AnimStart, AnimEnd))
 			{
 				AnimationDuration = AnimEnd - AnimStart;
+				bIsAnimationDurationLoaded = true;
 			}
 		}
-
-		bIsAnimationDurationLoaded = true;
 	}
 	return AnimationDuration;
 }
@@ -194,7 +194,7 @@ FFrameNumber UFaceFXAnimationSection::GetAnimationDurationInFrames(const AActor*
 		return 0;
 	}
 
-	if(!HasStartFrame() || !HasEndFrame())
+	if (!HasStartFrame() || !HasEndFrame())
 	{
 		return 0;
 	}

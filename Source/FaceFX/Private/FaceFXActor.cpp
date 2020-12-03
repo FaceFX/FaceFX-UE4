@@ -32,7 +32,7 @@ void UFaceFXActor::GetResourceSizeEx(FResourceSizeEx& CumulativeResourceSize)
 	Super::GetResourceSizeEx(CumulativeResourceSize);
 
 	//only count cooked data without any references
-	if(CumulativeResourceSize.GetResourceSizeMode() == EResourceSizeMode::Exclusive)
+	if (CumulativeResourceSize.GetResourceSizeMode() == EResourceSizeMode::Exclusive)
 	{
 		CumulativeResourceSize.AddDedicatedSystemMemoryBytes(ActorData.ActorRawData.Num() * ActorData.ActorRawData.GetTypeSize());
 		CumulativeResourceSize.AddDedicatedSystemMemoryBytes(ActorData.BonesRawData.Num() * ActorData.BonesRawData.GetTypeSize());
@@ -41,9 +41,9 @@ void UFaceFXActor::GetResourceSizeEx(FResourceSizeEx& CumulativeResourceSize)
 	else
 	{
 #if FACEFX_USEANIMATIONLINKAGE
-		for(UFaceFXAnim* Anim : Animations)
+		for (UFaceFXAnim* Anim : Animations)
 		{
-			if(Anim)
+			if (Anim)
 			{
 				Anim->GetResourceSizeEx(CumulativeResourceSize);
 			}
@@ -56,13 +56,13 @@ void UFaceFXActor::GetResourceSizeEx(FResourceSizeEx& CumulativeResourceSize)
 
 void UFaceFXActor::Serialize(FArchive& Ar)
 {
-	if(!IsTemplate() && Ar.IsSaving())
+	if (!IsTemplate() && Ar.IsSaving())
 	{
 #if FACEFX_USEANIMATIONLINKAGE
 		//cleanup references to deleted assets
-		for(int32 i=Animations.Num()-1; i>=0; --i)
+		for (int32 i=Animations.Num()-1; i>=0; --i)
 		{
-			if(!Animations[i])
+			if (!Animations[i])
 			{
 				Animations.RemoveAt(i);
 			}
@@ -94,7 +94,7 @@ void UFaceFXActor::Serialize(FArchive& Ar)
 
 		const bool bIsDirty = Package->IsDirty();
 
-		if(!bIsDirty)
+		if (!bIsDirty)
 		{
 			Package->SetDirtyFlag(true);
 		}
@@ -114,7 +114,7 @@ void UFaceFXActor::GetDetails(FString& OutDetails) const
 	OutDetails = LOCTEXT("DetailsActorHeader", "FaceFX Actor").ToString() + TEXT("\n\n");
 	OutDetails += LOCTEXT("DetailsSource", "Source: ").ToString() + AssetName + TEXT("\n");
 
-	if(bIsValid)
+	if (bIsValid)
 	{
 		const int32 EstSize = GetData().ActorRawData.Max() + GetData().BonesRawData.Max() + GetData().Ids.GetTypeSize() * GetData().Ids.Max();
 		OutDetails += LOCTEXT("DetailsSize", "Estimated Size: ").ToString() + FString::FromInt(EstSize) + TEXT(" Bytes\n");
@@ -123,9 +123,9 @@ void UFaceFXActor::GetDetails(FString& OutDetails) const
 #if FACEFX_USEANIMATIONLINKAGE
 	//Animation references
 	TArray<FString> AnimRefs;
-	for(const UFaceFXAnim* AnimRef : Animations)
+	for (const UFaceFXAnim* AnimRef : Animations)
 	{
-		if(AnimRef)
+		if (AnimRef)
 	{
 			AnimRefs.Add(AnimRef->GetId().GetIdString());
 		}
@@ -133,13 +133,13 @@ void UFaceFXActor::GetDetails(FString& OutDetails) const
 
 	OutDetails += TEXT("\n");
 
-	if(AnimRefs.Num() > 0)
+	if (AnimRefs.Num() > 0)
 	{
 		AnimRefs.Sort();
 
 		OutDetails += LOCTEXT("DetailsActorAnimRefs", "Animation References").ToString() + FString::Printf(TEXT(" (%i)\n"), AnimRefs.Num());
 		OutDetails += TEXT("-----------------------------\n");
-		for(auto& AnimRef : AnimRefs)
+		for (auto& AnimRef : AnimRefs)
 		{
 			OutDetails += AnimRef + TEXT("\n");
 		}
@@ -150,7 +150,7 @@ void UFaceFXActor::GetDetails(FString& OutDetails) const
 #endif //FACEFX_USEANIMATIONLINKAGE
 
 	//Ids
-	if(bIsValid)
+	if (bIsValid)
 	{
 		auto& Ids = ActorData.Ids;
 
@@ -160,13 +160,13 @@ void UFaceFXActor::GetDetails(FString& OutDetails) const
 		OutDetails += LOCTEXT("DetailsSetIds", "IDs").ToString() + FString::Printf(TEXT(" (%i)\n"), Ids.Num());
 		OutDetails += TEXT("-----------------------------\n");
 
-		for(auto& Id : Ids)
+		for (auto& Id : Ids)
 		{
 			SortedBones.Add(Id.Name.GetPlainNameString());
 		}
 
 		SortedBones.Sort();
-		for(auto& Id : SortedBones)
+		for (auto& Id : SortedBones)
 		{
 			OutDetails += Id + TEXT("\n");
 		}
@@ -184,9 +184,9 @@ void UFaceFXActor::GetDetails(FString& OutDetails) const
 int32 UFaceFXActor::GetAnimationCount() const
 {
 	int32 Result = 0;
-	for(const UFaceFXAnim* Animation : Animations)
+	for (const UFaceFXAnim* Animation : Animations)
 	{
-		if(Animation)
+		if (Animation)
 		{
 			Result += Animation->GetAnimationCount();
 		}
@@ -202,11 +202,11 @@ const UFaceFXAnim* UFaceFXActor::GetAnimation(const FName& AnimGroup, const FNam
 {
 	const bool IsNoneGroup = AnimGroup.IsNone();
 
-	for(const UFaceFXAnim* Animation : Animations)
+	for (const UFaceFXAnim* Animation : Animations)
 	{
-		if(Animation && (IsNoneGroup || Animation->GetGroup() == AnimGroup))
+		if (Animation && (IsNoneGroup || Animation->GetGroup() == AnimGroup))
 		{
-			if(Animation->GetName() == AnimName)
+			if (Animation->GetName() == AnimName)
 			{
 				return Animation;
 			}
@@ -217,9 +217,9 @@ const UFaceFXAnim* UFaceFXActor::GetAnimation(const FName& AnimGroup, const FNam
 
 void UFaceFXActor::GetAnimationGroups(TArray<FName>& OutGroups) const
 {
-	for(const UFaceFXAnim* Animation : Animations)
+	for (const UFaceFXAnim* Animation : Animations)
 	{
-		if(Animation)
+		if (Animation)
 		{
 			OutGroups.AddUnique(Animation->GetGroup());
 		}
@@ -228,9 +228,9 @@ void UFaceFXActor::GetAnimationGroups(TArray<FName>& OutGroups) const
 
 void UFaceFXActor::GetAnimationIds(TArray<FFaceFXAnimId>& OutAnimIds) const
 {
-	for(const UFaceFXAnim* Animation : Animations)
+	for (const UFaceFXAnim* Animation : Animations)
 	{
-		if(Animation)
+		if (Animation)
 		{
 			OutAnimIds.Add(Animation->GetId());
 		}
