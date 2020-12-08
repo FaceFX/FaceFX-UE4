@@ -37,7 +37,6 @@ Indicates if the editor should show a warning message when a **UFaceFXAnimation*
 
 <img src="Images/PluginEditorSettings.png" width="640">
 
-
 Game
 ----
 

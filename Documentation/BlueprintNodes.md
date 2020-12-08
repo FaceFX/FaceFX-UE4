@@ -30,7 +30,6 @@ The FaceFX Setup Blueprint node initializes the linked **FaceFX Component** with
 
 + The **Ignore Events** property is optional. When **checked**, [Events](Events.md) will be ignored.
 
-
 Play
 ----
 
@@ -95,7 +94,6 @@ The FaceFX Stop Blueprint node stops all FaceFX animations and audio files playi
 + The **Target** slot is required and should be wired to the **FaceFX Component**.
 
 + The **Skel Mesh Comp** slot is optional. It should be wired to the **Skeletal Mesh Component** to animate. If it is not set, the first **Skeletal Mesh Component** found is used.
-
 
 On Animation Event
 ------------------

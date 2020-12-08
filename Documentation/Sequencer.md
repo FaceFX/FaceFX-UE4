@@ -1,5 +1,5 @@
 Sequencer
-=======
+=========
 
 FaceFX animations can be played from Sequencer.
 

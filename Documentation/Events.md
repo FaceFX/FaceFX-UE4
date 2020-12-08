@@ -1,5 +1,5 @@
 Events
-=======
+======
 
 In-game actions can be triggered from animation events. Each animation can trigger multiple events at different times with unique string payloads. The string payloads are passed via Blueprint to trigger custom in-game systems.
 
@@ -31,3 +31,14 @@ Tutorial
 <img src="Images/OnAnimationEvent.png" width="242">
 
 + Wire up the OnAnimationEvent outputs, including the payload, to your in game system
+
+Other Considerations
+--------------------
+
++ Scrubbing in sequencer does not generate any events by design.
+
++ Events that operate on the currently playing or other FaceFX animations are discouraged but not prohibited. However,
+  when playing in Sequencer, due to the way Sequencer is implemented, you cannot operate on any other FaceFX animations. If you
+  wish to operate on FaceFX animations from events, do so when playback is initiated from code or Blueprints, not Sequencer.
+
++ Be aware of the potential for infinite loops when operating on the currently playing FaceFX animation or other FaceFX animations.
