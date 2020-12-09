@@ -28,21 +28,23 @@
 UCLASS()
 class UAnimGraphNode_BlendFaceFXAnimation : public UAnimGraphNode_Base
 {
-	GENERATED_UCLASS_BODY()
+    GENERATED_UCLASS_BODY()
 
-	/** The associated node */
+public:
+
+    /** The associated node */
     UPROPERTY(EditAnywhere, Category=Settings)
     FAnimNode_BlendFaceFXAnimation Node;
 
-	// UEdGraphNode interface
-	FACEFXEDITOR_API virtual FText GetTooltipText() const override;
-	FACEFXEDITOR_API virtual FText GetNodeTitle(ENodeTitleType::Type TitleType) const override;
-	FACEFXEDITOR_API virtual FLinearColor GetNodeTitleColor() const override;
-	// End of UEdGraphNode interface
+    // UEdGraphNode interface
+    virtual FText GetTooltipText() const override;
+    virtual FText GetNodeTitle(ENodeTitleType::Type TitleType) const override;
+    virtual FLinearColor GetNodeTitleColor() const override;
+    // End of UEdGraphNode interface
 
-	// UAnimGraphNode_Base interface
-	FACEFXEDITOR_API virtual FString GetNodeCategory() const override;
-	// End of UAnimGraphNode_Base interface
+    // UAnimGraphNode_Base interface
+    virtual FString GetNodeCategory() const override;
+    // End of UAnimGraphNode_Base interface
 
-	FACEFXEDITOR_API virtual void CreateOutputPins() override;
+    virtual void CreateOutputPins() override;
 };

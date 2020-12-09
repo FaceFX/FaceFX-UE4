@@ -124,18 +124,18 @@ bool FFaceFXAnimationTrackEditor::SupportsType(TSubclassOf<UMovieSceneTrack> Typ
 	return Type == UFaceFXAnimationTrack::StaticClass();
 }
 
-TSharedRef<ISequencerSection> FFaceFXAnimationTrackEditor::MakeSectionInterface(UMovieSceneSection& SectionObject, UMovieSceneTrack& Track, FGuid ObjectBinding)
-{
-	check(SupportsType(SectionObject.GetOuter()->GetClass()));
-	return MakeShareable(new FFaceFXAnimationSection(SectionObject));
-}
-
 void FFaceFXAnimationTrackEditor::AddKey(const FGuid& ObjectGuid)
 {
 	if (UFaceFXComponent* FaceFXComponent = GetFaceFXComponent(ObjectGuid))
 	{
 		KeyDialog.ShowDialog(FaceFXComponent, FSimpleDelegate::CreateRaw(this, &FFaceFXAnimationTrackEditor::OnFaceFXTrackDialogClosed, ObjectGuid));
 	}
+}
+
+TSharedRef<ISequencerSection> FFaceFXAnimationTrackEditor::MakeSectionInterface(UMovieSceneSection& SectionObject, UMovieSceneTrack& Track, FGuid ObjectBinding)
+{
+	check(SupportsType(SectionObject.GetOuter()->GetClass()));
+	return MakeShareable(new FFaceFXAnimationSection(SectionObject));
 }
 
 void FFaceFXAnimationTrackEditor::OnFaceFXTrackDialogClosed(FGuid ObjectBinding)
@@ -146,24 +146,6 @@ void FFaceFXAnimationTrackEditor::OnFaceFXTrackDialogClosed(FGuid ObjectBinding)
 	{
 		UObject* Object = LocalSequencer->FindSpawnedObjectOrTemplate(ObjectBinding);
 		AnimatablePropertyChanged(FOnKeyProperty::CreateRaw(this, &FFaceFXAnimationTrackEditor::AddFaceFXSection, Object, KeyDialog.GetSelectedAnimSet()));
-	}
-}
-
-void FFaceFXAnimationTrackEditor::BuildObjectBindingTrackMenu(FMenuBuilder& MenuBuilder, const TArray<FGuid>& ObjectBindings, const UClass* ObjectClass)
-{
-	if (ObjectClass != UFaceFXComponent::StaticClass())
-	{
-		//only show widget on the component menu
-		return;
-	}
-
-	if (UFaceFXComponent* FaceFXComponent = GetFaceFXComponent(ObjectBindings[0]))
-	{
-		MenuBuilder.AddMenuEntry(
-			LOCTEXT("SequencerAddSection", "Facial Animation"),
-			LOCTEXT("SequencerAddSectionTooltip", "Adds a FaceFX facial animation section"),
-			FSlateIcon(),
-			FUIAction(FExecuteAction::CreateRaw(this, &FFaceFXAnimationTrackEditor::OnAddKey, ObjectBindings[0])));
 	}
 }
 
@@ -215,6 +197,24 @@ UFaceFXComponent* FFaceFXAnimationTrackEditor::GetFaceFXComponent(const FGuid& G
 	}
 	//Fallback to direct cast
 	return Cast<UFaceFXComponent>(BoundObject);
+}
+
+void FFaceFXAnimationTrackEditor::BuildObjectBindingTrackMenu(FMenuBuilder& MenuBuilder, const TArray<FGuid>& ObjectBindings, const UClass* ObjectClass)
+{
+	if (ObjectClass != UFaceFXComponent::StaticClass())
+	{
+		//only show widget on the component menu
+		return;
+	}
+
+	if (UFaceFXComponent* FaceFXComponent = GetFaceFXComponent(ObjectBindings[0]))
+	{
+		MenuBuilder.AddMenuEntry(
+			LOCTEXT("SequencerAddSection", "Facial Animation"),
+			LOCTEXT("SequencerAddSectionTooltip", "Adds a FaceFX facial animation section"),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateRaw(this, &FFaceFXAnimationTrackEditor::OnAddKey, ObjectBindings[0])));
+	}
 }
 
 TSharedPtr<SWidget> FFaceFXAnimationTrackEditor::BuildOutlinerEditWidget(const FGuid& ObjectBinding, UMovieSceneTrack* Track, const FBuildEditWidgetParams& Params)

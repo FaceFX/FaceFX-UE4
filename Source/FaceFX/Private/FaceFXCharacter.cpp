@@ -20,7 +20,7 @@
 
 #include "FaceFXCharacter.h"
 #include "FaceFX.h"
-#include "FaceFXContext.h"
+#include "FaceFXAllocator.h"
 #include "FaceFXActor.h"
 #include "FaceFXBlueprintLibrary.h"
 #include "Audio/FaceFXAudio.h"
@@ -33,7 +33,8 @@ DECLARE_CYCLE_STAT(TEXT("Tick Character"), STAT_FaceFXTick, STATGROUP_FACEFX);
 DECLARE_CYCLE_STAT(TEXT("Update Transforms"), STAT_FaceFXUpdateTransforms, STATGROUP_FACEFX);
 DECLARE_CYCLE_STAT(TEXT("Load Assets"), STAT_FaceFXLoad, STATGROUP_FACEFX);
 DECLARE_CYCLE_STAT(TEXT("Play"), STAT_FaceFXPlay, STATGROUP_FACEFX);
-DECLARE_CYCLE_STAT(TEXT("Broadcast Events"), STAT_FaceFXEvents, STATGROUP_FACEFX);
+DECLARE_CYCLE_STAT(TEXT("Broadcast Audio Events"), STAT_FaceFXAudioEvents, STATGROUP_FACEFX);
+DECLARE_CYCLE_STAT(TEXT("Broadcast Anim Events"), STAT_FaceFXAnimEvents, STATGROUP_FACEFX);
 DECLARE_CYCLE_STAT(TEXT("Process Morph Targets"), STAT_FaceFXProcessMorphTargets, STATGROUP_FACEFX);
 DECLARE_CYCLE_STAT(TEXT("Process Material Parameters"), STAT_FaceFXProcessMaterialParameters, STATGROUP_FACEFX);
 
@@ -53,9 +54,10 @@ namespace
 		return BlendMode;
 	}
 
-	unsigned int GetBoneSetCreationFlags(EFaceFXBlendMode BlendMode, bool IsCompensateForForceFrontXAxis)
+	FxBoneSetFlags GetBoneSetCreationFlags(EFaceFXBlendMode BlendMode, bool IsCompensateForForceFrontXAxis)
 	{
-		unsigned int BoneSetCreationFlags = BlendMode == EFaceFXBlendMode::Additive ? FFX_USE_OFFSET_XFORMS : FFX_USE_FULL_XFORMS;
+		FxBoneSetFlags BoneSetCreationFlags = BlendMode == EFaceFXBlendMode::Additive ? FX_BONESET_OFFSET_XFORMS_BIT : FX_BONESET_FULL_XFORMS;
+
 		if (IsCompensateForForceFrontXAxis)
 		{
 			BoneSetCreationFlags |= 0x80000000;
@@ -68,10 +70,10 @@ namespace
 UFaceFXCharacter::FOnFaceFXCharacterPlayAssetIncompatibleSignature UFaceFXCharacter::OnFaceFXCharacterPlayAssetIncompatible;
 
 UFaceFXCharacter::UFaceFXCharacter(const class FObjectInitializer& PCIP) : Super(PCIP),
-	ActorHandle(nullptr),
-	FrameState(nullptr),
-	BoneSetHandle(nullptr),
-	CurrentAnimHandle(nullptr),
+	Actor(FX_INVALID_ACTOR),
+	FrameState(FX_INVALID_FRAMESTATE),
+	BoneSet(FX_INVALID_BONESET),
+	CurrentAnimation(FX_INVALID_ANIMATION),
 	CurrentTime(0.f),
 	CurrentAnimProgress(0.f),
 	CurrentAnimDuration(0.f),
@@ -82,11 +84,12 @@ UFaceFXCharacter::UFaceFXCharacter(const class FObjectInitializer& PCIP) : Super
 	bCompensatedForForceFrontXAxis(false),
 	bDisabledMorphTargets(false),
 	bDisabledMaterialParameters(false)
+	,bIgnoreEvents(false)
 #if WITH_EDITOR
 	,LastFrameNumber(0)
 #endif
 {
-	if(!IsTemplate())
+	if (!IsTemplate())
 	{
 #if WITH_EDITOR
 		OnFaceFXAnimChangedHandle = UFaceFXCharacter::OnAssetChanged.AddUObject(this, &UFaceFXCharacter::OnFaceFXAssetChanged);
@@ -110,9 +113,9 @@ void UFaceFXCharacter::BeginDestroy()
 #endif
 }
 
-bool UFaceFXCharacter::TickUntil(float Duration, bool& OutAudioStarted)
+bool UFaceFXCharacter::TickUntil(float Duration, bool& OutAudioStarted, bool IgnoreEvents)
 {
-	if(!bCanPlay || Duration < 0.F)
+	if (!bCanPlay || Duration < 0.f)
 	{
 		return false;
 	}
@@ -120,24 +123,35 @@ bool UFaceFXCharacter::TickUntil(float Duration, bool& OutAudioStarted)
 	CurrentTime = Duration;
 	CurrentAnimProgress = 0.F;
 
-	/** The steps to perform */
-	static const float TickSteps = 0.1F;
+	//The steps to perform
+	static const float TickSteps = 0.1f;
 
-	const bool bProcessZeroSuccess = FaceFX::Check(ffx_process_frame(ActorHandle, FrameState, 0.F));
+	const bool IgnoreEventsPrev = bIgnoreEvents;
+	bIgnoreEvents = IgnoreEvents;
+
+	FxResult ProcessZeroResult = fxActorProcessFrame(Actor, FrameState, 0.f);
 	const bool bIsAudioStartedAtZero = IsAudioStarted();
+	FxResult Result = fxActorProcessFrame(Actor, FrameState, CurrentTime);
 
-	if (!bProcessZeroSuccess || !FaceFX::Check(ffx_process_frame(ActorHandle, FrameState, CurrentTime)))
+	bIgnoreEvents = IgnoreEventsPrev;
+
+	if (!FX_SUCCEEDED(ProcessZeroResult) || !FX_SUCCEEDED(Result))
 	{
-		//update failed
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::TickUntil. FaceFX call <ffx_process_frame> failed. %s. Asset: %s"), *FaceFX::GetFaceFXError(), *GetNameSafe(FaceFXActor));
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::TickUntil. FaceFX call <fxActorProcessFrame> failed. (zero: %s) %s. Asset: %s"),
+		       *FaceFX::GetFaceFXResultString(ProcessZeroResult), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
 		return false;
 	}
 
-	if(bIsAudioStartedAtZero || IsAudioStarted())
+	Result = fxFrameStateGetTrackValues(FrameState, &TrackValues[0], (size_t)TrackValues.Num());
+
+	if (!FX_SUCCEEDED(Result))
 	{
-		OutAudioStarted = true;
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::TickUntil. FaceFX call <fxFrameStateGetTrackValues> failed. (zero: %s) %s. Asset: %s"),
+		       *FaceFX::GetFaceFXResultString(ProcessZeroResult), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
+		return false;
 	}
 
+	OutAudioStarted = bIsAudioStartedAtZero || IsAudioStarted();
 	CurrentAnimProgress = CurrentTime;
 	bIsDirty = true;
 
@@ -161,7 +175,7 @@ void UFaceFXCharacter::Tick(float DeltaTime)
 	checkf(!IsNonZeroTick || bCanPlay, TEXT("Internal Error: FaceFX character is not allowed to tick."));
 
 #if WITH_EDITOR
-	if(LastFrameNumber == GFrameNumber)
+	if (LastFrameNumber == GFrameNumber)
 	{
 		//tick was called twice within the same frame -> happens when running in PIE with dedicated server active or multiple instances
 		return;
@@ -176,10 +190,10 @@ void UFaceFXCharacter::Tick(float DeltaTime)
 	//tick the audio player to update its progression
 	AudioPlayer->Tick(DeltaTime);
 
-	if(IsNonZeroTick && CurrentAnimProgress >= CurrentAnimDuration)
+	if (IsNonZeroTick && CurrentAnimProgress >= CurrentAnimDuration)
 	{
 		//end of animation reached
-		if(IsLooping())
+		if (IsLooping())
 		{
 			Restart();
 		}
@@ -190,16 +204,44 @@ void UFaceFXCharacter::Tick(float DeltaTime)
 		}
 	}
 
-	if (!FaceFX::Check(ffx_process_frame(ActorHandle, FrameState, CurrentTime)))
+	FxResult Result = fxActorProcessFrame(Actor, FrameState, CurrentTime);
+
+	if (!FX_SUCCEEDED(Result))
 	{
-		//update failed
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Tick. FaceFX call <ffx_process_frame> failed. %s. Asset: %s"), *FaceFX::GetFaceFXError(), *GetNameSafe(FaceFXActor));
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Tick. FaceFX call <fxActorProcessFrame> failed. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
 		return;
 	}
 
-	if(IsAudioStarted())
+	FxChannelFlags ChannelFlags[FACEFX_CHANNELS];
+
+	Result = fxFrameStateGetChannelFlags(FrameState, ChannelFlags, FACEFX_CHANNELS);
+
+	if (!FX_SUCCEEDED(Result))
 	{
-		SCOPE_CYCLE_COUNTER(STAT_FaceFXEvents);
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Tick. FaceFX call <fxFrameStateGetChannelFlags> failed. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
+		return;
+	}
+
+	const FxChannelFlags EventStoppedCurrentAnimationFlags = FX_CHANNEL_ACTIVE_BIT | FX_CHANNEL_EVENT_FIRED_BIT | FX_CHANNEL_FINISHED_BIT;
+
+	if (EventStoppedCurrentAnimationFlags == ChannelFlags[0])
+	{
+		UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::Tick(). The FaceFX event handler stopped the currently playing animation."));
+		return;
+	}
+
+	Result = fxFrameStateGetTrackValues(FrameState, &TrackValues[0], (size_t)TrackValues.Num());
+
+	if (!FX_SUCCEEDED(Result))
+	{
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Tick. FaceFX call <fxFrameStateGetTrackValues> failed. (zero: %s) %s. Asset: %s"),
+		       *FaceFX::GetFaceFXResultString(Result), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
+		return;
+	}
+
+	if (IsAudioStarted())
+	{
+		SCOPE_CYCLE_COUNTER(STAT_FaceFXAudioEvents);
 		UActorComponent* AudioCompStartedOn = nullptr;
 		const bool AudioStarted = AudioPlayer->Play(&AudioCompStartedOn);
 
@@ -225,9 +267,9 @@ TStatId UFaceFXCharacter::GetStatId() const
 #if FACEFX_USEANIMATIONLINKAGE
 bool UFaceFXCharacter::GetAnimationBoundsById(const AActor* Actor, const FFaceFXAnimId& AnimId, float& OutStart, float& OutEnd)
 {
-	if(Actor)
+	if (Actor)
 	{
-		if(const UFaceFXComponent* FaceFXComp = Actor->FindComponentByClass<UFaceFXComponent>())
+		if (const UFaceFXComponent* FaceFXComp = Actor->FindComponentByClass<UFaceFXComponent>())
 		{
 			if (const FFaceFXEntry* FxEntry = FaceFXComp->GetCharacterEntry())
 			{
@@ -252,13 +294,13 @@ bool UFaceFXCharacter::GetAnimationBoundsById(const AActor* Actor, const FFaceFX
 
 bool UFaceFXCharacter::GetAnimationBoundsById(const UFaceFXActor* FaceFXActor, const FFaceFXAnimId& AnimId, float& OutStart, float& OutEnd)
 {
-	if(!FaceFXActor)
+	if (!FaceFXActor)
 	{
 		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::GetAnimationBoundsById. FaceFX asset not loaded."));
 		return false;
 	}
 
-	if(const UFaceFXAnim* Anim = FaceFXActor->GetAnimation(AnimId))
+	if (const UFaceFXAnim* Anim = FaceFXActor->GetAnimation(AnimId))
 	{
 		return FaceFX::GetAnimationBounds(Anim, OutStart, OutEnd);
 	}
@@ -272,7 +314,7 @@ bool UFaceFXCharacter::GetAnimationBoundsById(const UFaceFXActor* FaceFXActor, c
 
 bool UFaceFXCharacter::GetAllLinkedAnimationIds(TArray<FFaceFXAnimId>& OutAnimIds) const
 {
-	if(!FaceFXActor)
+	if (!FaceFXActor)
 	{
 		return false;
 	}
@@ -285,15 +327,16 @@ bool UFaceFXCharacter::GetAllLinkedAnimationIds(TArray<FFaceFXAnimId>& OutAnimId
 
 bool UFaceFXCharacter::GetAnimationBounds(float& OutStart, float& OutEnd) const
 {
-	if(!IsPlaying() || !CurrentAnimHandle)
+	if (!IsPlaying() || !CurrentAnimation)
 	{
 		return false;
 	}
 
-	//get anim bounds
-	if(!FaceFX::Check(ffx_get_anim_bounds(CurrentAnimHandle, &OutStart, &OutEnd)))
+	FxResult Result = fxAnimationGetBounds(CurrentAnimation, &OutStart, &OutEnd);
+
+	if (!FX_SUCCEEDED(Result))
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::GetAnimationBounds. FaceFX call <ffx_get_anim_bounds> failed. %s. Asset: %s"), *FaceFX::GetFaceFXError(), *GetNameSafe(FaceFXActor));
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::GetAnimationBounds. FaceFX call <fxAnimationGetBounds> failed. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
 		return false;
 	}
 
@@ -304,19 +347,19 @@ bool UFaceFXCharacter::GetAnimationBounds(float& OutStart, float& OutEnd) const
 
 bool UFaceFXCharacter::Play(const FFaceFXAnimId& AnimId, bool Loop)
 {
-	if(!AnimId.IsValid())
+	if (!AnimId.IsValid())
 	{
 		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Play. Invalid animation name/group. Group=%s, Anim=%s. Asset: %s"), *AnimId.Group.GetPlainNameString(), *AnimId.Name.GetPlainNameString(), *GetNameSafe(FaceFXActor));
 		return false;
 	}
 
-	if(!FaceFXActor)
+	if (!FaceFXActor)
 	{
 		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Play. FaceFX asset not loaded."));
 		return false;
 	}
 
-	if(const UFaceFXAnim* Anim = FaceFXActor->GetAnimation(AnimId))
+	if (const UFaceFXAnim* Anim = FaceFXActor->GetAnimation(AnimId))
 	{
 		return Play(Anim, Loop);
 	}
@@ -331,101 +374,114 @@ bool UFaceFXCharacter::Play(const UFaceFXAnim* Animation, bool Loop)
 {
 	SCOPE_CYCLE_COUNTER(STAT_FaceFXPlay);
 
-	if(!Animation)
+	if (!Animation)
 	{
 		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Play. FaceFX animation asset missing."));
 		return false;
 	}
 
-	if(!Animation->IsValid())
+	if (!Animation->IsValid())
 	{
 		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Play. FaceFX animation asset is in an invalid state. Please reimport that asset. Asset: %s"), *GetNameSafe(Animation));
 		return false;
 	}
 
-	if(!bCanPlay)
+	if (!bCanPlay)
 	{
 		return false;
 	}
 
-	if(!FaceFXActor)
+	if (!FaceFXActor)
 	{
 		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Play. FaceFX asset not loaded."));
 		return false;
 	}
 
-	if(!IsLoaded())
+	if (!IsLoaded())
 	{
 		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Play. FaceFX character not loaded. Asset: %s"), *GetNameSafe(FaceFXActor));
 		return false;
 	}
 
-	if(IsPlayingOrPaused())
+	if (IsPlayingOrPaused())
 	{
-		if(GetCurrentAnimationId() != Animation->GetId())
+		if (GetCurrentAnimationId() != Animation->GetId())
 		{
 			//warn only about any animation that is not getting restarted
-			UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::Play. Animation already playing/paused. Stopping now. Actor: %s. Animation: %s"), *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
+			UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::Play. Stopping currently playing/paused animation %s to play animation %s Actor: %s."), *GetNameSafe(CurrentAnim), *GetNameSafe(Animation), *GetNameSafe(FaceFXActor));
 		}
 		Stop();
 	}
 
-	if(GetCurrentAnimationId() != Animation->GetId())
+	if (GetCurrentAnimationId() != Animation->GetId())
 	{
 		//animation changed -> create new handle
 
 		//check if we actually can play this animation
-		ffx_anim_handle_t* NewAnimHandle = FaceFX::LoadAnimation(Animation->GetData());
-		if(!IsCanPlay(NewAnimHandle))
+		FxAnimation NewAnimation = FaceFX::LoadAnimation(Animation->GetData());
+
+		if (!IsCanPlay(NewAnimation))
 		{
-			UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::Play. Animation is not compatible with FaceFX actor handle. Actor: %s. Animation: %s"), *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
+			UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::Play. Animation is not compatible with FaceFX actor. Actor: %s. Animation: %s"), *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
 			OnFaceFXCharacterPlayAssetIncompatible.Broadcast(this, Animation);
+
+			//destroy the animation that can't be played so it isn't leaked.
+			FxResult Result = fxAnimationDestroy(&NewAnimation, nullptr, nullptr);
+
+			if (!FX_SUCCEEDED(Result))
+			{
+				UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Play. FaceFX call <fxAnimationDestroy> failed. %s. Actor: %s Animation: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
+			}
+
 			return false;
 		}
 
 		//unload previous animation
 		UnloadCurrentAnim();
 
-		CurrentAnimHandle = NewAnimHandle;
+		CurrentAnimation = NewAnimation;
 
 		AudioPlayer->Prepare(Animation);
 	}
 
 	//get anim bounds
-	float AnimStart = .0F;
-	float AnimEnd = .0F;
-	if(!FaceFX::Check(ffx_get_anim_bounds(CurrentAnimHandle, &AnimStart, &AnimEnd)))
+	float AnimStart = 0.f;
+	float AnimEnd = 0.f;
+
+	FxResult Result = fxAnimationGetBounds(CurrentAnimation, &AnimStart, &AnimEnd);
+
+	if (!FX_SUCCEEDED(Result))
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Play. FaceFX call <ffx_get_anim_bounds> failed. %s. Actor: %s. Animation: %s"), *FaceFX::GetFaceFXError(), *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Play. FaceFX call <fxAnimationGetBounds> failed. %s. Actor: %s. Animation: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
 		return false;
 	}
 
 	//sanity check
 	CurrentAnimDuration = AnimEnd - AnimStart;
-	if(CurrentAnimDuration <= .0F)
+
+	if (CurrentAnimDuration <= 0.f)
 	{
 		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Play. Invalid animation length of %.3f seconds. Actor: %s. Animation: %s"), CurrentAnimDuration, *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
 		return false;
 	}
 
-	if(!FaceFX::Check(ffx_play(ActorHandle, CurrentAnimHandle, nullptr)))
+	Result = fxActorPlayAnimation(Actor, CurrentAnimation, nullptr);
+
+	if (!FX_SUCCEEDED(Result))
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Play. FaceFX call <ffx_play> failed. %s. Actor: %s. Animation: %s"), *FaceFX::GetFaceFXError(), *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Play. FaceFX call <fxActorPlayAnimation> failed. %s. Actor: %s. Animation: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
 		return false;
 	}
 
 	//reset timers and states
-	CurrentAnimProgress = 0.F;
+	CurrentAnimProgress = 0.f;
 	CurrentAnim = Animation;
 	CurrentAnimStart = AnimStart;
 	AnimPlaybackState = EPlaybackState::Playing;
 	bIsLooping = Loop;
 
-	//tick once so we update the transforms at least once (in case another animation was playing before and we pause directly after play)
-	EnforceZeroTick();
-
 	{
-		SCOPE_CYCLE_COUNTER(STAT_FaceFXEvents);
+		SCOPE_CYCLE_COUNTER(STAT_FaceFXAudioEvents);
 		OnPlaybackStarted.Broadcast(this, GetCurrentAnimationId());
 	}
 
@@ -434,26 +490,28 @@ bool UFaceFXCharacter::Play(const UFaceFXAnim* Animation, bool Loop)
 
 bool UFaceFXCharacter::Resume()
 {
-	if(!bCanPlay)
+	if (!bCanPlay)
 	{
 		return false;
 	}
 
-	if(!IsLoaded())
+	if (!IsLoaded())
 	{
 		UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::Resume. FaceFX character not loaded. Asset: %s"), *GetNameSafe(FaceFXActor));
 		return false;
 	}
 
-	if(IsPlaying())
+	if (IsPlaying())
 	{
 		UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::Resume. Animation still playing. Asset: %s"), *GetNameSafe(FaceFXActor));
 		return false;
 	}
 
-	if(!FaceFX::Check(ffx_resume(ActorHandle, CurrentTime)))
+	FxResult Result = fxActorResumeAnimation(Actor, CurrentTime);
+
+	if (!FX_SUCCEEDED(Result))
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Resume. FaceFX call <ffx_resume> failed. %s. Asset: %s"), *FaceFX::GetFaceFXError(), *GetNameSafe(FaceFXActor));
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Resume. FaceFX call <fxActorResumeAnimation> failed. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
 		return false;
 	}
 
@@ -465,23 +523,28 @@ bool UFaceFXCharacter::Resume()
 
 bool UFaceFXCharacter::Pause(bool fadeOut)
 {
-	if(!IsLoaded())
+	if (!IsLoaded())
 	{
 		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Pause. FaceFX character not loaded. Asset: %s"), *GetNameSafe(FaceFXActor));
 		return false;
 	}
 
-	if (IsPlaying() && !FaceFX::Check(ffx_pause(ActorHandle, CurrentTime)))
+	if (IsPlaying())
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Pause. FaceFX call <ffx_pause> failed. Asset: %s"), *GetNameSafe(FaceFXActor));
-		return false;
+		FxResult Result = fxActorPauseAnimation(Actor, CurrentTime);
+
+		if (!FX_SUCCEEDED(Result))
+		{
+			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Pause. FaceFX call <fxActorPauseAnimation> failed. %s Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
+			return false;
+		}
 	}
 
 	AnimPlaybackState = EPlaybackState::Paused;
 	AudioPlayer->Pause(fadeOut);
 
 	{
-		SCOPE_CYCLE_COUNTER(STAT_FaceFXEvents);
+		SCOPE_CYCLE_COUNTER(STAT_FaceFXAudioEvents);
 		OnPlaybackPaused.Broadcast(this, GetCurrentAnimationId());
 	}
 
@@ -497,16 +560,16 @@ bool UFaceFXCharacter::Stop(bool enforceStop)
 	}
 
 	const bool WasPlayingOrPaused = IsPlayingOrPaused();
-	if(WasPlayingOrPaused)
+
+	if (WasPlayingOrPaused)
 	{
-		if (!FaceFX::Check(ffx_stop(ActorHandle)))
+		FxResult Result = fxActorStopAnimation(Actor, FX_CHANNEL_ANY);
+
+		if (!FX_SUCCEEDED(Result))
 		{
-			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Stop. FaceFX call <ffx_stop> failed. %s. Asset: %s"), *FaceFX::GetFaceFXError(), *GetNameSafe(FaceFXActor));
+			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Stop. FaceFX call <fxActorStopAnimation> failed. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
 			return false;
 		}
-
-		//enforce a processing so we reset to the initial transforms on the next update
-		EnforceZeroTick();
 	}
 
 	const FFaceFXAnimId StoppedAnimId = GetCurrentAnimationId();
@@ -521,9 +584,9 @@ bool UFaceFXCharacter::Stop(bool enforceStop)
 
 	ResetMaterialParametersToDefaults();
 
-	if(WasPlayingOrPaused)
+	if (WasPlayingOrPaused)
 	{
-		SCOPE_CYCLE_COUNTER(STAT_FaceFXEvents);
+		SCOPE_CYCLE_COUNTER(STAT_FaceFXAudioEvents);
 		OnPlaybackStopped.Broadcast(this, StoppedAnimId);
 	}
 
@@ -532,54 +595,58 @@ bool UFaceFXCharacter::Stop(bool enforceStop)
 
 bool UFaceFXCharacter::JumpTo(float Position)
 {
-	if(Position < 0.F || (!IsLooping() && Position > CurrentAnimDuration))
+	if (Position < 0.F || (!IsLooping() && Position > CurrentAnimDuration))
 	{
 		return false;
 	}
 
-	if(!bCanPlay)
+	if (!bCanPlay)
 	{
 		return false;
 	}
 
-	if(!IsLoaded())
+	if (!IsLoaded())
 	{
 		UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::JumpTo. FaceFX character not loaded. Asset: %s"), *GetNameSafe(FaceFXActor));
 		return false;
 	}
 
-	if(!CurrentAnimHandle)
+	if (!CurrentAnimation)
 	{
 		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::JumpTo. Current animation is invalid. Asset: %s"), *GetNameSafe(FaceFXActor));
 		return false;
 	}
 
 	//explicitly stop and start the playback again
-	if (!FaceFX::Check(ffx_stop(ActorHandle)))
+	FxResult Result = fxActorStopAnimation(Actor, FX_CHANNEL_ANY);
+
+	if (!FX_SUCCEEDED(Result))
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::JumpTo. FaceFX call <ffx_stop> failed. %s. Asset: %s"), *FaceFX::GetFaceFXError(), *GetNameSafe(FaceFXActor));
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::JumpTo. FaceFX call <fxActorStopAnimation> failed. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
 		return false;
 	}
 
 	AnimPlaybackState = EPlaybackState::Stopped;
 
 	//play again
-	if(!FaceFX::Check(ffx_play(ActorHandle, CurrentAnimHandle, nullptr)))
+	Result = fxActorPlayAnimation(Actor, CurrentAnimation, nullptr);
+
+	if (!FX_SUCCEEDED(Result))
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::JumpTo. FaceFX call <ffx_play> failed. %s. Asset: %s"), *FaceFX::GetFaceFXError(), *GetNameSafe(FaceFXActor));
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::JumpTo. FaceFX call <fxActorPlayAnimation> failed. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
 		return false;
 	}
 
 	AnimPlaybackState = EPlaybackState::Playing;
 
-	if(Position > CurrentAnimDuration)
+	if (Position > CurrentAnimDuration)
 	{
 		//cap the position to the animation range
 		Position = FMath::Fmod(Position, CurrentAnimDuration);
 	}
 
-	bool IsAudioStarted = false;
-	if(TickUntil(Position, IsAudioStarted) && IsAudioStarted)
+	bool IsAudioStarted;
+	if (TickUntil(Position, IsAudioStarted) && IsAudioStarted)
 	{
 		const float AudioPosition = Position + CurrentAnimStart;
 		checkf(AudioPosition >= 0.F, TEXT("Invalid audio playback range."));
@@ -598,26 +665,39 @@ void UFaceFXCharacter::Reset()
 	//free the facefx handles
 	UnloadCurrentAnim();
 
-	if (ActorHandle)
+	if (Actor)
 	{
-		ffx_destroy_actor_handle(&ActorHandle, nullptr, nullptr);
-		ActorHandle = nullptr;
+		FxResult Result = fxActorDestroy(&Actor, nullptr, nullptr);
+
+		if (!FX_SUCCEEDED(Result))
+		{
+			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Reset. FaceFX call <fxActorDestroy> failed. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
+		}
 	}
 
-	if(FrameState)
+	if (FrameState)
 	{
-		ffx_destroy_frame_state(&FrameState);
-		FrameState = nullptr;
+		FxResult Result = fxFrameStateDestroy(&FrameState);
+
+		if (!FX_SUCCEEDED(Result))
+		{
+			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Reset. FaceFX call <fxFrameStateDestroy> failed. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
+		}
 	}
 
-	if (BoneSetHandle)
+	if (BoneSet)
 	{
-		ffx_destroy_bone_set_handle(&BoneSetHandle, nullptr, nullptr);
-		BoneSetHandle = nullptr;
+		FxResult Result = fxBoneSetDestroy(&BoneSet, nullptr, nullptr);
+
+		if (!FX_SUCCEEDED(Result))
+		{
+			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Reset. FaceFX call <fxBoneSetDestroy> failed. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
+		}
 	}
 
 	//reset arrays
-	XForms.Empty();
+	TrackValues.Empty();
+	FaceFXBoneTransforms.Empty();
 	BoneTransforms.Empty();
 	BoneIds.Empty();
 
@@ -639,17 +719,31 @@ bool UFaceFXCharacter::IsPlayingOrPaused(const UFaceFXAnim* Animation) const
 	return Animation && IsPlayingOrPaused(Animation->GetId());
 }
 
+void UFaceFXCharacter::OnFaceFXEvent(const FxEventFiringContext* Context, const char* Payload)
+{
+	UE_LOG(LogFaceFX, Verbose, TEXT("UFaceFXCharacter::OnFaceFXEventReceived. FaceFX event received: %s."), ANSI_TO_TCHAR(Payload));
+
+	if (UFaceFXCharacter* Character = static_cast<UFaceFXCharacter*>(Context->pUserData))
+	{
+		if (!Character->bIgnoreEvents && Context->actor == Character->Actor && Context->animation == Character->CurrentAnimation)
+		{
+			SCOPE_CYCLE_COUNTER(STAT_FaceFXAnimEvents);
+			Character->OnAnimationEvent.Broadcast(Character, Character->GetCurrentAnimationId(), (int)Context->channelIndex, Context->channelTime, Context->eventTime, Payload);
+		}
+	}
+}
+
 bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset, bool IsCompensateForForceFrontXAxis, bool IsDisabledMorphTargets, bool IsDisableMaterialParameters)
 {
 	SCOPE_CYCLE_COUNTER(STAT_FaceFXLoad);
 
-	if(!Dataset)
+	if (!Dataset)
 	{
 		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Missing FaceFXActor asset."));
 		return false;
 	}
 
-	if(!Dataset->IsValid())
+	if (!Dataset->IsValid())
 	{
 		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Invalid FaceFXActor asset. Please reimport that asset. Asset: %s"), *GetNameSafe(FaceFXActor));
 		return false;
@@ -662,77 +756,127 @@ bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset, bool IsCompensateForFor
 
 	const FFaceFXActorData& ActorData = FaceFXActor->GetData();
 
-	ffx_context_t Context = FFaceFXContext::CreateContext();
+	FxAllocationCallbacks Allocator = FFaceFXAllocator::CreateAllocator();
 
-    //only create the bone set handle if there is bone set data
-    if(ActorData.BonesRawData.Num() > 0)
-    {
-		const unsigned int BoneSetCreationFlags = ::GetBoneSetCreationFlags(BlendMode, IsCompensateForForceFrontXAxis);
-
-	    if (!FaceFX::Check(ffx_create_bone_set_handle((char*)(&ActorData.BonesRawData[0]), ActorData.BonesRawData.Num(), FFX_RUN_INTEGRITY_CHECK, BoneSetCreationFlags, &BoneSetHandle, &Context)))
-	    {
-		    UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Unable to create FaceFX bone handle. %s. Asset: %s"), *FaceFX::GetFaceFXError(), *GetNameSafe(FaceFXActor));
-		    Reset();
-		    return false;
-	    }
-    }
-
-    //make sure there is actor data
-    if(ActorData.ActorRawData.Num() == 0)
-    {
-        UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. No FaceFX actor data present. Asset: %s"), *GetNameSafe(FaceFXActor));
-        Reset();
-        return false;
-    }
-
-	static size_t channel_count  = FACEFX_CHANNELS;
-	if (!FaceFX::Check(ffx_create_actor_handle((char*)(&ActorData.ActorRawData[0]), ActorData.ActorRawData.Num(), FFX_RUN_INTEGRITY_CHECK, channel_count, &ActorHandle, &Context)))
+	//only create the bone set handle if there is bone set data
+	if (ActorData.BonesRawData.Num() > 0)
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Unable to create FaceFX actor handle. %s. Asset: %s"), *FaceFX::GetFaceFXError(), *GetNameSafe(FaceFXActor));
+		const FxBoneSetFlags BoneSetCreationFlags = ::GetBoneSetCreationFlags(BlendMode, IsCompensateForForceFrontXAxis);
+
+		FxResult Result = fxBoneSetCreate(&ActorData.BonesRawData[0], ActorData.BonesRawData.Num(), FX_DATA_VALIDATION_ON, BoneSetCreationFlags, &BoneSet, &Allocator);
+
+		if (!FX_SUCCEEDED(Result))
+		{
+			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Unable to create FaceFX bone set. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
+			Reset();
+			return false;
+		}
+
+		if (Result == FX_WARNING_LEGACY_DATA_FORMAT)
+		{
+			UE_LOG(LogFaceFX, Verbose, TEXT("UFaceFXCharacter::Load. Loaded a legacy data format. Please recompile the content with the latest FaceFX Runtime compiler. Asset: %s"), *GetNameSafe(FaceFXActor));
+		}
+	}
+
+	//make sure there is actor data
+	if (ActorData.ActorRawData.Num() == 0)
+	{
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. No FaceFX actor data present. Asset: %s"), *GetNameSafe(FaceFXActor));
 		Reset();
 		return false;
 	}
 
-	if (!FaceFX::Check(ffx_create_frame_state(ActorHandle, &FrameState, &Context)))
+	constexpr size_t ChannelCount = FACEFX_CHANNELS;
+
+	FxEventCallbacks EventHandler;
+	EventHandler.pfnEventFired = UFaceFXCharacter::OnFaceFXEvent;
+	EventHandler.pUserData = this;
+
+	FxResult Result = fxActorCreateWithEventHandler(&ActorData.ActorRawData[0], ActorData.ActorRawData.Num(), FX_DATA_VALIDATION_ON, ChannelCount, &Actor, &EventHandler, &Allocator);
+
+	if (!FX_SUCCEEDED(Result))
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Unable to create FaceFX state. %s. Asset: %s"), *FaceFX::GetFaceFXError(), *GetNameSafe(FaceFXActor));
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Unable to create FaceFX actor handle. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
 		Reset();
 		return false;
 	}
 
-    if(BoneSetHandle)
-    {
-	    size_t XFormCount = 0;
-	    if (!FaceFX::Check(ffx_get_bone_set_bone_count(BoneSetHandle, &XFormCount)))
-	    {
-		    UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Unable to receive FaceFX bone count. %s. Asset: %s"), *FaceFX::GetFaceFXError(), *GetNameSafe(FaceFXActor));
-		    Reset();
-		    return false;
-	    }
+	if (Result == FX_WARNING_LEGACY_DATA_FORMAT)
+	{
+		UE_LOG(LogFaceFX, Verbose, TEXT("UFaceFXCharacter::Load. Loaded a legacy data format. Please recompile the content with the latest FaceFX Runtime compiler. Asset: %s"), *GetNameSafe(FaceFXActor));
+	}
 
+	size_t TrackCount = 0;
 
-	    if(XFormCount > 0)
-	    {
-		    //prepare buffer
-		    XForms.AddUninitialized(XFormCount);
+	Result = fxActorGetTracks(Actor, nullptr, &TrackCount);
 
-		    //retrieve bone names
-		    BoneIds.AddUninitialized(XFormCount);
+	if (!FX_SUCCEEDED(Result))
+	{
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Unable to retrieve FaceFX tracks. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
+		Reset();
+		return false;
+	}
 
-		    if(!FaceFX::Check(ffx_get_bone_set_bone_ids(BoneSetHandle, reinterpret_cast<uint64_t*>(BoneIds.GetData()), XFormCount)))
-		    {
-			    UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Unable to receive FaceFX bone names. %s. Asset: %s"), *FaceFX::GetFaceFXError(), *GetNameSafe(FaceFXActor));
-			    Reset();
-			    return false;
-		    }
+	TrackValues.AddUninitialized(TrackCount);
+
+	TArray<uint64> TrackIds;
+	TrackIds.AddUninitialized(TrackCount);
+
+	Result = fxActorGetTracks(Actor, &TrackIds[0], &TrackCount);
+
+	if (!FX_SUCCEEDED(Result))
+	{
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Unable to retrieve FaceFX tracks. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
+		Reset();
+		return false;
+	}
+
+	Result = fxFrameStateCreate(Actor, &FrameState, &Allocator);
+
+	if (!FX_SUCCEEDED(Result))
+	{
+		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Unable to create FaceFX frame state. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
+		Reset();
+		return false;
+	}
+
+	if (BoneSet)
+	{
+		size_t XFormCount = 0;
+
+		Result = fxBoneSetGetBones(BoneSet, nullptr, &XFormCount);
+
+		if (!FX_SUCCEEDED(Result))
+		{
+			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Unable to retrieve FaceFX bone count. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
+			Reset();
+			return false;
+		}
+
+		if (XFormCount > 0)
+		{
+			//prepare buffer
+			FaceFXBoneTransforms.AddUninitialized(XFormCount);
+
+			//retrieve bone names
+			BoneIds.AddUninitialized(XFormCount);
+
+			Result = fxBoneSetGetBones(BoneSet, BoneIds.GetData(), &XFormCount);
+
+			if (!FX_SUCCEEDED(Result))
+			{
+				UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::Load. Unable to retrieve FaceFX bones. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
+				Reset();
+				return false;
+			}
 
 			//prepare transform buffer
 			BoneTransforms.AddZeroed(XFormCount);
 
 			//match bone ids with names from the .ffxids assets
-			for(const uint64& BoneIdHash : BoneIds)
+			for (const uint64& BoneIdHash : BoneIds)
 			{
-				if(const FFaceFXIdData* BoneId = ActorData.Ids.FindByKey(BoneIdHash))
+				if (const FFaceFXIdData* BoneId = ActorData.Ids.FindByKey(BoneIdHash))
 				{
 					BoneNames.Add(BoneId->Name);
 				}
@@ -741,8 +885,8 @@ bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset, bool IsCompensateForFor
 					UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::Load. Unknown bone id. %i. Asset: %s"), BoneIdHash, *GetNameSafe(FaceFXActor));
 				}
 			}
-	    }
-    }
+		}
+	}
 
 	bCompensatedForForceFrontXAxis = IsCompensateForForceFrontXAxis;
 	bDisabledMorphTargets = IsDisabledMorphTargets;
@@ -753,8 +897,8 @@ bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset, bool IsCompensateForFor
 	ResetMaterialParametersToDefaults();
 
 	//SetupMaterialParameters after SetupMorphTargets as we ignore the morph target tracks as material parameters
-	if( (!bDisabledMorphTargets && !SetupMorphTargets(Dataset)) ||
-		(!IsDisableMaterialParameters && !SetupMaterialParameters(Dataset, MorphTargetNames)) )
+	if ( (!bDisabledMorphTargets && !SetupMorphTargets(Dataset, TrackIds)) ||
+		(!IsDisableMaterialParameters && !SetupMaterialParameters(Dataset, TrackIds, MorphTargetNames)) )
 	{
 		Reset();
 		return false;
@@ -765,243 +909,163 @@ bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset, bool IsCompensateForFor
 
 void UFaceFXCharacter::ProcessMorphTargets()
 {
-	checkf(MorphTargetNames.Num() == MorphTargetTrackValues.Num(), TEXT("Morph target names indices must match the track values buffer"));
-
-	const int32 MorphTargetsToProcess = MorphTargetTrackValues.Num();
-	if(MorphTargetsToProcess == 0)
-	{
-		//no morph target to process
-		return;
-	}
-
 	SCOPE_CYCLE_COUNTER(STAT_FaceFXProcessMorphTargets);
 
-	//read track values
-	if(!FaceFX::Check(ffx_read_frame_track_values(FrameState, &MorphTargetTrackValues[0], MorphTargetsToProcess)))
+	const int32 MorphTargetsToProcess = MorphTargetNames.Num();
+
+	if (MorphTargetsToProcess == 0)
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::ProcessMorphTargets. Unable to process morph targets. %s. Asset: %s"), *FaceFX::GetFaceFXError(), *GetNameSafe(FaceFXActor));
 		return;
 	}
 
-	//apply morph target track values
-	if(USkeletalMeshComponent* SkelMeshComp = GetOwningSkelMeshComponent())
+	if (USkeletalMeshComponent* SkelMeshComp = GetOwningSkelMeshComponent())
 	{
-		for(int32 Idx = 0; Idx < MorphTargetsToProcess; ++Idx)
+		for (int32 Idx = 0; Idx < MorphTargetsToProcess; ++Idx)
 		{
-			SkelMeshComp->SetMorphTarget(MorphTargetNames[Idx], MorphTargetTrackValues[Idx].value);
+			SkelMeshComp->SetMorphTarget(MorphTargetNames[Idx], TrackValues[MorphTargetIndices[Idx]]);
 		}
 	}
 	else
 	{
 		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::ProcessMorphTargets. Unable to find owners skel mesh component. Actor: %s. Asset: %s"), *GetNameSafe(GetOwningActor()), *GetNameSafe(FaceFXActor));
-		return;
 	}
 }
 
-bool UFaceFXCharacter::SetupMorphTargets(const UFaceFXActor* Dataset)
-{
-	check(IsLoaded());
-	check(Dataset);
-
-	if(USkeletalMeshComponent* SkelMeshComp = GetOwningSkelMeshComponent())
-	{
-		const int32 NumMorphTargets = SkelMeshComp->SkeletalMesh ? SkelMeshComp->SkeletalMesh->MorphTargetIndexMap.Num() : 0;
-		if(NumMorphTargets == 0)
-		{
-			//no morph targets in skel mesh
-			return true;
-		}
-
-		//the lookup for the created facefx ids and the morph target names
-		TMap<uint64, FName> NameLookUp;
-		NameLookUp.Reserve(NumMorphTargets);
-
-		TArray<ffx_id_index_t> TrackIndices;
-		TrackIndices.Reserve(NumMorphTargets);
-
-		for(auto It = SkelMeshComp->SkeletalMesh->MorphTargetIndexMap.CreateConstIterator(); It; ++It)
-		{
-			const FName& MorphTarget = It.Key();
-
-			ffx_id_index_t IdIndex;
-
-			//Fetch id from data asset. If that fails we check on the runtime data
-			const FFaceFXIdData* AssetIdData = Dataset->GetData().Ids.FindByKey(MorphTarget);
-			if(AssetIdData)
-			{
-				IdIndex.id = AssetIdData->Id;
-			}
-			else if(!FaceFX::Check(ffx_create_id(TCHAR_TO_ANSI(*MorphTarget.ToString()), &IdIndex.id)))
-			{
-				UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::SetupMorphTargets. Unable to create FaceFX id for FaceFX track <%s>. %s. Asset: %s"), *MorphTarget.ToString(), *FaceFX::GetFaceFXError(), *GetNameSafe(FaceFXActor));
-				return false;
-			}
-
-			TrackIndices.Add(IdIndex);
-			NameLookUp.Add(IdIndex.id, MorphTarget);
-		}
-
-		//fetch the track indices by their facefx ids generated for the morph target names
-		if(!FaceFX::Check(ffx_find_tracks_in_actor_by_id(ActorHandle, &TrackIndices[0], NumMorphTargets)))
-		{
-			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::SetupMorphTargets. Unable to fetch FaceFX track indices. %s. Asset: %s"), *FaceFX::GetFaceFXError(), *GetNameSafe(FaceFXActor));
-			return false;
-		}
-
-		//sort by track indices for FaceFX runtime performance reasons
-		TrackIndices.Sort([](const ffx_id_index_t& A, const ffx_id_index_t& B)
-		{
-			return A.index < B.index;
-		});
-
-		//map back track indices with morph target names
-		for(const ffx_id_index_t& TrackIndex : TrackIndices)
-		{
-			//lookup name to map track index back to the originating morph target
-			const FName& MorphTarget = NameLookUp.FindChecked(TrackIndex.id);
-
-			if(TrackIndex.index == INDEX_NONE)
-			{
-				//Track was not found -> ignore morph target
-				UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::SetupMorphTargets. No FaceFX track found for SkelMesh Morph Target <%s>. SkelMesh: &s. Asset: %s"),
-					*MorphTarget.ToString(), *GetNameSafe(SkelMeshComp->SkeletalMesh), *GetNameSafe(FaceFXActor));
-				continue;
-			}
-
-			//store the morph target names
-			MorphTargetNames.Add(MorphTarget);
-
-			//prepare the track value buffer
-			ffx_track_value_t NewTrackValue;
-			NewTrackValue.index = TrackIndex.index;
-			MorphTargetTrackValues.Add(NewTrackValue);
-		}
-	}
-
-	checkf(MorphTargetNames.Num() == MorphTargetTrackValues.Num(), TEXT("Morph target names indices must match the track values buffer size"));
-	return true;
-}
-
-bool UFaceFXCharacter::SetupMaterialParameters(const UFaceFXActor* Dataset, const TArray<FName>& IgnoredTracks)
+bool UFaceFXCharacter::SetupMorphTargets(const UFaceFXActor* Dataset, const TArray<uint64>& TrackIds)
 {
 	check(IsLoaded());
 	check(Dataset);
 
 	USkeletalMeshComponent* SkelMeshComp = GetOwningSkelMeshComponent();
-	if (!SkelMeshComp || SkelMeshComp->GetNumMaterials() <= 0)
+
+	if (!SkelMeshComp)
 	{
-		return false;
+		return true;
 	}
 
-	const TArray<FFaceFXIdData>& AssetTrackIds = Dataset->GetData().Ids;
-	TArray<ffx_id_index_t> TrackIndices;
-	
-	for (const FFaceFXIdData& AssetTrackId : AssetTrackIds)
+	const int32 NumMorphTargets = SkelMeshComp->SkeletalMesh ? SkelMeshComp->SkeletalMesh->MorphTargetIndexMap.Num() : 0;
+
+	if (NumMorphTargets == 0)
 	{
-		//check if this track shall be ignored
-		if (IgnoredTracks.Contains(AssetTrackId.Name))
+		return true;
+	}
+
+	MorphTargetNames.Reserve(NumMorphTargets);
+	MorphTargetIndices.Reserve(NumMorphTargets);
+
+	int32 NumTracks = TrackIds.Num();
+
+	for (int32 TrackIndex = 0; TrackIndex < NumTracks; ++TrackIndex)
+	{
+		const uint64 TrackId = TrackIds[TrackIndex];
+
+		const FFaceFXIdData* AssetIdData = Dataset->GetData().Ids.FindByKey(TrackId);
+
+		if (!AssetIdData)
 		{
 			continue;
 		}
 
-		//Indicator if a material parameter with that name was found
-		bool bMaterialFound = false;
+		if (SkelMeshComp->SkeletalMesh->MorphTargetIndexMap.Contains(AssetIdData->Name))
+		{
+			MorphTargetNames.Add(AssetIdData->Name);
+			MorphTargetIndices.Add((size_t)TrackIndex);
 
-		//for each FaceFX track we try to look them up as a material parameter
-		for (int32 MaterialIndex = 0; MaterialIndex < SkelMeshComp->GetNumMaterials(); ++MaterialIndex)
+			UE_LOG(LogFaceFX, Verbose, TEXT("UFaceFXCharacter::SetupMorphTargets. driving morph target named %s (Asset: %s)"), *AssetIdData->Name.ToString(), *GetNameSafe(FaceFXActor));
+		}
+	}
+
+	return true;
+}
+
+bool UFaceFXCharacter::SetupMaterialParameters(const UFaceFXActor* Dataset, const TArray<uint64>& TrackIds, const TArray<FName>& IgnoredTracks)
+{
+	check(IsLoaded());
+	check(Dataset);
+
+	USkeletalMeshComponent* SkelMeshComp = GetOwningSkelMeshComponent();
+
+	if (!SkelMeshComp)
+	{
+		return false;
+	}
+
+	const int32 NumMaterials = SkelMeshComp->GetNumMaterials();
+
+	if (NumMaterials == 0)
+	{
+		return false;
+	}
+
+	MaterialParameterNames.Reserve(NumMaterials);
+	MaterialParameterIndices.Reserve(NumMaterials);
+
+	int32 NumTracks = TrackIds.Num();
+
+	for (int32 TrackIndex = 0; TrackIndex < NumTracks; ++TrackIndex)
+	{
+		const uint64 TrackId = TrackIds[TrackIndex];
+
+		const FFaceFXIdData* AssetIdData = Dataset->GetData().Ids.FindByKey(TrackId);
+
+		if (!AssetIdData)
+		{
+			continue;
+		}
+
+		if (IgnoredTracks.Contains(AssetIdData->Name))
+		{
+			continue;
+		}
+
+		for (int32 MaterialIndex = 0; MaterialIndex < NumMaterials; ++MaterialIndex)
 		{
 			if (UMaterialInterface* Material = SkelMeshComp->GetMaterial(MaterialIndex))
 			{
 				float ParamterValue;
-				if (Material->GetScalarParameterValue(AssetTrackId.Name, ParamterValue))
+
+				if (Material->GetScalarParameterValue(AssetIdData->Name, ParamterValue))
 				{
-					bMaterialFound = true;
+					MaterialParameterNames.Add(AssetIdData->Name);
+					MaterialParameterIndices.Add((size_t)TrackIndex);
+
+					UE_LOG(LogFaceFX, Verbose, TEXT("UFaceFXCharacter::SetupMaterialParameters. driving material parameter named %s (Asset: %s)"), *AssetIdData->Name.ToString(), *GetNameSafe(FaceFXActor));
+
 					break;
 				}
 			}
 		}
-
-		if (!bMaterialFound)
-		{
-			UE_LOG(LogFaceFX, Verbose, TEXT("UFaceFXCharacter::SetupMaterialParameters. No material parameter found for FaceFX track. Track: %s. Asset: %s"), *AssetTrackId.Name.ToString(), *GetNameSafe(FaceFXActor));
-			continue;
-		}
-
-		//fill id/index buffer for later lookup
-		ffx_id_index_t IdIndex;
-		IdIndex.id = AssetTrackId.Id;
-		TrackIndices.Add(IdIndex);
-
-		MaterialParameterNames.Add(AssetTrackId.Name);
 	}
 
-	if (TrackIndices.Num() <= 0)
-	{
-		//no materials with parameters
-		return true;
-	}
-
-	//fetch the track indices by their facefx ids generated for the material parameter names
-	if (!FaceFX::Check(ffx_find_tracks_in_actor_by_id(ActorHandle, &TrackIndices[0], TrackIndices.Num())))
-	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::SetupMaterialParameters. Unable to fetch FaceFX track indices. %s. Asset: %s"), *FaceFX::GetFaceFXError(), *GetNameSafe(FaceFXActor));
-		MaterialParameterNames.Reset();
-		return false;
-	}
-
-	//map back track indices with material parameter names
-	for (const ffx_id_index_t& TrackIndex : TrackIndices)
-	{
-		//prepare the track value buffer
-		ffx_track_value_t NewTrackValue;
-		NewTrackValue.index = TrackIndex.index;
-		MaterialParameterTrackValues.Add(NewTrackValue);
-	}
-
-	checkf(MaterialParameterTrackValues.Num() == MaterialParameterNames.Num(), TEXT("Material parameter lookup must match the track values buffer size"));
 	return true;
 }
 
 void UFaceFXCharacter::ProcessMaterialParameters()
 {
-	checkf(MaterialParameterTrackValues.Num() == MaterialParameterNames.Num(), TEXT("Material parameter lookup must match the track values buffer size"));
-
-	const int32 MaterialParametersToProcess = MaterialParameterTrackValues.Num();
-	if (MaterialParametersToProcess == 0)
-	{
-		//no material parameter to process
-		return;
-	}
-
 	SCOPE_CYCLE_COUNTER(STAT_FaceFXProcessMaterialParameters);
 
-	//read track values
-	if (!FaceFX::Check(ffx_read_frame_track_values(FrameState, &MaterialParameterTrackValues[0], MaterialParametersToProcess)))
+	const int32 MaterialParametersToProcess = MaterialParameterNames.Num();
+
+	if (MaterialParametersToProcess == 0)
 	{
-		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::ProcessMaterialParameters. Unable to process material parameters. %s. Asset: %s"), *FaceFX::GetFaceFXError(), *GetNameSafe(FaceFXActor));
 		return;
 	}
 
-	//apply material parameter track values
 	if (USkeletalMeshComponent* SkelMeshComp = GetOwningSkelMeshComponent())
 	{
 		for (int32 Idx = 0; Idx < MaterialParametersToProcess; ++Idx)
 		{
-			SkelMeshComp->SetScalarParameterValueOnMaterials(MaterialParameterNames[Idx], MaterialParameterTrackValues[Idx].value);
+			SkelMeshComp->SetScalarParameterValueOnMaterials(MaterialParameterNames[Idx], TrackValues[MaterialParameterIndices[Idx]]);
 		}
 	}
 	else
 	{
 		UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::ProcessMaterialParameters. Unable to find owners skel mesh component. Actor: %s. Asset: %s"), *GetNameSafe(GetOwningActor()), *GetNameSafe(FaceFXActor));
-		return;
 	}
 }
 
 void UFaceFXCharacter::ResetMaterialParametersToDefaults()
 {
-	checkf(MaterialParameterTrackValues.Num() == MaterialParameterNames.Num(), TEXT("Material parameter lookup must match the track values buffer size"));
-
-	//reset material parameters to their defaults if anything was active
 	if (USkeletalMeshComponent* SkelMeshComp = GetOwningSkelMeshComponent())
 	{
 		for (int32 Idx = 0; Idx < MaterialParameterNames.Num(); ++Idx)
@@ -1009,6 +1073,7 @@ void UFaceFXCharacter::ResetMaterialParametersToDefaults()
 			const FName& ParameterName = MaterialParameterNames[Idx];
 
 			const float DefaultValue = SkelMeshComp->GetScalarParameterDefaultValue(ParameterName);
+
 			SkelMeshComp->SetScalarParameterValueOnMaterials(ParameterName, DefaultValue);
 		}
 	}
@@ -1016,12 +1081,29 @@ void UFaceFXCharacter::ResetMaterialParametersToDefaults()
 
 bool UFaceFXCharacter::IsCanPlay(const UFaceFXAnim* Animation) const
 {
-	return Animation && IsCanPlay(FaceFX::LoadAnimation(Animation->GetData()));
+	bool CanPlay = false;
+
+	if (Animation)
+	{
+		FxAnimation NewAnimation = FaceFX::LoadAnimation(Animation->GetData());
+
+		CanPlay = IsCanPlay(NewAnimation);
+
+		//destroy the animation so it isn't leaked.
+		FxResult Result = fxAnimationDestroy(&NewAnimation, nullptr, nullptr);
+
+		if (!FX_SUCCEEDED(Result))
+		{
+			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::IsCanPlay. FaceFX call <fxAnimationDestroy> failed. %s. Actor: %s Animation: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor), *GetNameSafe(Animation));
+		}
+	}
+
+	return Animation && CanPlay;
 }
 
-bool UFaceFXCharacter::IsCanPlay(ffx_anim_handle_t* AnimationHandle) const
+bool UFaceFXCharacter::IsCanPlay(FxAnimation Animation) const
 {
-	return ActorHandle && AnimationHandle && FaceFX::Check(ffx_check_actor_compatibility_with_anim(ActorHandle, AnimationHandle));
+	return Actor && Animation && (FX_SUCCEEDED(fxActorCheckCompatibilityWithAnimation(Actor, Animation)));
 }
 
 bool UFaceFXCharacter::IsPlayingAudio() const
@@ -1056,25 +1138,29 @@ void UFaceFXCharacter::SetAudioComponent(UActorComponent* Component)
 
 bool UFaceFXCharacter::IsAudioStarted()
 {
-	int ChannelFlags[FACEFX_CHANNELS];
-	if(FaceFX::Check(ffx_read_frame_channel_flags(FrameState, ChannelFlags, FACEFX_CHANNELS)))
+	FxChannelFlags ChannelFlags[FACEFX_CHANNELS];
+
+	FxResult Result = fxFrameStateGetChannelFlags(FrameState, ChannelFlags, FACEFX_CHANNELS);
+
+	if (FX_SUCCEEDED(Result))
 	{
-		return (ChannelFlags[0] & FFX_START_AUDIO) != 0;
+		return (ChannelFlags[0] & FX_CHANNEL_START_AUDIO_BIT) != 0;
 	}
 	else
 	{
-		UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::IsAudioStarted. Retrieving channel states for StartAudio event failed. %s"), *FaceFX::GetFaceFXError());
+		UE_LOG(LogFaceFX, Warning, TEXT("UFaceFXCharacter::IsAudioStarted. Retrieving channel flags for StartAudio event failed. %s"), *FaceFX::GetFaceFXResultString(Result));
 	}
+
 	return false;
 }
 
 int32 UFaceFXCharacter::GetBoneNameTransformIndex(const FName& Name) const
 {
-	if(const FFaceFXIdData* BoneId = FaceFXActor ? FaceFXActor->GetData().Ids.FindByKey(Name) : nullptr)
+	if (const FFaceFXIdData* BoneId = FaceFXActor ? FaceFXActor->GetData().Ids.FindByKey(Name) : nullptr)
 	{
 		//get index of the FaceFX bone
 		int32 FaceFXBoneIdx;
-		if(BoneIds.Find(BoneId->Id, FaceFXBoneIdx))
+		if (BoneIds.Find(BoneId->Id, FaceFXBoneIdx))
 		{
 			return FaceFXBoneIdx;
 		}
@@ -1084,10 +1170,14 @@ int32 UFaceFXCharacter::GetBoneNameTransformIndex(const FName& Name) const
 
 void UFaceFXCharacter::UnloadCurrentAnim()
 {
-	if (CurrentAnimHandle)
+	if (CurrentAnimation)
 	{
-		ffx_destroy_anim_handle(&CurrentAnimHandle, nullptr, nullptr);
-		CurrentAnimHandle = nullptr;
+		FxResult Result = fxAnimationDestroy(&CurrentAnimation, nullptr, nullptr);
+
+		if (!FX_SUCCEEDED(Result))
+		{
+			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::UnloadCurrentAnim. FaceFX call <fxAnimationDestroy> failed. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
+		}
 	}
 
 	CurrentAnim = nullptr;
@@ -1113,35 +1203,31 @@ void UFaceFXCharacter::UpdateTransforms()
 {
 	SCOPE_CYCLE_COUNTER(STAT_FaceFXUpdateTransforms);
 
-	const int32 XFormsNum = XForms.Num();
-    if(BoneSetHandle && XFormsNum > 0)
-    {
-	    if(!FaceFX::Check(ffx_calc_frame_bone_xforms(BoneSetHandle, FrameState, &XForms[0], XFormsNum)))
-	    {
-		    UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::UpdateTransforms. Calculating bone transforms failed. %s. Asset: %s"), *FaceFX::GetFaceFXError(), *GetNameSafe(FaceFXActor));
-		    return;
-	    }
+	const int32 FaceFXBoneTransformsNum = FaceFXBoneTransforms.Num();
+	if (BoneSet && FaceFXBoneTransformsNum > 0)
+	{
+		FxResult Result = fxFrameStateComputeBoneTransforms(BoneSet, FrameState, &FaceFXBoneTransforms[0], FaceFXBoneTransformsNum);
 
-	    //fill transform buffer
-	    for(int32 i=0; i<XFormsNum; ++i)
-	    {
-		    const ffx_bone_xform_t& XForm = XForms[i];
+		if (!FX_SUCCEEDED(Result))
+		{
+			UE_LOG(LogFaceFX, Error, TEXT("UFaceFXCharacter::UpdateTransforms. Calculating bone transforms failed. %s. Asset: %s"), *FaceFX::GetFaceFXResultString(Result), *GetNameSafe(FaceFXActor));
+			return;
+		}
 
-		    //the coordinate system of bones is just like the old FaceFX in UE3: native for the animation package you used to create the actor, with the w component of the quaternion negated
-		    //All transforms are in parent space.
-		    //We also need to bring form FaceFX to UE space by reverting rotation.z and translation.y
+		//fill transform buffer
+		for (int32 i=0; i<FaceFXBoneTransformsNum; ++i)
+		{
+			const FxBoneTransform& XForm = FaceFXBoneTransforms[i];
 
-		    BoneTransforms[i].SetComponents(
-			    //w, x, y, z quaternion rotation
-			    FQuat(XForm.rot[1], -XForm.rot[2], XForm.rot[3], XForm.rot[0]),
-			    //x, y, z position
-			    FVector(XForm.pos[0], -XForm.pos[1], XForm.pos[2]),
-			    //x, y, z scale
-			    FVector(XForm.scl[0], XForm.scl[1], XForm.scl[2]));
-	    }
+			// Revert rotaiton.z and translation.y to convert from FaceFX to UE4 coordinates.
+			BoneTransforms[i].SetComponents(
+				FQuat(XForm.rotation.x, -XForm.rotation.y, XForm.rotation.z, XForm.rotation.w),
+				FVector(XForm.translation.x, -XForm.translation.y, XForm.translation.z),
+				FVector(XForm.scale.x, XForm.scale.y, XForm.scale.z));
+		}
 
-	    bIsDirty = false;
-    }
+		bIsDirty = false;
+	}
 }
 
 
@@ -1152,9 +1238,9 @@ UFaceFXCharacter::FOnAssetChangedSignature UFaceFXCharacter::OnAssetChanged;
 void UFaceFXCharacter::OnFaceFXAssetChanged(UFaceFXAsset* Asset)
 {
 	UFaceFXAnim* AnimAsset = Cast<UFaceFXAnim>(Asset);
-	if(Asset && (Asset == FaceFXActor || (AnimAsset && GetCurrentAnimationId() == AnimAsset->GetId())))
+	if (Asset && (Asset == FaceFXActor || (AnimAsset && GetCurrentAnimationId() == AnimAsset->GetId())))
 	{
-		if(UFaceFXActor* ActorAsset = Cast<UFaceFXActor>(Asset))
+		if (UFaceFXActor* ActorAsset = Cast<UFaceFXActor>(Asset))
 		{
 			//actor asset changed -> reload whole actor
 			Load(ActorAsset, bCompensatedForForceFrontXAxis, bDisabledMorphTargets, bDisabledMaterialParameters);

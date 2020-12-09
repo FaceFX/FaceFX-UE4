@@ -50,7 +50,7 @@ void UFaceFXAnim::GetResourceSizeEx(FResourceSizeEx& CumulativeResourceSize)
 {
 	Super::GetResourceSizeEx(CumulativeResourceSize);
 
-	if(CumulativeResourceSize.GetResourceSizeMode() == EResourceSizeMode::Exclusive)
+	if (CumulativeResourceSize.GetResourceSizeMode() == EResourceSizeMode::Exclusive)
 	{
 		//only count cooked data without any references
 		CumulativeResourceSize.AddDedicatedSystemMemoryBytes(sizeof(FFaceFXAnimId));
@@ -59,7 +59,7 @@ void UFaceFXAnim::GetResourceSizeEx(FResourceSizeEx& CumulativeResourceSize)
 	}
 	else
 	{
-		if(USoundWave* AudioPtr = Audio.Get())
+		if (USoundWave* AudioPtr = Audio.Get())
 		{
 			AudioPtr->GetResourceSizeEx(CumulativeResourceSize);
 		}
@@ -91,7 +91,7 @@ void UFaceFXAnim::Serialize(FArchive& Ar)
 
 		const bool bIsDirty = Package->IsDirty();
 
-		if(!bIsDirty)
+		if (!bIsDirty)
 		{
 			Package->SetDirtyFlag(true);
 		}
@@ -115,7 +115,7 @@ void UFaceFXAnim::GetDetails(FString& OutDetails) const
 		OutDetails += LOCTEXT("DetailsAnimTimeDuration", "Duration: ").ToString() + FString::Printf(TEXT("%0.5fs\n"), Duration);
 	}
 
-	if(!IsValid())
+	if (!IsValid())
 	{
 		OutDetails += TEXT("\n") + LOCTEXT("DetailsNotLoaded", "No FaceFX data").ToString();
 	}

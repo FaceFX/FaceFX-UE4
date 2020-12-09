@@ -165,6 +165,7 @@ public:
 		const float RelPosition = FMath::Clamp(Position, StartTime, EndTime) - StartTime;
 		Position = AnimLength > 0.F ? FMath::Fmod(RelPosition, AnimLength) : 0.F;
 		Position += StartOffset;
+
 		return Position;
 	}
 

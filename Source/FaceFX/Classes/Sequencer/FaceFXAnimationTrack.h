@@ -22,6 +22,7 @@ SOFTWARE.
 
 #include "MovieScene.h"
 #include "MovieSceneNameableTrack.h"
+#include "Compilation/IMovieSceneTrackTemplateProducer.h"
 #include "FaceFXAnimationTrack.generated.h"
 
 
@@ -32,7 +33,9 @@ struct FFaceFXAnimComponentSet;
 
 /** FaceFX movie scene track */
 UCLASS(MinimalAPI)
-class UFaceFXAnimationTrack : public UMovieSceneNameableTrack
+class UFaceFXAnimationTrack
+	: public UMovieSceneNameableTrack
+	, public IMovieSceneTrackTemplateProducer
 {
 	GENERATED_UCLASS_BODY()
 
@@ -44,20 +47,23 @@ public:
 	/** Gets the animation section at a certain time, or nullptr if there is none */
 	UMovieSceneSection* GetSectionAtTime(const FFrameNumber& Time) const;
 
-	//UMovieSceneTrack
+	//IMovieSceneTrackTemplateProducer
 	virtual FMovieSceneEvalTemplatePtr CreateTemplateForSection(const UMovieSceneSection& InSection) const override;
+	//UMovieSceneTrack
 	virtual void RemoveAllAnimationData() override;
 	virtual bool HasSection(const UMovieSceneSection& Section) const override;
 	virtual void AddSection(UMovieSceneSection& Section) override;
 	virtual void RemoveSection(UMovieSceneSection& Section) override;
+	virtual void RemoveSectionAt(int32 SectionIndex) override;
 	virtual bool IsEmpty() const override;
 	virtual bool SupportsMultipleRows() const override { return true; }
 	virtual const TArray<UMovieSceneSection*>& GetAllSections() const override;
+	virtual bool SupportsType(TSubclassOf<UMovieSceneSection> SectionClass) const override;
 	virtual UMovieSceneSection* CreateNewSection() override;
 	//~UMovieSceneTrack
 
 #if WITH_EDITORONLY_DATA
-	virtual FText GetDefaultDisplayName() const override;
+	virtual FText GetDisplayName() const override;
 #endif
 
 private:

@@ -54,7 +54,7 @@ public class FaceFX : ModuleRules
 
         PublicIncludePathModuleNames.Add("FaceFXLib");
 
-        if(bCompileWithWwise)
+        if (bCompileWithWwise)
         {
             PrivateDependencyModuleNames.Add("AkAudio");
         }
