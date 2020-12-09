@@ -66,6 +66,17 @@ bool FFaceFXAudioDefault::Play(float Position, UActorComponent** OutAudioComp)
 
 		if (Sound)
 		{
+#if WITH_EDITOR
+			UWorld* World = AudioComp->GetWorld();
+			if (GIsEditor && World != nullptr && !World->IsPlayInEditor())
+            {
+                AudioComp->bIsUISound = true;
+                AudioComp->bIsPreviewSound = true;
+            }
+#else
+            AudioComp->bIsUISound = false;
+#endif // WITH_EDITOR
+
 			CurrentProgress = FMath::Clamp(Position, 0.F, Sound->GetDuration());
 			AudioComp->SetSound(Sound);
 			AudioComp->SetPaused(false);
@@ -76,6 +87,7 @@ bool FFaceFXAudioDefault::Play(float Position, UActorComponent** OutAudioComp)
 				*OutAudioComp = AudioComp;
 			}
 			PlaybackState = AudioComp->IsPlaying() ? EPlaybackState::Playing : EPlaybackState::Stopped;
+
 			return IsPlaying();
 		}
 		else
