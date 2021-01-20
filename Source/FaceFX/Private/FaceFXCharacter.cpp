@@ -190,20 +190,6 @@ void UFaceFXCharacter::Tick(float DeltaTime)
 	//tick the audio player to update its progression
 	AudioPlayer->Tick(DeltaTime);
 
-	if (IsNonZeroTick && CurrentAnimProgress >= CurrentAnimDuration)
-	{
-		//end of animation reached
-		if (IsLooping())
-		{
-			Restart();
-		}
-		else
-		{
-			Stop();
-			return;
-		}
-	}
-
 	FxResult Result = fxActorProcessFrame(Actor, FrameState, CurrentTime);
 
 	if (!FX_SUCCEEDED(Result))
@@ -252,6 +238,20 @@ void UFaceFXCharacter::Tick(float DeltaTime)
 	ProcessMaterialParameters();
 
 	bIsDirty = true;
+
+    const bool bIsLastTick = IsNonZeroTick && CurrentAnimProgress >= CurrentAnimDuration;
+
+	if (bIsLastTick)
+	{
+		if (IsLooping())
+		{
+			Restart();
+		}
+		else
+		{
+			Stop();
+		}
+	}
 }
 
 bool UFaceFXCharacter::IsTickable() const
