@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015-2020 OC3 Entertainment, Inc. All rights reserved.
+  Copyright (c) 2015-2021 OC3 Entertainment, Inc. All rights reserved.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -190,20 +190,6 @@ void UFaceFXCharacter::Tick(float DeltaTime)
 	//tick the audio player to update its progression
 	AudioPlayer->Tick(DeltaTime);
 
-	if (IsNonZeroTick && CurrentAnimProgress >= CurrentAnimDuration)
-	{
-		//end of animation reached
-		if (IsLooping())
-		{
-			Restart();
-		}
-		else
-		{
-			Stop();
-			return;
-		}
-	}
-
 	FxResult Result = fxActorProcessFrame(Actor, FrameState, CurrentTime);
 
 	if (!FX_SUCCEEDED(Result))
@@ -252,6 +238,20 @@ void UFaceFXCharacter::Tick(float DeltaTime)
 	ProcessMaterialParameters();
 
 	bIsDirty = true;
+
+    const bool bIsLastTick = IsNonZeroTick && CurrentAnimProgress >= CurrentAnimDuration;
+
+	if (bIsLastTick)
+	{
+		if (IsLooping())
+		{
+			Restart();
+		}
+		else
+		{
+			Stop();
+		}
+	}
 }
 
 bool UFaceFXCharacter::IsTickable() const
@@ -819,7 +819,7 @@ bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset, bool IsCompensateForFor
 
 	TrackValues.AddUninitialized(TrackCount);
 
-	TArray<uint64> TrackIds;
+	TArray<uint64_t> TrackIds;
 	TrackIds.AddUninitialized(TrackCount);
 
 	Result = fxActorGetTracks(Actor, &TrackIds[0], &TrackCount);
@@ -874,7 +874,7 @@ bool UFaceFXCharacter::Load(const UFaceFXActor* Dataset, bool IsCompensateForFor
 			BoneTransforms.AddZeroed(XFormCount);
 
 			//match bone ids with names from the .ffxids assets
-			for (const uint64& BoneIdHash : BoneIds)
+			for (const uint64_t& BoneIdHash : BoneIds)
 			{
 				if (const FFaceFXIdData* BoneId = ActorData.Ids.FindByKey(BoneIdHash))
 				{
@@ -931,7 +931,7 @@ void UFaceFXCharacter::ProcessMorphTargets()
 	}
 }
 
-bool UFaceFXCharacter::SetupMorphTargets(const UFaceFXActor* Dataset, const TArray<uint64>& TrackIds)
+bool UFaceFXCharacter::SetupMorphTargets(const UFaceFXActor* Dataset, const TArray<uint64_t>& TrackIds)
 {
 	check(IsLoaded());
 	check(Dataset);
@@ -957,7 +957,7 @@ bool UFaceFXCharacter::SetupMorphTargets(const UFaceFXActor* Dataset, const TArr
 
 	for (int32 TrackIndex = 0; TrackIndex < NumTracks; ++TrackIndex)
 	{
-		const uint64 TrackId = TrackIds[TrackIndex];
+		const uint64_t TrackId = TrackIds[TrackIndex];
 
 		const FFaceFXIdData* AssetIdData = Dataset->GetData().Ids.FindByKey(TrackId);
 
@@ -978,7 +978,7 @@ bool UFaceFXCharacter::SetupMorphTargets(const UFaceFXActor* Dataset, const TArr
 	return true;
 }
 
-bool UFaceFXCharacter::SetupMaterialParameters(const UFaceFXActor* Dataset, const TArray<uint64>& TrackIds, const TArray<FName>& IgnoredTracks)
+bool UFaceFXCharacter::SetupMaterialParameters(const UFaceFXActor* Dataset, const TArray<uint64_t>& TrackIds, const TArray<FName>& IgnoredTracks)
 {
 	check(IsLoaded());
 	check(Dataset);
@@ -1004,7 +1004,7 @@ bool UFaceFXCharacter::SetupMaterialParameters(const UFaceFXActor* Dataset, cons
 
 	for (int32 TrackIndex = 0; TrackIndex < NumTracks; ++TrackIndex)
 	{
-		const uint64 TrackId = TrackIds[TrackIndex];
+		const uint64_t TrackId = TrackIds[TrackIndex];
 
 		const FFaceFXIdData* AssetIdData = Dataset->GetData().Ids.FindByKey(TrackId);
 

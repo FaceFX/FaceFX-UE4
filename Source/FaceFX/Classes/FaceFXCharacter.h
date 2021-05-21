@@ -1,6 +1,6 @@
 /*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015-2020 OC3 Entertainment, Inc. All rights reserved.
+  Copyright (c) 2015-2021 OC3 Entertainment, Inc. All rights reserved.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -478,7 +478,7 @@ private:
 	* @param TrackIds The FaceFX track ids
 	* @returns True if setup succeeded, else false
 	*/
-	bool SetupMorphTargets(const UFaceFXActor* Dataset, const TArray<uint64>& TrackIds);
+	bool SetupMorphTargets(const UFaceFXActor* Dataset, const TArray<uint64_t>& TrackIds);
 	
 	/** Processes the morph targets for the current frame state */
 	void ProcessMorphTargets();
@@ -497,7 +497,7 @@ private:
 	* @param IgnoredTracks The list of tracks to ignore
 	* @returns True if setup succeeded, else false
 	*/
-	bool SetupMaterialParameters(const UFaceFXActor* Dataset, const TArray<uint64>& TrackIds, const TArray<FName>& IgnoredTracks);
+	bool SetupMaterialParameters(const UFaceFXActor* Dataset, const TArray<uint64_t>& TrackIds, const TArray<FName>& IgnoredTracks);
 
 	/** Processes the material parameters for the current frame state */
 	void ProcessMaterialParameters();
@@ -541,7 +541,7 @@ private:
 	TArray<FName> BoneNames;
 
 	/** The bone ids coming from the facefx asset */
-	TArray<uint64> BoneIds;
+	TArray<uint64_t> BoneIds;
 
 	/** The list of morph target names retrieved from the skel mesh during asset loading. The indices match the morph target track values: MorphTargetTrackValues */
 	TArray<FName> MorphTargetNames;

@@ -1,6 +1,6 @@
 ﻿/*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015-2020 OC3 Entertainment, Inc. All rights reserved.
+  Copyright (c) 2015-2021 OC3 Entertainment, Inc. All rights reserved.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -90,12 +90,23 @@ public class FaceFXLib : ModuleRules
         }
         else if (Target.Platform == UnrealTargetPlatform.XboxOne)
         {
-            // If you are using the XDK, replace gdk with xdk below.
+            return Path.Combine(new[] { "xboxone", "xdk", CompilerFolder });
+        }
+        else if (Target.Platform.ToString() == "XboxOneGDK")
+        {
             return Path.Combine(new[] { "xboxone", "gdk", CompilerFolder });
+        }
+        else if (Target.Platform.ToString() == "XSX")
+        {
+            return Path.Combine(new[] { "xboxseriesx", CompilerFolder });
         }
         else if (Target.Platform == UnrealTargetPlatform.PS4)
         {
             return Path.Combine(new[] { "ps4", CompilerFolder });
+        }
+        else if (Target.Platform.ToString() == "PS5")
+        {
+            return Path.Combine(new[] { "ps5", CompilerFolder });
         }
         else if (Target.Platform == UnrealTargetPlatform.Switch)
         {
@@ -142,6 +153,16 @@ public class FaceFXLib : ModuleRules
             }
         }
 
+        // IMPORTANT NOTE FOR CONSOLES
+        // ===========================
+        //
+        // XboxOneGDK, XSX, and PS5 do not have public values in UnrealTargetPlatform in the public UE4 source, so they
+        // cannot be included here or the plugin will not build for users without access to those platforms. That's why
+        // they are checked for with strings in this file.
+        //
+        // Because of this there is no way for this file to infer which Visual Studio version is being built with those
+        // platforms, so you will likely have to manually set CompilerFolder here for each platform.
+
         string PlatformFolder = GetPlatformLibFolder(Target, CompilerFolder);
 
         if (Target.Platform == UnrealTargetPlatform.Win32)
@@ -168,7 +189,19 @@ public class FaceFXLib : ModuleRules
         {
             FaceFXLib = "libfacefx.lib";
         }
+        else if (Target.Platform.ToString() == "XboxOneGDK")
+        {
+            FaceFXLib = "libfacefx.lib";
+        }
+        else if (Target.Platform.ToString() == "XSX")
+        {
+            FaceFXLib = "libfacefx.lib";
+        }
         else if (Target.Platform == UnrealTargetPlatform.PS4)
+        {
+            FaceFXLib = "libfacefx.a";
+        }
+        else if (Target.Platform.ToString() == "PS5")
         {
             FaceFXLib = "libfacefx.a";
         }
