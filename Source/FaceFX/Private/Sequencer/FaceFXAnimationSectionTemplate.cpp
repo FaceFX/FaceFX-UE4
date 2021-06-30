@@ -131,6 +131,7 @@ void FFaceFXAnimationSectionTemplate::TearDown(FPersistentEvaluationData& Persis
 		return;
 	}
 
+	TArray<FGuid> StoppedGuidList;
 	for (auto It = SharedData->TrackData.CreateIterator(); It; ++It)
 	{
 		const FGuid& TrackId = It.Key();
@@ -155,6 +156,7 @@ void FFaceFXAnimationSectionTemplate::TearDown(FPersistentEvaluationData& Persis
 			return;
 		}
 
+		StoppedGuidList.Add(It->Key); // Guid to be remove from SharedData->TrackData
 		if (UFaceFXComponent* FaceFXComponent = Cast<UFaceFXComponent>(Key->ResolveObjectPtr()))
 		{
 			FFaceFXAnimId AnimId = SectionData.AnimationId;
@@ -183,7 +185,10 @@ void FFaceFXAnimationSectionTemplate::TearDown(FPersistentEvaluationData& Persis
 		}
 	}
 
-	SharedData->TrackData.Empty();
+	for (FGuid& RemoveGuid : StoppedGuidList)
+	{
+		SharedData->TrackData.Remove(RemoveGuid);
+	}
 }
 
 void FFaceFXAnimationExecutionToken::Execute(FPersistentEvaluationData& PersistentData, IMovieScenePlayer& Player)
