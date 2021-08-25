@@ -92,7 +92,7 @@ void FAnimNode_BlendFaceFXAnimation::LoadFaceFXData(FAnimInstanceProxy* AnimInst
 				BlendMode = FaceFXChar->GetBlendMode();
 
 				const TArray<FName>& BoneNames = FaceFXChar->GetBoneNames();
-				const TArray<FTransform>& BoneRefPoses = Component->SkeletalMesh->RefSkeleton.GetRefBonePose();
+				const TArray<FTransform>& BoneRefPoses = Component->SkeletalMesh->GetRefSkeleton().GetRefBonePose();
 
 				for (const FName& BoneName : BoneNames)
 				{
