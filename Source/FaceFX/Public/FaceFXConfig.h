@@ -24,22 +24,22 @@
 #include "Runtime/Launch/Resources/Version.h"
 
 #define FX_NO_1_6_API_COMPATIBILITY
-#include "FaceFXLib/facefx-runtime-2.0.0/facefx/facefx.h"
+#include "FaceFXLib/facefx-runtime-2.1.0/facefx/facefx.h"
 
 // Version check.
 #if defined(FFX_VERSION)
     // Pre-v2 runtime or v2 runtime with v1.6 compatibility layer enabled.
-    #if FFX_VERSION < FFX_MAKE_VERSION(2,0,0)
-        #error "FaceFX Runtime version 2.0.0 or greater is required to compile this version of the FaceFX UE4 plugin."
+    #if FFX_VERSION < FFX_MAKE_VERSION(2,1,0)
+        #error "FaceFX Runtime version 2.1.0 or greater is required to compile this version of the FaceFX UE4 plugin."
     #endif
 #elif defined(FX_VERSION)
     // v2 runtime.
-    #if FX_VERSION < FX_MAKE_VERSION(2,0,0)
-        #error "FaceFX Runtime version 2.0.0 or greater is required to compile this version of the FaceFX UE4 plugin."
+    #if FX_VERSION < FX_MAKE_VERSION(2,1,0)
+        #error "FaceFX Runtime version 2.1.0 or greater is required to compile this version of the FaceFX UE4 plugin."
     #endif
 #else
     // Unknown runtime version.
-    #error "FaceFX Runtime version 2.0.0 or greater is required to compile this version of the FaceFX UE4 plugin."
+    #error "FaceFX Runtime version 2.1.0 or greater is required to compile this version of the FaceFX UE4 plugin."
 #endif
 
 #include "FaceFXConfig.generated.h"

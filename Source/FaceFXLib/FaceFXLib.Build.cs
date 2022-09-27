@@ -27,7 +27,7 @@ public class FaceFXLib : ModuleRules
     static bool DebugLibsWarningDisplayed = false;
 
     //The folder in the FaceFX runtime is located in. You need to update this whenever you update your FaceFX runtime
-    public static string RuntimeFolder { get { return "facefx-runtime-2.0.0/facefx"; } }
+    public static string RuntimeFolder { get { return "facefx-runtime-2.1.0/facefx"; } }
 
     public FaceFXLib(ReadOnlyTargetRules Target) : base(Target)
     {
