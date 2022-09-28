@@ -88,13 +88,9 @@ public class FaceFXLib : ModuleRules
         {
             return Path.Combine(new[] { "android" });
         }
-        else if (Target.Platform == UnrealTargetPlatform.XboxOne)
-        {
-            return Path.Combine(new[] { "xboxone", "xdk", CompilerFolder });
-        }
         else if (Target.Platform.ToString() == "XboxOneGDK")
         {
-            return Path.Combine(new[] { "xboxone", "gdk", CompilerFolder });
+            return Path.Combine(new[] { "xboxone", CompilerFolder });
         }
         else if (Target.Platform.ToString() == "XSX")
         {
@@ -192,10 +188,6 @@ public class FaceFXLib : ModuleRules
         else if (Target.Platform == UnrealTargetPlatform.Android)
         {
             FaceFXLib = "libfacefx.a";
-        }
-        else if (Target.Platform == UnrealTargetPlatform.XboxOne)
-        {
-            FaceFXLib = "libfacefx.lib";
         }
         else if (Target.Platform.ToString() == "XboxOneGDK")
         {
