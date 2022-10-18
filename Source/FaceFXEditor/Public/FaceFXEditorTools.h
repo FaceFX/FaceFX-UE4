@@ -391,6 +391,12 @@ private:
 /** The callback for when assets get imported and we want to do something before the compiled data gets deleted */
 DECLARE_DELEGATE_FourParams(FCompilationBeforeDeletionDelegate, UObject* /** Asset */, const FString& /* CompilationFolder */, bool /** ImportResult */, FFaceFXImportResult& /** ResultMessages */);
 
+/** FaceFX animation registry. Used to speed up lookups when IsImportLookupAnimation is true. */
+typedef TMap<FString, FString> UFaceFXAnimRegistry;
+
+/** FaceFX audio registry. Used to speed up lookups when IsImportLookupAudio is true. */
+typedef TMap<FString, FString> USoundWaveRegistry;
+
 /** Editor specific FaceFX functions */
 struct FACEFXEDITOR_API FFaceFXEditorTools
 {
@@ -472,11 +478,13 @@ struct FACEFXEDITOR_API FFaceFXEditorTools
 	* @param PackageName The name of the package
 	* @param FaceFXActor The FaceFX actor asset that shall be linked to that new asset
 	* @param AssetTools The asset tools instance to use
+	* @param AnimRegistry The FaceFX animation registry used to speed up lookups (empty if !IsImportLookupAnimation)
+	* @param SoundRegistry The FaceFX audio registry used to speed up lookups (empty if !IsImportLookupAudio)
 	* @param OutResultMessages The result set
 	* @param Factory The factory to use. Keep at nullptr to directly create an instance
 	* @returns The created asset, nullptr if failed
 	*/
-	static class UFaceFXAnim* ReimportOrCreateAnimAsset(const FString& CompilationFolder, const FString& AnimGroup, const FString& AnimFile, const FString& PackageName, class UFaceFXActor* FaceFXActor, class IAssetTools& AssetTools, FFaceFXImportResult& OutResultMessages, class UFactory* Factory = nullptr);
+	static class UFaceFXAnim* ReimportOrCreateAnimAsset(const FString& CompilationFolder, const FString& AnimGroup, const FString& AnimFile, const FString& PackageName, class UFaceFXActor* FaceFXActor, class IAssetTools& AssetTools, const UFaceFXAnimRegistry& AnimRegistry, const USoundWaveRegistry& SoundRegistry, FFaceFXImportResult& OutResultMessages, class UFactory* Factory = nullptr);
 
 	/**
 	* Performs steps to store an asset physically and in source control
@@ -489,10 +497,11 @@ struct FACEFXEDITOR_API FFaceFXEditorTools
 	* Reloads the data from from a facefx compilation folder. Doesn't change asset name and folder
 	* @param Asset The target asset
 	* @param Folder The path to the platform folder to load the compiled assets from
+	* @param SoundRegistry The FaceFX audio registry used to speed up lookups (empty if !IsImportLookupAudio)
 	* @param OutResultMessages The result set
 	* @returns True if succeeded, else false
 	*/
-	static bool LoadFromCompilationFolder(class UFaceFXAsset* Asset, const FString& Folder, FFaceFXImportResult& OutResultMessages);
+	static bool LoadFromCompilationFolder(class UFaceFXAsset* Asset, const FString& Folder, const USoundWaveRegistry& SoundRegistry, FFaceFXImportResult& OutResultMessages);
 
 	/**
 	* Reloads the data from from a facefx compilation folder. Doesn't change asset name and folder
@@ -507,10 +516,11 @@ struct FACEFXEDITOR_API FFaceFXEditorTools
 	* Reloads the data from from a facefx compilation folder. Doesn't change asset name and folder
 	* @param Asset The target asset
 	* @param Folder The path to the folder to load the compiled assets from
+	* @param SoundRegistry The FaceFX audio registry used to speed up lookups (empty if !IsImportLookupAudio)
 	* @param OutResultMessages The result set
 	* @returns True if succeeded, else false
 	*/
-	static bool LoadFromCompilationFolder(class UFaceFXAnim* Asset, const FString& Folder, FFaceFXImportResult& OutResultMessages);
+	static bool LoadFromCompilationFolder(class UFaceFXAnim* Asset, const FString& Folder, const USoundWaveRegistry& SoundRegistry, FFaceFXImportResult& OutResultMessages);
 
 	/**
 	* Initializes the asset from a .facefx asset file
@@ -557,10 +567,11 @@ private:
 	* @param Group The group to use when loading the animation
 	* @param Animation The animation to use when loading the animation
 	* @param Folder The path to the platform folder to load the compiled assets from
+	* @param SoundRegistry The FaceFX audio registry used to speed up lookups (empty if !IsImportLookupAudio)
 	* @param OutResultMessages The result set
 	* @returns True if succeeded, else false
 	*/
-	static bool LoadFromCompilationFolder(class UFaceFXAnim* Asset, const FName& Group, const FName& Animation, const FString& Folder, FFaceFXImportResult& OutResultMessages);
+	static bool LoadFromCompilationFolder(class UFaceFXAnim* Asset, const FName& Group, const FName& Animation, const FString& Folder, const USoundWaveRegistry& SoundRegistry, FFaceFXImportResult& OutResultMessages);
 
 	/**
 	* Loads all actor data from a given folder into the given asset
@@ -575,15 +586,9 @@ private:
 	* Loads the audio file that is mapped to the given asset within the audio map file in the given folder and links to it. Creates a new USound asset if needed
 	* @param Asset The asset to create and link the audio for
 	* @param Folder The folder to load the audio map file from
+	* @param SoundRegistry The FaceFX audio registry used to speed up lookups (empty if !IsImportLookupAudio)
 	* @param OutResultMessages The result set
 	* @returns True if succeeded (no audio set or link/create succeeded), else false
 	*/
-	static bool LoadAudio(class UFaceFXAnim* Asset, const FString& Folder, FFaceFXImportResult& OutResultMessages);
-
-	/**
-	* Locates the USoundWave asset that was generated out of the given audio source file
-	* @param AudioSourceFile The absolute source file path to the audio file
-	* @returns The asset that was generated using that audio source or unassigned TSoftObjectPtr if not found
-	*/
-	static TSoftObjectPtr<class USoundWave> LocateAudio(const FString& AudioSourceFile);
+	static bool LoadAudio(class UFaceFXAnim* Asset, const FString& Folder, const USoundWaveRegistry& SoundRegistry, FFaceFXImportResult& OutResultMessages);
 };
