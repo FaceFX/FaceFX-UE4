@@ -10,7 +10,7 @@ The FaceFX UE4 plugin currently supports the Windows, Mac, Xbox One, PS4, Ninten
 Important Information
 ---------------------
 
-Starting with the UE4 version 4.26 update, the FaceFX UE4 Plugin has been updated to the FaceFX Runtime v2.0. It is important that you use the FaceFX Runtime v2.0 (or newer) data compiler and FaceFX Studio plugin. If you are upgrading from a previous version of the FaceFX UE4 Plugin, please make sure that you fully update your tool chain to the FaceFX Runtime v2.0 (or newer) as well.
+Starting with the UE4 version 4.27.2 update, the FaceFX UE4 Plugin has been updated to the FaceFX Runtime v2.1. It is important that you use the FaceFX Runtime v2.1 (or newer) data compiler and FaceFX Studio plugin. If you are upgrading from a previous version of the FaceFX UE4 Plugin, please make sure that you fully update your tool chain to the FaceFX Runtime v2.1 (or newer) as well.
 
 License
 -------
