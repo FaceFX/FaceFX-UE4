@@ -1,6 +1,8 @@
 FaceFX Unreal Engine 4 Plugin
 =============================
 
+NOTE: This is the Unreal Engine 4 plugin. The Unreal Engine 5 plugin is located [here](https://github.com/FaceFX/FaceFX-UE5).
+
 Welcome to the FaceFX Unreal Engine 4 plugin source code!
 
 This repository gives you all the information you need to successfully compile and install the FaceFX UE4 plugin.
