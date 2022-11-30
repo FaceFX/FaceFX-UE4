@@ -1,6 +1,6 @@
 ﻿/*******************************************************************************
   The MIT License (MIT)
-  Copyright (c) 2015-2021 OC3 Entertainment, Inc. All rights reserved.
+  Copyright (c) 2015-2022 OC3 Entertainment, Inc. All rights reserved.
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
@@ -27,7 +27,7 @@ public class FaceFXLib : ModuleRules
     static bool DebugLibsWarningDisplayed = false;
 
     //The folder in the FaceFX runtime is located in. You need to update this whenever you update your FaceFX runtime
-    public static string RuntimeFolder { get { return "facefx-runtime-2.0.0/facefx"; } }
+    public static string RuntimeFolder { get { return "facefx-runtime-2.1.0/facefx"; } }
 
     public FaceFXLib(ReadOnlyTargetRules Target) : base(Target)
     {
@@ -88,13 +88,9 @@ public class FaceFXLib : ModuleRules
         {
             return Path.Combine(new[] { "android" });
         }
-        else if (Target.Platform == UnrealTargetPlatform.XboxOne)
-        {
-            return Path.Combine(new[] { "xboxone", "xdk", CompilerFolder });
-        }
         else if (Target.Platform.ToString() == "XboxOneGDK")
         {
-            return Path.Combine(new[] { "xboxone", "gdk", CompilerFolder });
+            return Path.Combine(new[] { "xboxone", CompilerFolder });
         }
         else if (Target.Platform.ToString() == "XSX")
         {
@@ -134,13 +130,9 @@ public class FaceFXLib : ModuleRules
             throw new BuildException(System.String.Format("FaceFX: cannot find the FaceFX Runtime directory '{0}'", FaceFXDir));
         }
 
-        string CompilerFolder = "vs14";
+        string CompilerFolder = "vs15";
 
-        if (Target.WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2017)
-        {
-            CompilerFolder = "vs15";
-        }
-        else if (Target.WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2019)
+        if (Target.WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2019)
         {
             CompilerFolder = "vs16";
 
@@ -150,6 +142,18 @@ public class FaceFXLib : ModuleRules
             {
                 //fallback to vs15 folder
                 CompilerFolder = "vs15";
+            }
+        }
+        else if (Target.WindowsPlatform.Compiler == WindowsCompiler.VisualStudio2022)
+        {
+            CompilerFolder = "vs17";
+
+            //check if that folder exists (older FaceFX libs may not have them)
+            string LibFolder = System.IO.Path.Combine(new[] { FaceFXDir, "bin", GetPlatformLibFolder(Target, CompilerFolder) });
+            if (!Directory.Exists(LibFolder))
+            {
+                //fallback to vs16 folder
+                CompilerFolder = "vs16";
             }
         }
 
@@ -184,10 +188,6 @@ public class FaceFXLib : ModuleRules
         else if (Target.Platform == UnrealTargetPlatform.Android)
         {
             FaceFXLib = "libfacefx.a";
-        }
-        else if (Target.Platform == UnrealTargetPlatform.XboxOne)
-        {
-            FaceFXLib = "libfacefx.lib";
         }
         else if (Target.Platform.ToString() == "XboxOneGDK")
         {
